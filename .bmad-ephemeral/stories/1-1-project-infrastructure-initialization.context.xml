@@ -1,0 +1,258 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Project Infrastructure Initialization</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-1-project-infrastructure-initialization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>the core project infrastructure and development environment set up</iWant>
+    <soThat>I have a working foundation to build features on</soThat>
+    <tasks>
+      - Initialize Next.js 14+ project with App Router and TypeScript
+        - Run `npx create-next-app@latest` with TypeScript and App Router
+        - Configure `tsconfig.json` with strict mode
+        - Verify dev server starts successfully
+
+      - Set up project folder structure
+        - Create `/app` directory (Next.js App Router)
+        - Create `/lib` directory for utilities and helpers
+        - Create `/components` directory for React components
+        - Create `/types` directory for TypeScript types
+
+      - Configure code quality tools
+        - Set up ESLint with Next.js and TypeScript rules
+        - Configure Prettier with project style guide
+        - Add pre-commit hooks (Husky + lint-staged)
+
+      - Set up PostgreSQL database
+        - Evaluate Supabase vs self-hosted PostgreSQL
+        - Create database instance (Supabase recommended for built-in RLS and auth)
+        - Configure database connection in environment variables
+        - Test database connectivity
+
+      - Configure environment variables
+        - Create `.env.local` for local development
+        - Create `.env.example` template with all required variables
+        - Document environment variable usage in README
+
+      - Set up deployment environment
+        - Configure Vercel or Railway deployment
+        - Set up production environment variables
+        - Configure deployment from main branch
+        - Verify successful deployment
+
+      - Create basic CI/CD pipeline
+        - Set up GitHub Actions workflow for CI
+        - Add linting and type-checking to CI
+        - Add build verification to CI
+        - Configure automatic deployment on merge to main
+
+      - Document setup instructions
+        - Write README with clone, install, and run instructions
+        - Document environment setup requirements
+        - Add troubleshooting guide for common issues
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given I am starting a new project, When I initialize the repository and deployment pipeline, Then I have a working Next.js/React application with TypeScript, a configured PostgreSQL database, basic CI/CD pipeline, and deployment environment
+
+    2. And the repository structure follows best practices with clear separation of concerns
+
+    3. And all developers can clone, install dependencies, and run the application locally
+
+    4. And environment variables are properly configured with example templates
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno - Product Requirements Document</title>
+        <section>Project Classification</section>
+        <snippet>Pleeno is a multi-tenant B2B SaaS platform targeting small-to-medium international study agencies. Technical Type: SaaS B2B Web Application. Domain: Business/Financial Operations (International Education Sector). Complexity: Medium.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno - Product Requirements Document</title>
+        <section>Multi-Tenancy Architecture</section>
+        <snippet>PostgreSQL Row-Level Security (RLS) policies enforce tenant isolation at database layer. Every table includes agency_id foreign key. All queries automatically filtered by authenticated user's agency. Supabase recommended for managed PostgreSQL with built-in auth and RLS.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno - Product Requirements Document</title>
+        <section>Performance - Scalability</section>
+        <snippet>Support 100+ concurrent users per agency without performance degradation. Database connection pooling to handle concurrent requests efficiently. Horizontal scaling: Add application servers as load increases.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno - Product Requirements Document</title>
+        <section>Security - Data Protection</section>
+        <snippet>HTTPS/TLS 1.3 for all data in transit. Database encryption at rest (AES-256). Password hashing with bcrypt. Prevent SQL injection (parameterized queries). Prevent XSS attacks (input sanitization, output encoding).</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>pleeno - Epic Breakdown</title>
+        <section>Story 1.1: Project Infrastructure Initialization</section>
+        <snippet>Initialize Next.js 14+ with App Router, PostgreSQL 15+, basic CI/CD pipeline, deployment environment. Consider Supabase for managed PostgreSQL with built-in auth and RLS. Set up Vercel/Railway for deployment. Configure ESLint, Prettier, TypeScript strict mode.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>pleeno - Epic Breakdown</title>
+        <section>Epic 1: Foundation & Multi-Tenant Security</section>
+        <snippet>Establish the technical foundation, project infrastructure, and enterprise-grade multi-tenant architecture with Row-Level Security (RLS) that enables secure data isolation for all subsequent features.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project -->
+      <note>This is a greenfield project. No existing codebase to integrate with. This story will establish the initial project structure and foundation.</note>
+    </code>
+    <dependencies>
+      <note>No package.json exists yet. This story will initialize the project with these expected dependencies:</note>
+      <framework>
+        <name>Next.js</name>
+        <version>14.x (latest stable)</version>
+        <purpose>React framework with App Router, Server Components, and built-in routing</purpose>
+      </framework>
+      <framework>
+        <name>React</name>
+        <version>18.x</version>
+        <purpose>UI library for building components</purpose>
+      </framework>
+      <framework>
+        <name>TypeScript</name>
+        <version>5.x</version>
+        <purpose>Type-safe JavaScript with strict mode enabled</purpose>
+      </framework>
+      <database>
+        <name>PostgreSQL</name>
+        <version>15+</version>
+        <purpose>Primary database with Row-Level Security support</purpose>
+        <recommended>Supabase (managed PostgreSQL with built-in auth and RLS)</recommended>
+      </database>
+      <devDependencies>
+        <tool>
+          <name>ESLint</name>
+          <purpose>Code linting with Next.js and TypeScript rules</purpose>
+        </tool>
+        <tool>
+          <name>Prettier</name>
+          <purpose>Code formatting for consistency</purpose>
+        </tool>
+        <tool>
+          <name>Husky</name>
+          <purpose>Git hooks for pre-commit checks</purpose>
+        </tool>
+        <tool>
+          <name>lint-staged</name>
+          <purpose>Run linters on staged files only</purpose>
+        </tool>
+      </devDependencies>
+      <deployment>
+        <platform>Vercel (recommended) or Railway</platform>
+        <cicd>GitHub Actions for CI/CD pipeline</cicd>
+      </deployment>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>Framework Choice</type>
+      <description>Must use Next.js 14+ with App Router (not Pages Router). App Router is required for React Server Components and modern Next.js patterns.</description>
+    </constraint>
+    <constraint>
+      <type>TypeScript Strict Mode</type>
+      <description>TypeScript must be configured with strict mode enabled in tsconfig.json to ensure type safety across the codebase.</description>
+    </constraint>
+    <constraint>
+      <type>Database - RLS Support Required</type>
+      <description>Database solution must support Row-Level Security (RLS) for multi-tenant architecture. Supabase is recommended as it provides managed PostgreSQL with built-in RLS and authentication. Critical for Story 1.2 (Multi-Tenant Database Schema).</description>
+    </constraint>
+    <constraint>
+      <type>Folder Structure Convention</type>
+      <description>Project must follow Next.js 14 App Router conventions: /app for routes/layouts, /components for UI components, /lib for utilities/services, /types for TypeScript definitions.</description>
+    </constraint>
+    <constraint>
+      <type>Environment Variables</type>
+      <description>Environment variables must NEVER be committed to repository. .env.local must be gitignored. .env.example must contain only placeholder values for documentation purposes.</description>
+    </constraint>
+    <constraint>
+      <type>Code Quality Standards</type>
+      <description>ESLint and Prettier must be configured with Next.js and TypeScript rules. Pre-commit hooks (Husky + lint-staged) required to enforce code quality before commits.</description>
+    </constraint>
+    <constraint>
+      <type>Deployment Platform</type>
+      <description>Vercel recommended for Next.js deployment (automatic scaling, edge network). Alternative: Railway. Must support automatic deployments from main branch.</description>
+    </constraint>
+    <constraint>
+      <type>Multi-Tenant Foundation</type>
+      <description>Infrastructure choices must support multi-tenant architecture. Every table will have agency_id foreign key. RLS policies will enforce tenant isolation at database level.</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- No interfaces exist yet - this is the foundation story -->
+    <note>This story establishes the project infrastructure. No APIs or interfaces are created in this story. Interfaces will be defined in subsequent stories starting with Story 1.2 (Database Schema) and Story 1.3 (Authentication).</note>
+  </interfaces>
+  <tests>
+    <standards>
+      For this infrastructure story, testing is primarily manual verification. The story establishes the foundation but does not implement automated test infrastructure yet. Testing standards:
+
+      1. Manual Verification: Clone repository, run npm install, start dev server, verify application loads
+      2. TypeScript Compilation: Verify tsc compiles with no errors in strict mode
+      3. Build Verification: Verify next build succeeds without errors
+      4. Deployment Verification: Verify deployment pipeline deploys successfully to production environment
+      5. Environment Variables: Verify .env.example exists and .env.local is gitignored
+
+      Future testing infrastructure (Story 1.4 - Error Handling & Logging Infrastructure):
+      - Unit tests with Jest and React Testing Library
+      - Integration tests with Playwright or Cypress
+      - Test directory structure: /tests or /__tests__ following Next.js conventions
+    </standards>
+    <locations>
+      <!-- No test directory exists yet for this infrastructure story -->
+      <note>No automated tests for this story. Testing infrastructure will be added in Story 1.4.</note>
+      <futureLocation>/__tests__ or /tests (to be created in Story 1.4)</futureLocation>
+    </locations>
+    <ideas>
+      <testIdea ac="1">
+        <description>Verify Next.js application starts successfully</description>
+        <approach>Run npm run dev and verify http://localhost:3000 loads without errors</approach>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Verify TypeScript strict mode is enabled</description>
+        <approach>Check tsconfig.json has "strict": true and verify tsc compiles successfully</approach>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Verify database connection is configured</description>
+        <approach>Check environment variables include DATABASE_URL or SUPABASE_URL and verify connection test succeeds</approach>
+      </testIdea>
+      <testIdea ac="2">
+        <description>Verify project folder structure follows conventions</description>
+        <approach>Verify /app, /components, /lib, /types directories exist and contain expected structure</approach>
+      </testIdea>
+      <testIdea ac="3">
+        <description>Verify developers can clone and run locally</description>
+        <approach>Fresh clone on new machine, run npm install && npm run dev, verify success</approach>
+      </testIdea>
+      <testIdea ac="4">
+        <description>Verify environment variable template exists</description>
+        <approach>Check .env.example exists, contains all required variables, and .env.local is gitignored</approach>
+      </testIdea>
+      <testIdea ac="1">
+        <description>Verify CI/CD pipeline runs successfully</description>
+        <approach>Push commit to main branch, verify GitHub Actions workflow completes, deployment succeeds</approach>
+      </testIdea>
+      <testIdea ac="2">
+        <description>Verify code quality tools work</description>
+        <approach>Run npm run lint, verify ESLint catches issues. Run npm run format, verify Prettier formats code. Attempt commit with issues, verify pre-commit hook blocks it.</approach>
+      </testIdea>
+    </ideas>
+  </tests>
+</story-context>
