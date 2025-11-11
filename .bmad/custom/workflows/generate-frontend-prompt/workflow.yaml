@@ -1,0 +1,28 @@
+# Generate Frontend Prompt Workflow Configuration
+name: "generate-frontend-prompt"
+description: "Generate comprehensive frontend implementation prompts for AI code generators (like v0.dev) based on epic stories, including detailed user journey simulations with inputs, interactions, events, and behaviors"
+author: "anton"
+
+# Critical variables load from config_source
+config_source: "{project-root}/.bmad/bmb/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+date: system-generated
+
+# Optional docs that kickstart this workflow
+recommended_inputs:
+  - prd: "{output_folder}/*prd*.md"
+  - epics: "{output_folder}/*epic*.md"
+
+# Module path and component files
+installed_path: "{project-root}/.bmad/custom/workflows/generate-frontend-prompt"
+template: "{installed_path}/template.md"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Output configuration
+default_output_file: "{output_folder}/frontend-prompt-{story_id}.md"
+
+# Invocation control
+standalone: true

@@ -263,6 +263,18 @@ So that **my account information is accurate and I can change my password**.
 **And** I receive confirmation when profile is updated
 **And** I can view my role and agency but cannot change them
 
+**Permission Clarifications:**
+- **Regular Agency Users** can:
+  - Update their own profile (name, email, password)
+  - Change student application statuses
+  - View and check student data
+  - Update student information
+- **Regular Agency Users** cannot:
+  - Change/update college information
+  - Change/update payment plans or installment details (can only update payment status)
+  - Modify agency-level settings
+  - Change their own role or agency assignment
+
 **Prerequisites:** Story 2.3
 
 **Technical Notes:**
@@ -272,6 +284,7 @@ So that **my account information is accurate and I can change my password**.
 - Hash new passwords before storage
 - Add users.email_verified_at field
 - Display read-only agency name and role
+- Enforce permission checks: regular users cannot modify college or payment plan data (only status updates)
 
 ---
 
@@ -281,39 +294,47 @@ So that **my account information is accurate and I can change my password**.
 
 ### Story 3.1: College Registry
 
-As an **Agency User**,
+As an **Agency Admin**,
 I want **to create and manage a registry of colleges and their branch locations**,
 So that **I can associate students and payment plans with specific institutions and track commissions by branch**.
 
 **Acceptance Criteria:**
 
-**Given** I am an authenticated Agency User
+**Given** I am an authenticated Agency Admin
 **When** I access the colleges management page
 **Then** I can view all colleges in my agency
 
-**And** I can create a new college with name, country, and website
-**And** I can edit existing college information
+**And** I can create a new college with name, country, website, and default commission rate
+**And** I can edit existing college information (Admin only)
 **And** I can add branches to a college with branch name, address, and contact details
+**And** the default commission rate is automatically prefilled for new branches (editable before saving)
 **And** I can mark branches as active or inactive
 **And** each branch has an associated commission rate (percentage)
+
+**Permission Clarifications:**
+- **Agency Admins** can create, edit, and delete colleges and branches
+- **Regular Agency Users** can only view college and branch information
+- **Regular Agency Users** cannot modify college or branch data
 
 **Prerequisites:** Story 2.4
 
 **Technical Notes:**
-- Create colleges table: id, agency_id, name, country, website, created_at, updated_at
+- Create colleges table: id, agency_id, name, country, website, default_commission_rate_percent (decimal), created_at, updated_at
 - Create branches table: id, college_id, agency_id, name, address, contact_email, contact_phone, commission_rate_percent (decimal), is_active, created_at, updated_at
-- Implement API routes: GET/POST /api/colleges, PATCH /api/colleges/[id], GET/POST /api/colleges/[id]/branches
-- Create /colleges page with list and create form
-- Create /colleges/[id] detail page showing branches
+- Implement API routes: GET/POST /api/colleges (Admin only for POST), PATCH /api/colleges/[id] (Admin only), GET/POST /api/colleges/[id]/branches (Admin only for POST)
+- Create /colleges page with list and create form (create button visible to Admins only)
+- Create /colleges/[id] detail page showing branches (edit controls visible to Admins only)
+- When adding a new branch, auto-fill commission_rate_percent from college.default_commission_rate_percent
 - RLS policies on both tables using agency_id
 - Validate commission_rate_percent: 0-100
+- Add role-based middleware to protect Admin-only endpoints
 
 ---
 
 ### Story 3.2: Student Registry
 
 As an **Agency User**,
-I want **to create and manage a database of students**,
+I want **to create and manage a database of students with flexible data entry options**,
 So that **I can track which students are enrolled where and link them to payment plans**.
 
 **Acceptance Criteria:**
@@ -327,25 +348,81 @@ So that **I can track which students are enrolled where and link them to payment
 **And** I can see which colleges/branches each student is enrolled in
 **And** I can search students by name, email, or passport number
 **And** student records are unique by passport number within my agency
+**And** I can attach offer letters and other documents to student profiles
+**And** I can view/download attached documents and maximize them for reading
+**And** I can see a timeline/activity feed showing all changes and events for the student
+
+**Student Timeline/Activity Feed Requirements:**
+- Display chronological history of all student-related events (newest first)
+- Include: enrollment changes, course switches, payment updates, status changes, document uploads
+- Show transitions between courses at same or different schools
+- Each timeline entry shows: date, action, user who made change, before/after values
+- Visual timeline similar to activity wall/feed format
+- Support for multiple concurrent or sequential enrollments
+
+**Data Import/Migration Requirements:**
+
+*Manual Entry (MVP - All Plans):*
+- Manual student creation via form
+- Manual enrollment creation linked to student
+- Manual payment plan creation
+
+*CSV Bulk Upload (MVP - All Plans):*
+- Support CSV bulk upload for initial agency onboarding (students, colleges, payment plans)
+- CSV import wizard with field mapping interface
+- Data validation and error reporting during import
+- Allow partial student data import (missing fields like phone can be added later manually)
+- Import process logs all changes to audit trail
+
+*AI-Powered Offer Letter Extraction (Premium Feature - Higher Tier Plans):*
+- Upload PDF offer letter and automatically extract: student name, passport number, school/college name, branch/campus, course/program name, start date, end date, total tuition amount, payment schedule
+- AI extraction pre-populates student creation form, enrollment form, and payment plan form for review/approval
+- User can review, edit extracted data before saving
+- System attempts to match extracted school/course to existing colleges/branches in database
+- If no match found, user can select from existing or create new college/branch
+- Extracted payment schedule generates draft installments for approval
+- Feature gated by agency subscription tier (disabled for base plan, enabled for premium/enterprise tiers)
+- Fallback to manual entry if extraction fails or user prefers manual input
+- Log extraction accuracy metrics for continuous improvement
 
 **Prerequisites:** Story 3.1
 
 **Technical Notes:**
 - Create students table: id, agency_id, first_name, last_name, email, phone, passport_number, date_of_birth, nationality, created_at, updated_at
+- Create student_documents table: id, student_id, agency_id, document_type ENUM ('offer_letter', 'passport', 'visa', 'other'), file_name, file_path, file_size, uploaded_by, uploaded_at
 - Add unique constraint: (agency_id, passport_number)
 - Implement API routes: GET/POST /api/students, PATCH /api/students/[id], GET /api/students?search=query
-- Create /students page with list, search, and create form
-- Create /students/[id] detail page
-- RLS policy using agency_id
+- Implement document API routes: POST /api/students/[id]/documents, GET /api/students/[id]/documents/[doc_id], DELETE /api/students/[id]/documents/[doc_id]
+- Implement CSV import: POST /api/students/import, POST /api/colleges/import, POST /api/payment-plans/import
+- **AI Extraction API (Premium Feature):** POST /api/students/extract-from-offer-letter (with PDF upload)
+  - Check agency subscription tier before processing
+  - Use OCR + LLM (OpenAI GPT-4 Vision, Claude, or specialized document extraction service)
+  - Extract structured data: student_name, passport_number, college_name, branch_name, program_name, start_date, end_date, total_amount, payment_schedule[]
+  - Return JSON response with extracted fields and confidence scores
+  - Pre-populate multi-step wizard: Step 1: Student Info, Step 2: Enrollment Info, Step 3: Payment Plan
+  - Implement intelligent matching: fuzzy search existing colleges/branches by name
+  - Handle extraction failures gracefully with clear error messages
+  - Store extraction metadata for analytics and improvement
+- Create /students page with list, search, and create form (add "Import CSV" button and "Extract from Offer Letter" button for premium agencies)
+- Create /students/[id] detail page with documents section and activity timeline
+- Create /students/import page with CSV upload wizard and field mapping
+- Create /students/new/extract page with offer letter upload and review/edit wizard (premium only)
+- For timeline: query audit_logs filtered by student_id and related entities (enrollments, payment_plans)
+- File storage: use cloud storage (S3, GCS) or Supabase Storage with proper security
+- Document viewer: support PDF preview with maximize/fullscreen option
+- RLS policy using agency_id on all tables
 - Validate required fields: first_name, last_name, passport_number
+- Make email and phone optional to support partial data imports
+- Add agencies.subscription_tier field: ENUM ('basic', 'premium', 'enterprise')
+- Gate AI extraction feature based on subscription_tier
 
 ---
 
 ### Story 3.3: Student-College Enrollment Linking
 
 As an **Agency User**,
-I want **to link students to their enrolled colleges and branches**,
-So that **I can track where each student is studying and enable payment plan creation**.
+I want **to link students to their enrolled colleges and branches with supporting documentation**,
+So that **I can track where each student is studying, store official offer letters, and enable payment plan creation**.
 
 **Acceptance Criteria:**
 
@@ -354,20 +431,26 @@ So that **I can track where each student is studying and enable payment plan cre
 **Then** the enrollment is recorded with start date and expected end date
 
 **And** I can specify the program/course name
-**And** I can view all enrollments for a student
+**And** I can attach the official offer letter (PDF/image) to the enrollment
+**And** I can view/download/maximize the offer letter from the student profile
+**And** I can view all enrollments for a student with their attached documents
 **And** I can view all enrolled students for a college/branch
 **And** a student can be enrolled in multiple colleges/branches
 **And** I can mark an enrollment as completed or cancelled
+**And** incomplete student information (e.g., missing phone number) can be added/updated later manually
 
 **Prerequisites:** Story 3.2
 
 **Technical Notes:**
-- Create enrollments table: id, agency_id, student_id, branch_id, program_name, start_date, expected_end_date, status ENUM ('active', 'completed', 'cancelled'), created_at, updated_at
-- Implement API routes: POST /api/enrollments, PATCH /api/enrollments/[id], GET /api/students/[id]/enrollments, GET /api/branches/[id]/enrollments
-- Add enrollment section to student detail page
+- Create enrollments table: id, agency_id, student_id, branch_id, program_name, start_date, expected_end_date, offer_letter_url (nullable), offer_letter_filename (nullable), status ENUM ('active', 'completed', 'cancelled'), created_at, updated_at
+- Implement file upload for offer letters (Supabase Storage with RLS)
+- Implement API routes: POST /api/enrollments (with file upload), PATCH /api/enrollments/[id], GET /api/students/[id]/enrollments, GET /api/branches/[id]/enrollments
+- Add enrollment section to student detail page with document viewer/maximizer
 - Add enrolled students list to college/branch detail page
-- RLS policy using agency_id
+- RLS policy using agency_id for both database and storage buckets
 - Validate: student and branch must exist and belong to same agency
+- Support modal/fullscreen view for offer letter documents
+- Allow students to be created with partial information (mark required vs optional fields)
 
 ---
 
@@ -507,6 +590,11 @@ So that **I know exactly how much commission I'm entitled to claim from each col
 
 **Acceptance Criteria:**
 
+**Given** I am creating a payment plan manually
+**When** I enter total amount, number of installments, and frequency
+**Then** the system automatically calculates installment amounts as a draft
+**And** I can review and approve or modify the calculated installments before finalizing
+
 **Given** a payment plan with installments
 **When** installments are marked as paid
 **Then** the system calculates earned commission based on paid amounts
@@ -520,13 +608,19 @@ So that **I know exactly how much commission I'm entitled to claim from each col
 **Prerequisites:** Story 4.4
 
 **Technical Notes:**
-- Add calculated field to payment_plans: earned_commission (sum of paid installments proportional to total)
-- Create database view or compute on query:
-  - `earned_commission = SUM(installments.paid_amount WHERE status='paid') / payment_plan.total_amount * payment_plan.expected_commission`
-- Implement API route: GET /api/reports/commissions?branch_id=&status=
-- Display earned vs expected commission on payment plan detail page
-- Create commission summary widget for dashboard
-- Consider caching earned_commission on payment_plan record for performance
+- **Payment Plan Draft Calculation:**
+  - When user inputs total_amount, number_of_installments, and frequency, calculate: `installment_amount = total_amount / number_of_installments`
+  - Generate draft installments with calculated amounts and due dates based on frequency
+  - Present draft for review/approval before saving to database
+  - Allow manual adjustment of individual installment amounts (must total to payment plan total)
+- **Commission Calculation:**
+  - Add calculated field to payment_plans: earned_commission (sum of paid installments proportional to total)
+  - Create database view or compute on query:
+    - `earned_commission = SUM(installments.paid_amount WHERE status='paid') / payment_plan.total_amount * payment_plan.expected_commission`
+  - Implement API route: GET /api/reports/commissions?branch_id=&status=
+  - Display earned vs expected commission on payment plan detail page
+  - Create commission summary widget for dashboard
+  - Consider caching earned_commission on payment_plan record for performance
 
 ---
 
@@ -546,7 +640,7 @@ So that **overdue payments are automatically detected without manual checking**.
 **When** the daily status check job runs
 **Then** all installments with status "pending" and due_date < today are marked as "overdue"
 
-**And** the job runs automatically every day at a configured time (e.g., 2 AM UTC)
+**And** the job runs automatically every day at 7:00 AM UTC (5:00 PM Brisbane time)
 **And** the job logs its execution and any status changes made
 **And** the job only processes installments for active payment plans
 **And** the job is resilient to failures and retries on error
@@ -555,40 +649,55 @@ So that **overdue payments are automatically detected without manual checking**.
 
 **Technical Notes:**
 - Implement scheduled job using cron, Node-cron, or platform scheduler (Vercel Cron, Supabase Edge Functions)
+- Schedule cron expression: `0 7 * * *` (7:00 AM UTC daily = 5:00 PM Brisbane time)
 - Create API endpoint: POST /api/jobs/update-installment-statuses (protected by API key)
 - SQL query: `UPDATE installments SET status = 'overdue' WHERE status = 'pending' AND due_date < CURRENT_DATE`
 - Log execution to jobs_log table: id, job_name, started_at, completed_at, records_updated, status, error_message
 - Add monitoring/alerting if job fails
-- Consider time zones: use UTC consistently
+- Consider time zones: use UTC consistently for all date comparisons
 
 ---
 
 ### Story 5.2: Due Soon Notification Flags
 
 As an **Agency User**,
-I want **to see visual indicators for payments due within the next 7 days**,
-So that **I can proactively follow up before payments become overdue**.
+I want **to see visual indicators for payments due within the next 4 days**,
+So that **I can proactively follow up before payments become overdue, including weekend and early-week payments**.
 
 **Acceptance Criteria:**
 
 **Given** installments exist with upcoming due dates
 **When** I view payment plans or the dashboard
-**Then** installments due within 7 days are flagged as "due soon"
+**Then** installments due within 4 days are flagged as "due soon"
 
 **And** "due soon" installments display with a warning badge/color
 **And** the dashboard shows a count of "due soon" installments
 **And** I can filter the payment plans list to show only plans with "due soon" installments
-**And** the threshold (7 days) is configurable per agency
+**And** the threshold (4 days) is configurable per agency
+
+**Student Notification Requirements:**
+**Given** an installment is due soon
+**When** 36 hours before the payment cutoff time (5:00 PM Brisbane)
+**Then** the student receives an automated reminder notification
+**And** the notification is sent at 5:00 AM Brisbane time the day before the due date
+**And** the notification includes: student name, amount due, due date, payment instructions
 
 **Prerequisites:** Story 5.1
 
 **Technical Notes:**
-- Add computed field or query logic: `is_due_soon = (due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days') AND status = 'pending'`
+- Add computed field or query logic: `is_due_soon = (due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '4 days') AND status = 'pending'`
 - Update payment plan list/detail UI to show "due soon" badge
-- Add agencies.due_soon_threshold_days field (default: 7)
+- Add agencies.due_soon_threshold_days field (default: 4)
 - Implement API route: PATCH /api/agencies/[id]/settings for threshold configuration
 - Dashboard widget: count of installments where is_due_soon = true
 - Use consistent color coding: yellow/amber for "due soon", red for "overdue"
+- **Student Notification System:**
+  - Create student_notifications table: id, student_id, installment_id, notification_type, sent_at, delivery_status
+  - Implement scheduled job: runs daily at 5:00 AM Brisbane time (7:00 PM UTC previous day)
+  - Query installments due in 36 hours (due_date = CURRENT_DATE + 1 day, accounting for 5 PM cutoff)
+  - Send email/SMS to student with payment reminder
+  - Log all notifications sent
+  - Add students.contact_preference field (email, sms, both) and students.phone_number for SMS delivery
 
 ---
 
@@ -653,33 +762,78 @@ So that **I instantly know which payments need attention**.
 
 ---
 
-### Story 5.5: Automated Email Notifications (Optional Enhancement)
+### Story 5.5: Automated Email Notifications (Multi-Stakeholder)
 
 As an **Agency Admin**,
-I want **to optionally receive email notifications for overdue payments**,
-So that **I'm alerted even when not logged into the system**.
+I want **configurable email notifications for overdue payments sent to multiple stakeholders**,
+So that **the right people are alerted and can take action based on our agency's process**.
 
 **Acceptance Criteria:**
 
-**Given** I am an Agency Admin with email notifications enabled
-**When** the daily status job detects new overdue payments
-**Then** I receive a summary email listing all newly overdue installments
+**Given** I am an Agency Admin configuring notification settings
+**When** I set up email notification rules
+**Then** I can enable/disable notifications for different recipient types:
+- Agency admins and users
+- Students (overdue payment reminders)
+- Colleges (optional, using agency-defined template)
+- Sales agents/account managers assigned to students (optional)
 
-**And** the email includes student names, colleges, amounts, and due dates
-**And** the email includes a link to view the overdue payments in the app
-**And** I can enable/disable email notifications in my profile settings
-**And** emails are sent only once per installment when it first becomes overdue
+**And** I can create custom email templates for college notifications
+**And** I can configure which events trigger notifications (overdue, due soon, payment received)
+**And** I can assign sales agents/account managers to students for targeted notifications
+**And** emails are sent only once per installment per recipient when it first becomes overdue
+**And** each recipient type has independent enable/disable settings
+
+**Given** the daily status job detects new overdue payments
+**When** notifications are enabled
+**Then** emails are sent according to configured rules:
+
+**Agency Admin/User Emails:**
+- Summary of all newly overdue installments
+- Includes student names, colleges, amounts, and due dates
+- Includes link to view overdue payments in the app
+
+**Student Emails:**
+- Individual email per overdue installment
+- Payment amount, due date, payment instructions
+- Agency contact information
+
+**College Emails (Optional):**
+- Uses agency-defined custom template
+- Summary of overdue payments for students at that college
+- Can include any custom fields configured by agency
+
+**Sales Agent Emails (Optional):**
+- Notification when their assigned student has overdue payment
+- Student name, amount, due date, contact information
+- Link to student profile in the app
 
 **Prerequisites:** Story 5.4
 
 **Technical Notes:**
-- Add users.email_notifications_enabled field (default: false)
-- Extend status update job to track newly overdue (installments that changed status today)
-- Query users with email_notifications_enabled = true and role = 'agency_admin'
-- Send email via SendGrid/Resend with summary table
-- Create email template for overdue notifications
-- Track last_notified_date on installments to prevent duplicate emails
-- Add email preferences section to /settings/profile
+- **User & Notification Settings:**
+  - Add users.email_notifications_enabled field (default: false)
+  - Add students.assigned_user_id field (FK to users) for sales agent assignment
+  - Create notification_settings table: id, agency_id, recipient_type ENUM ('agency_user', 'student', 'college', 'sales_agent'), event_type ENUM ('overdue', 'due_soon', 'payment_received'), is_enabled, custom_template (text/html)
+- **Email Templates:**
+  - Create email_templates table: id, agency_id, template_type ENUM ('student_overdue', 'college_overdue', 'sales_agent_overdue', 'agency_admin_overdue'), subject, body_html, variables (JSON for placeholder mapping)
+  - Implement template editor UI with variable placeholders: {{student_name}}, {{amount}}, {{due_date}}, etc.
+  - Default templates provided, agencies can customize
+- **Notification Job:**
+  - Extend status update job to track newly overdue (installments that changed status today)
+  - Query notification_settings to determine which emails to send
+  - For each enabled recipient type:
+    - Agency users: query users with email_notifications_enabled = true
+    - Students: get student email from students table
+    - Colleges: get contact_email from branches/colleges table
+    - Sales agents: get user email from students.assigned_user_id
+  - Send email via SendGrid/Resend using appropriate template
+  - Track last_notified_date on installments to prevent duplicate emails
+- **Settings UI:**
+  - Add /settings/notifications page for configuring notification rules
+  - Add /settings/email-templates page for managing custom templates
+  - Add sales agent assignment field to student edit form
+  - Add email preferences section to /settings/profile
 
 ---
 
@@ -756,8 +910,8 @@ So that **I can anticipate incoming payments and plan accordingly**.
 ### Story 6.3: Commission Breakdown by College
 
 As an **Agency Admin**,
-I want **to see commission breakdown by college/branch**,
-So that **I know which institutions are most valuable and can prioritize relationships**.
+I want **to see commission breakdown by college/branch with tax details**,
+So that **I know which institutions are most valuable, understand tax implications, and can prioritize relationships**.
 
 **Acceptance Criteria:**
 
@@ -765,23 +919,26 @@ So that **I know which institutions are most valuable and can prioritize relatio
 **When** I access the commission breakdown widget
 **Then** I see a table or chart showing commission earned per college/branch
 
-**And** each row shows: college name, branch name, total expected commission, total earned commission, outstanding commission
+**And** each row shows: college name, branch name, total commissions, total GST, total commission + GST, total expected commission, total earned commission, outstanding commission
 **And** the list is sortable by any column
-**And** I can filter by time period (all time, this year, this quarter, this month)
+**And** I can filter by college, branch, and time period (all time, this year, this quarter, this month)
 **And** clicking a college/branch drills down to see associated payment plans
 **And** the widget highlights top-performing colleges
+**And** tax calculations (GST) are displayed separately and as combined totals
 
 **Prerequisites:** Story 6.2
 
 **Technical Notes:**
-- Implement API route: GET /api/dashboard/commission-by-college?period=all
+- Implement API route: GET /api/dashboard/commission-by-college?period=all&college=&branch=
 - Query: JOIN payment_plans → enrollments → branches → colleges
-- Aggregate: SUM(expected_commission), SUM(earned_commission) GROUP BY college, branch
+- Aggregate: SUM(expected_commission), SUM(earned_commission), SUM(gst_amount), SUM(commission + gst) GROUP BY college, branch
+- Calculate GST based on applicable tax rate (stored in payment_plans or config)
 - Return sorted by earned_commission DESC
-- Create React component: CommissionBreakdownTable
-- Add date range filter using query params
+- Create React component: CommissionBreakdownTable with columns: College, Branch, Total Commissions, Total GST, Total (Commission + GST), Expected, Earned, Outstanding
+- Add filters for college, branch, and date range using query params
 - Link college name to /colleges/[id] detail page
 - Consider caching for performance
+- Ensure GST calculations match payment plan records
 
 ---
 
@@ -854,34 +1011,40 @@ So that **I can immediately focus on the most urgent follow-ups**.
 
 **Goal:** Enable agencies to generate ad-hoc reports and export data for accounting software integration and stakeholder communication.
 
-### Story 7.1: Payment Plans Report Generator
+### Story 7.1: Payment Plans Report Generator with Contract Expiration Tracking
 
 As an **Agency User**,
-I want **to generate custom reports on payment plans with flexible filtering**,
-So that **I can analyze payment data for specific time periods, colleges, or students**.
+I want **to generate custom reports on payment plans with flexible filtering and contract expiration tracking**,
+So that **I can analyze payment data for specific time periods, colleges, or students, and proactively manage contract renewals**.
 
 **Acceptance Criteria:**
 
 **Given** I am viewing the reports page
 **When** I configure a payment plans report
-**Then** I can filter by: date range, college/branch, student, payment status, commission status
+**Then** I can filter by: date range, college/branch, student, payment status, contract expiration date
 
 **And** I can select which columns to include in the report
 **And** the report displays in a table with sorting and pagination
 **And** the report shows summary totals at the bottom (total amount, total paid, total commission)
 **And** I can preview the report before exporting
 **And** the report respects RLS and only shows my agency's data
+**And** the report includes contract expiration dates for each college/branch
+**And** I can filter to show only contracts expiring within a specified date range (e.g., next 30 days, next 60 days, next 90 days)
+**And** contracts nearing expiration are highlighted in the report
 
 **Prerequisites:** Story 6.5
 
 **Technical Notes:**
 - Create /reports page with report builder UI
 - Implement API route: POST /api/reports/payment-plans (returns JSON)
-- Accept filter params: date_from, date_to, college_id, branch_id, student_id, status[]
+- Accept filter params: date_from, date_to, college_id, branch_id, student_id, status[], contract_expiration_from, contract_expiration_to
 - Query payment_plans with joins and filters, return paginated results
-- Include computed fields: days_until_due, days_overdue, earned_commission
-- Create React component: ReportBuilder with filter form
+- Include computed fields: days_until_due, days_overdue, earned_commission, contract_expiration_date, days_until_contract_expiration
+- Join with colleges/branches table to retrieve contract_expiration_date
+- Create React component: ReportBuilder with filter form including contract expiration filters
+- Add visual indicator (e.g., warning badge) for contracts expiring within 30 days
 - RLS policy ensures agency_id filtering
+- Consider adding a dedicated "Contract Expiration Report" preset filter
 
 ---
 
@@ -949,8 +1112,8 @@ So that **I can share professional-looking reports with stakeholders or college 
 ### Story 7.4: Commission Report by College
 
 As an **Agency Admin**,
-I want **to generate commission reports grouped by college/branch**,
-So that **I can track what commissions are owed to me and use for claim submissions**.
+I want **to generate commission reports grouped by college/branch with location details**,
+So that **I can track what commissions are owed to me, distinguish between multiple branches, and use for claim submissions**.
 
 **Acceptance Criteria:**
 
@@ -958,11 +1121,13 @@ So that **I can track what commissions are owed to me and use for claim submissi
 **When** I generate a commission report
 **Then** I see commission breakdown by college and branch for a selected time period
 
-**And** each row shows: college, branch, total paid by students, commission rate, earned commission, outstanding commission
+**And** each row shows: college, branch, city, total paid by students, commission rate, earned commission, outstanding commission
+**And** the city field helps distinguish between multiple branches of the same school (e.g., multiple branches in one city or branches in different cities)
 **And** the report includes date range filter
 **And** the report is exportable to CSV and PDF
 **And** the PDF version is formatted for submission to college partners (clean, professional)
 **And** the report shows supporting details: list of students and payment plans contributing to commission
+**And** the report can be grouped/filtered by city when needed
 
 **Prerequisites:** Story 7.3
 
@@ -970,10 +1135,12 @@ So that **I can track what commissions are owed to me and use for claim submissi
 - Create /reports/commissions page
 - Implement API route: POST /api/reports/commissions
 - Query: JOIN payment_plans → enrollments → branches → colleges
-- Group by college, branch; aggregate payments and commissions
+- Group by college, branch, city; aggregate payments and commissions
+- Include city field from branches table in the query and display
 - Include drill-down: show payment plans and students for each branch
-- Create CommissionReportTemplate for PDF with professional formatting
+- Create CommissionReportTemplate for PDF with professional formatting including city column
 - Export functionality reuses CSV/PDF export logic from Story 7.2/7.3
+- Add optional city filter to help narrow down reports by location
 
 ---
 
