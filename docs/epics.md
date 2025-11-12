@@ -186,11 +186,11 @@ So that **my agency identity is established in the system and my team knows whic
 
 ---
 
-### Story 2.2: User Invitation System
+### Story 2.2: User Invitation and Task Assignment System
 
 As an **Agency Admin**,
-I want **to invite team members to join my agency**,
-So that **I can build my team and delegate work**.
+I want **to invite team members to join my agency and assign them specific tasks**,
+So that **I can build my team and flexibly delegate work based on individual needs**.
 
 **Acceptance Criteria:**
 
@@ -201,17 +201,25 @@ So that **I can build my team and delegate work**.
 **And** the invitation link expires after 7 days
 **And** the invited user can complete registration with the link
 **And** the new user is automatically associated with my agency
-**And** I can specify their role (Agency Admin or Agency User) during invitation
+**And** I can assign specific tasks from a master task list (e.g., data entry, document verification, payment processing) by ticking checkboxes
+**And** the invitation email includes a unique link showing only their assigned tasks
+**And** I can modify task assignments for existing users at any time
+**And** all changes to user profiles and task assignments are logged with: who made the change, what was changed, and timestamp
 
 **Prerequisites:** Story 2.1
 
 **Technical Notes:**
-- Create invitations table: id, agency_id, email, role, token, expires_at, invited_by, used_at
+- Create invitations table: id, agency_id, email, token, expires_at, invited_by, used_at
+- Create master_tasks table: id, task_name, task_code, description, created_at
+- Create user_task_assignments table: id, user_id, task_id, assigned_at, assigned_by
+- Create audit_log table: id, entity_type, entity_id, user_id, action, changes_json, created_at
 - Implement API route: POST /api/invitations
+- Implement API route: POST /api/users/{id}/tasks (assign/revoke tasks)
 - Generate secure invitation tokens (UUID or signed JWT)
-- Send invitation email via SendGrid/Resend
+- Send invitation email via SendGrid/Resend with personalized task link
 - Create /accept-invitation/[token] page for signup completion
 - Validate invitation before allowing registration
+- Implement audit logging for all profile changes (email, phone, payment plans, task assignments)
 
 ---
 
@@ -255,36 +263,72 @@ So that **my account information is accurate and I can change my password**.
 
 **Given** I am an authenticated user
 **When** I access my profile settings
-**Then** I can update my name, email, and password
+**Then** I can update my name and password
 
-**And** email changes require verification
 **And** password changes require current password confirmation
 **And** password must meet security requirements (min 8 chars, mix of types)
 **And** I receive confirmation when profile is updated
-**And** I can view my role and agency but cannot change them
+**And** I can view my role, agency, and email but cannot change them myself
+
+**Given** I am a Regular Agency User
+**When** I need to change my email address
+**Then** I must request the change from an Agency Admin
+**And** only an Agency Admin can update my email to ensure company policy compliance
+
+**Given** I am an Agency Admin
+**When** I access my profile settings
+**Then** I can update my own email address
+**And** email changes require administrator verification
+**And** the change is logged in the audit trail
 
 **Permission Clarifications:**
 - **Regular Agency Users** can:
-  - Update their own profile (name, email, password)
+  - Update their own profile (name, password only)
+  - Request email changes from admins (cannot self-update)
   - Change student application statuses
   - View and check student data
   - Update student information
 - **Regular Agency Users** cannot:
+  - Change their own email address (admin-only)
   - Change/update college information
-  - Change/update payment plans or installment details (can only update payment status)
-  - Modify agency-level settings
   - Change their own role or agency assignment
+
+- **Agency Admins** can:
+  - Update their own email (with verification)
+  - Update email addresses for all users in their agency
+  - Change/update payment plans and installment details
+  - Modify agency-level settings
+  - All permissions granted to Regular Agency Users
+
+**Audit Trail Requirements:**
+- All payment plan and installment changes must be logged with:
+  - User ID who made the change
+  - Timestamp of when the change was made
+  - Previous and new values (what was changed)
+- All agency-level setting changes must be logged with:
+  - User ID who made the change
+  - Timestamp of when the change was made
+  - Previous and new values (what was changed)
+- Audit logs must be immutable and retained for compliance
 
 **Prerequisites:** Story 2.3
 
 **Technical Notes:**
 - Create /settings/profile page
 - Implement API routes: PATCH /api/users/me/profile, PATCH /api/users/me/password
-- Email verification flow: send verification email, require click to confirm
+- Implement API route: PATCH /api/users/{id}/email (admin only)
+- Email verification flow for admin changes: send verification email, require click to confirm
 - Hash new passwords before storage
 - Add users.email_verified_at field
-- Display read-only agency name and role
-- Enforce permission checks: regular users cannot modify college or payment plan data (only status updates)
+- Display read-only email, agency name and role for regular users
+- Enforce permission checks:
+  - Regular users cannot modify their own email (admin approval required)
+  - Regular users cannot modify college data
+- Implement comprehensive audit logging:
+  - Log all email changes in audit_log table with admin user_id
+  - Log all payment plan and installment changes with user_id, timestamp, and field-level change tracking
+  - Log all agency-level setting changes with user_id, timestamp, and field-level change tracking
+  - Ensure audit logs capture before/after values for all changes
 
 ---
 
@@ -295,8 +339,8 @@ So that **my account information is accurate and I can change my password**.
 ### Story 3.1: College Registry
 
 As an **Agency Admin**,
-I want **to create and manage a registry of colleges and their branch locations**,
-So that **I can associate students and payment plans with specific institutions and track commissions by branch**.
+I want **to create and manage a registry of colleges, their branch locations, and contact information**,
+So that **I can associate students and payment plans with specific institutions, track commissions by branch, monitor GST status, and maintain contact details for each college**.
 
 **Acceptance Criteria:**
 
@@ -304,30 +348,82 @@ So that **I can associate students and payment plans with specific institutions 
 **When** I access the colleges management page
 **Then** I can view all colleges in my agency
 
-**And** I can create a new college with name, country, website, and default commission rate
+**And** I can create a new college with name, city, default commission rate, and GST status
 **And** I can edit existing college information (Admin only)
-**And** I can add branches to a college with branch name, address, and contact details
+**And** I can toggle GST status between "Included" and "Excluded"
+**And** I can add branches to a college with branch name and city
 **And** the default commission rate is automatically prefilled for new branches (editable before saving)
-**And** I can mark branches as active or inactive
+**And** branches are displayed as clickable links showing "College Name — Branch City"
 **And** each branch has an associated commission rate (percentage)
 
+**Given** I am managing a college
+**When** I need to add contacts
+**Then** I can add multiple contacts with name, role/department, position/title, email, and phone
+**And** contacts display the role/department in parentheses after the name (e.g., "Lina Perez (College)")
+**And** contacts show position/title below the name (e.g., "Accountant")
+**And** I can edit or delete existing contacts (Admin only)
+**And** contact changes are logged in the activity feed
+
+**Given** I am viewing a college detail page
+**When** I interact with the activity section
+**Then** I can see recent changes to the college (e.g., GST status changes, field updates)
+**And** I can filter activity by time period (e.g., "Last 30 days")
+**And** I can search within the activity log
+
+**Given** I am viewing a college detail page
+**When** I use the notes section
+**Then** I can add notes up to 2,000 characters
+**And** I can see a character counter (e.g., "0 / 2,000")
+**And** notes are saved with timestamp and user attribution
+
 **Permission Clarifications:**
-- **Agency Admins** can create, edit, and delete colleges and branches
-- **Regular Agency Users** can only view college and branch information
-- **Regular Agency Users** cannot modify college or branch data
+- **Agency Admins** can create, edit, and delete colleges, branches, and contacts
+- **Regular Agency Users** can only view college, branch, and contact information
+- **Regular Agency Users** cannot modify college, branch, or contact data
 
 **Prerequisites:** Story 2.4
 
 **Technical Notes:**
-- Create colleges table: id, agency_id, name, country, website, default_commission_rate_percent (decimal), created_at, updated_at
-- Create branches table: id, college_id, agency_id, name, address, contact_email, contact_phone, commission_rate_percent (decimal), is_active, created_at, updated_at
-- Implement API routes: GET/POST /api/colleges (Admin only for POST), PATCH /api/colleges/[id] (Admin only), GET/POST /api/colleges/[id]/branches (Admin only for POST)
-- Create /colleges page with list and create form (create button visible to Admins only)
-- Create /colleges/[id] detail page showing branches (edit controls visible to Admins only)
+- Create colleges table: id, agency_id, name, city, default_commission_rate_percent (decimal), gst_status (enum: 'included', 'excluded'), created_at, updated_at
+- Create branches table: id, college_id, agency_id, name, city, commission_rate_percent (decimal), created_at, updated_at
+- Create college_contacts table: id, college_id, agency_id, name, role_department, position_title, email, phone, created_at, updated_at
+- Create college_notes table: id, college_id, agency_id, user_id, content (text, max 2000 chars), created_at, updated_at
+- Implement API routes:
+  - GET/POST /api/colleges (Admin only for POST)
+  - PATCH /api/colleges/[id] (Admin only)
+  - DELETE /api/colleges/[id] (Admin only)
+  - GET/POST /api/colleges/[id]/branches (Admin only for POST)
+  - PATCH/DELETE /api/branches/[id] (Admin only)
+  - GET/POST /api/colleges/[id]/contacts (Admin only for POST)
+  - PATCH/DELETE /api/contacts/[id] (Admin only)
+  - GET/POST /api/colleges/[id]/notes (Admin only for POST)
+  - GET /api/colleges/[id]/activity (filtered by time period, searchable)
+- Create /colleges page with list view and create button (visible to Admins only)
+- Create /colleges/[id] detail page with:
+  - College header showing name, city, commission rate, GST status
+  - Edit Info and Delete buttons (Admin only)
+  - Branches section with clickable links formatted as "College Name — Branch City"
+  - Contacts section with Add button, edit/delete icons per contact
+  - Activity panel with time filter dropdown and search
+  - Notes section with character counter and Post Note button
+- Contact display format:
+  - Name with role/department in parentheses (e.g., "Lina Perez (College)")
+  - Position/title on separate line below name
+  - Email icon with email address
+  - Phone icon with phone number
+- Branch links navigate to /branches/[id] detail page
 - When adding a new branch, auto-fill commission_rate_percent from college.default_commission_rate_percent
-- RLS policies on both tables using agency_id
+- RLS policies on all tables using agency_id
 - Validate commission_rate_percent: 0-100
+- Validate email format for email contacts
+- Validate phone format for phone contacts
+- Validate note content max length: 2000 characters
 - Add role-based middleware to protect Admin-only endpoints
+- Log all college, branch, contact, and GST status changes in audit_log table
+- Activity feed should display:
+  - Field updates with old → new values
+  - Timestamp relative to current time (e.g., "10 days ago")
+  - User who made the change
 
 ---
 
@@ -335,43 +431,70 @@ So that **I can associate students and payment plans with specific institutions 
 
 As an **Agency User**,
 I want **to create and manage a database of students with flexible data entry options**,
-So that **I can track which students are enrolled where and link them to payment plans**.
+So that **I can track which students are enrolled where, monitor their visa status, and link them to payment plans**.
 
 **Acceptance Criteria:**
 
 **Given** I am an authenticated Agency User
 **When** I access the students management page
-**Then** I can view all students in my agency
+**Then** I can view all students in my agency in a table format
 
-**And** I can create a new student with name, email, phone, and passport number
-**And** I can edit existing student information
-**And** I can see which colleges/branches each student is enrolled in
-**And** I can search students by name, email, or passport number
+**And** the table displays columns: Full Name, Email, Visa Status, College/Branch, Updated
+**And** I can see visa status as colored badges (e.g., "Denied" in red, "In Process" in blue)
+**And** I can see college and branch displayed as "College Name" on first line and "Branch (City)" on second line
+**And** I can see relative timestamps for updates (e.g., "4 days ago", "8 days ago")
+**And** I can search students using the search box in the top right
+**And** I can export all students to CSV using the "Export CSV" button
+**And** I can add a new student using the "+ Add Student" button
+
+**Given** I am creating or editing a student
+**When** I fill out the student form
+**Then** I can enter: full name, email, phone, passport number, visa status, date of birth, nationality
+**And** visa status options include: "In Process", "Approved", "Denied", "Expired"
+**And** I can associate the student with a college and branch
 **And** student records are unique by passport number within my agency
 **And** I can attach offer letters and other documents to student profiles
 **And** I can view/download attached documents and maximize them for reading
-**And** I can see a timeline/activity feed showing all changes and events for the student
 
-**Student Timeline/Activity Feed Requirements:**
-- Display chronological history of all student-related events (newest first)
-- Include: enrollment changes, course switches, payment updates, status changes, document uploads
-- Show transitions between courses at same or different schools
-- Each timeline entry shows: date, action, user who made change, before/after values
-- Visual timeline similar to activity wall/feed format
-- Support for multiple concurrent or sequential enrollments
+**Given** I am viewing a student detail page
+**When** I view the page layout
+**Then** I see the student's full name as the page heading
+**And** I see action buttons: "Edit Info", "+ New Payment Plan", "Delete"
+**And** I see student information fields: Email, Phone, Visa Status (as colored badge), College/Branch (as clickable link to college detail page)
+**And** the College/Branch displays as "College - Branch (City)" format (e.g., "Imagine - Imagine (Brisbane)")
+
+**Given** I am on the student detail page
+**When** I interact with the Notes section
+**Then** I can add a note up to 2,000 characters in a text area
+**And** I can see a character counter (e.g., "0 / 2,000")
+**And** I can post the note using the "Post Note" button
+**And** I can view a list of existing notes with timestamps (relative, e.g., "8 days ago")
+**And** I can edit or delete each note using the edit/delete icons
+
+**Given** I am viewing the student detail page
+**When** I interact with the activity section
+**Then** I can see a timeline/activity feed on the right side showing all changes and events for the student
+**And** the activity feed displays: enrollment changes (College & Branch updates with before → after values), email updates, note additions, and other field changes
+**And** each activity entry shows: event type (Update, Note), description with old → new values, and relative timestamp (e.g., "8 days ago")
+**And** I can filter activity by time period using the dropdown (e.g., "Last 30 days")
+**And** I can search within the activity log using the search box
+**And** the activity feed auto-refreshes to show the latest changes
 
 **Data Import/Migration Requirements:**
 
 *Manual Entry (MVP - All Plans):*
-- Manual student creation via form
+- Manual student creation via form with full name, email, phone, passport number, visa status
 - Manual enrollment creation linked to student
 - Manual payment plan creation
 
-*CSV Bulk Upload (MVP - All Plans):*
+*CSV Export/Import (MVP - All Plans):*
+- Export all students to CSV with all fields (Full Name, Email, Visa Status, College/Branch, etc.)
 - Support CSV bulk upload for initial agency onboarding (students, colleges, payment plans)
 - CSV import wizard with field mapping interface
 - Data validation and error reporting during import
 - Allow partial student data import (missing fields like phone can be added later manually)
+- After import completion, system automatically sends email notification to administrator listing all students with incomplete critical data (especially missing phone numbers, as phone is the primary contact method)
+- Email notification includes clickable links to edit each incomplete student record directly
 - Import process logs all changes to audit trail
 
 *AI-Powered Offer Letter Extraction (Premium Feature - Higher Tier Plans):*
@@ -388,11 +511,26 @@ So that **I can track which students are enrolled where and link them to payment
 **Prerequisites:** Story 3.1
 
 **Technical Notes:**
-- Create students table: id, agency_id, first_name, last_name, email, phone, passport_number, date_of_birth, nationality, created_at, updated_at
+- Create students table: id, agency_id, full_name, email, phone, passport_number, visa_status (enum: 'in_process', 'approved', 'denied', 'expired'), date_of_birth, nationality, created_at, updated_at
+- Create student_enrollments table: id, student_id, college_id, branch_id, agency_id, enrollment_date, created_at, updated_at (to support college/branch association)
+- Create student_notes table: id, student_id, agency_id, user_id, content (text, max 2000 chars), created_at, updated_at
 - Create student_documents table: id, student_id, agency_id, document_type ENUM ('offer_letter', 'passport', 'visa', 'other'), file_name, file_path, file_size, uploaded_by, uploaded_at
 - Add unique constraint: (agency_id, passport_number)
-- Implement API routes: GET/POST /api/students, PATCH /api/students/[id], GET /api/students?search=query
-- Implement document API routes: POST /api/students/[id]/documents, GET /api/students/[id]/documents/[doc_id], DELETE /api/students/[id]/documents/[doc_id]
+- Implement API routes:
+  - GET/POST /api/students
+  - PATCH /api/students/[id]
+  - DELETE /api/students/[id]
+  - GET /api/students?search=query
+  - GET /api/students/export (returns CSV file)
+  - GET /api/students/[id]/activity (filtered by time period, searchable)
+- Implement notes API routes:
+  - GET/POST /api/students/[id]/notes
+  - PATCH /api/students/[id]/notes/[note_id]
+  - DELETE /api/students/[id]/notes/[note_id]
+- Implement document API routes:
+  - POST /api/students/[id]/documents
+  - GET /api/students/[id]/documents/[doc_id]
+  - DELETE /api/students/[id]/documents/[doc_id]
 - Implement CSV import: POST /api/students/import, POST /api/colleges/import, POST /api/payment-plans/import
 - **AI Extraction API (Premium Feature):** POST /api/students/extract-from-offer-letter (with PDF upload)
   - Check agency subscription tier before processing
@@ -403,18 +541,52 @@ So that **I can track which students are enrolled where and link them to payment
   - Implement intelligent matching: fuzzy search existing colleges/branches by name
   - Handle extraction failures gracefully with clear error messages
   - Store extraction metadata for analytics and improvement
-- Create /students page with list, search, and create form (add "Import CSV" button and "Extract from Offer Letter" button for premium agencies)
-- Create /students/[id] detail page with documents section and activity timeline
+- Create /students page with:
+  - Table view with columns: Full Name, Email, Visa Status, College/Branch, Updated
+  - Search box in top right
+  - "Export CSV" button in top right
+  - "+ Add Student" button in top right
+  - Visa status badges with color coding: Denied (red bg), In Process (blue bg), Approved (green bg), Expired (gray bg)
+  - College/Branch display: "College Name" on first line, "Branch (City)" on second line
+  - Relative timestamps (e.g., "4 days ago")
+  - Click on row to navigate to /students/[id] detail page
+- Create /students/[id] detail page with:
+  - Student name as page heading
+  - "Back to Students" navigation link
+  - Action buttons: "Edit Info", "+ New Payment Plan", "Delete"
+  - Student info section displaying: Email, Phone, Visa Status (badge), College/Branch (clickable link)
+  - College/Branch format: "College - Branch (City)" (e.g., "Imagine - Imagine (Brisbane)")
+  - Notes section with:
+    - Text area for adding notes (max 2,000 chars)
+    - Character counter "0 / 2,000"
+    - "Post Note" button
+    - List of existing notes with relative timestamps
+    - Edit/delete icons for each note
+  - Activity panel (right side) with:
+    - Refresh icon
+    - Time period filter dropdown ("Last 30 days")
+    - Search activity box
+    - Activity feed showing Updates (field changes with old → new) and Notes
+    - Relative timestamps (e.g., "8 days ago")
+  - Documents section (if applicable)
 - Create /students/import page with CSV upload wizard and field mapping
 - Create /students/new/extract page with offer letter upload and review/edit wizard (premium only)
-- For timeline: query audit_logs filtered by student_id and related entities (enrollments, payment_plans)
+- For timeline: query audit_logs filtered by student_id and related entities (enrollments, payment_plans, visa status changes)
 - File storage: use cloud storage (S3, GCS) or Supabase Storage with proper security
 - Document viewer: support PDF preview with maximize/fullscreen option
 - RLS policy using agency_id on all tables
-- Validate required fields: first_name, last_name, passport_number
+- Validate required fields: full_name, passport_number
 - Make email and phone optional to support partial data imports
+- Validate note content max length: 2000 characters
 - Add agencies.subscription_tier field: ENUM ('basic', 'premium', 'enterprise')
 - Gate AI extraction feature based on subscription_tier
+- Log all student changes including visa status updates, enrollment changes, email updates in audit_log table
+- Activity feed should display:
+  - Field updates with old → new values (e.g., "College & Branch: Imagine (Gold Coast) - Imagine → Imagine (Brisbane) - Imagine")
+  - Email updates (e.g., "Email: sofia@emple.eercom → sofia@emple.erercom")
+  - Note additions (e.g., "Note: sera que ya?")
+  - Timestamp relative to current time (e.g., "8 days ago")
+  - Event type label (Update, Note)
 
 ---
 
@@ -493,29 +665,61 @@ So that **I can track the total amount owed, installment schedule, and expected 
 
 As an **Agency User**,
 I want **to define flexible installment schedules for each payment plan**,
-So that **I can accommodate different payment arrangements (monthly, quarterly, custom)**.
+So that **I can accommodate different payment arrangements (monthly, quarterly, custom) with separate commission and non-commission fees**.
 
 **Acceptance Criteria:**
 
-**Given** I am creating or editing a payment plan
-**When** I define the installment structure
-**Then** I can choose from preset patterns: monthly, quarterly, or custom
+**Given** I am on Step 1: General Information of the payment plan creation wizard
+**When** I enter the basic payment plan details
+**Then** I can select a student from a dropdown (pre-populated with agency's students)
+**And** the college/branch is automatically assigned from the student's branch
+**And** I can enter or select a course name
+**And** I can enter the total course value
+**And** I can enter the commission rate (0-1 decimal, e.g., 0.15 for 15%)
+**And** I see helper text showing example rates (0.1 = 10%, 0.3 = 30%)
+**And** I can select course start date
+**And** I can select course end date
+**And** I can proceed to Step 2 when all required fields are completed
 
-**And** for monthly/quarterly: system auto-generates installments with equal amounts
-**And** for custom: I manually add each installment with amount and due date
-**And** the sum of installment amounts equals the total payment plan amount
-**And** I receive a warning if amounts don't match
-**And** I can edit or delete installments before finalizing the plan
+**And Given** I am on Step 2: Payment Structure
+**When** I configure the payment structure
+**Then** I can enter an initial payment amount (separate from installments)
+**And** I can specify an initial payment due date
+**And** I can toggle "Has the initial payment already been paid?" to mark it as paid immediately
+**And** I can enter number of installments (e.g., 11)
+**And** I can select payment frequency from dropdown: Monthly, Quarterly, or Custom
+**And** for Monthly/Quarterly: system auto-calculates installment amounts and due dates based on course dates
+**And** I can enter optional Non-Commissionable Fees in separate fields: Materials Cost, Admin Fees, Other Fees
+**And** the system displays a real-time Payment Summary showing: Total Commission (in green), Remaining after initial payment, Amount per installment
+**And** I can enter First Installment College Due Date (drives college payment schedule)
+**And** I can enter Student Lead Time in days (how many days before college due date the student must pay)
+**And** system auto-calculates student due dates as: college_due_date - student_lead_time
+**And** I can toggle GST Inclusive to indicate whether amounts include GST
+
+**And** when I proceed to Step 3: Review & Confirmation
+**Then** I see a Summary section displaying: Selected Student, Course, Total Value, Total Commission (green), Commission Rate, GST Inclusive status
+**And** I see an Installment Schedule table showing Initial Payment row with amount, student due date, college due date, and paid status badge
+**And** I see rows for each installment (Installment 1, 2, 3...) showing amount, student due date, college due date, and draft status dropdown
+**And** all commission-eligible amounts are styled/calculated separately from non-commissionable fees
+**And** the sum of (initial payment + all installments) equals the total course value including any non-commissionable fees
+**And** I receive validation warnings if amounts don't reconcile
+**And** I can navigate back to edit installment structure before final confirmation
 
 **Prerequisites:** Story 4.1
 
 **Technical Notes:**
-- Create installments table: id, payment_plan_id, agency_id, installment_number (1, 2, 3...), amount (decimal), due_date, status ENUM ('pending', 'paid', 'overdue', 'cancelled'), paid_date, paid_amount, created_at, updated_at
+- Create installments table: id, payment_plan_id, agency_id, installment_number (0 for initial payment, 1-N for installments), amount (decimal), student_due_date, college_due_date, is_initial_payment BOOLEAN, generates_commission BOOLEAN (true for tuition, false for fees), status ENUM ('pending', 'paid', 'overdue', 'cancelled', 'draft'), paid_date, paid_amount, created_at, updated_at
+- Add to payment_plans table: initial_payment_amount, initial_payment_due_date, initial_payment_paid BOOLEAN, materials_cost, admin_fees, other_fees, first_college_due_date, student_lead_time_days, gst_inclusive BOOLEAN
 - Implement API routes: POST /api/payment-plans/[id]/installments (batch create), PATCH /api/installments/[id]
-- Create installment builder UI with preset patterns
-- Validation: SUM(installments.amount) = payment_plan.total_amount
+- Step 2 UI: Calculate commission_amount = total_value - (materials_cost + admin_fees + other_fees), then distribute commission_amount across initial_payment + installments
+- Auto-calculate student_due_date = college_due_date - student_lead_time_days for each installment
+- Step 3 UI: Display installment schedule table with initial payment row (installment_number = 0) and installment rows (1-N)
+- Validation: SUM(initial_payment + installments) = total_course_value (including fees)
+- Green visual styling for commission amounts in Summary section
 - RLS policy using agency_id
-- Auto-calculate due dates for preset patterns based on start_date
+- Commission calculations exclude materials_cost, admin_fees, other_fees
+- Student-facing views show all installments with student_due_date
+- Agency reports provide filtering by generates_commission flag
 
 ---
 
@@ -532,20 +736,29 @@ So that **I can quickly find plans and see their payment status**.
 **Then** I see a list of all payment plans in my agency
 
 **And** each list item shows: student name, college/branch, total amount, number of installments, next due date, overall status
-**And** I can filter by status (active, completed, cancelled)
-**And** I can search by student name or reference number
+**And** I can filter by any combination of:
+  - Status (active, completed, cancelled)
+  - Student name (dropdown or autocomplete)
+  - College/branch (dropdown)
+  - Total amount (range slider or min/max inputs)
+  - Number of installments (dropdown or range)
+  - Next due date (date range picker)
+**And** I can search by student name or reference number using text search
+**And** I can clear all filters to reset the view
 **And** I can click a plan to view full details
 **And** the detail page shows: all plan info, student/enrollment details, commission calculation, and list of all installments with their statuses
 
 **Prerequisites:** Story 4.2
 
 **Technical Notes:**
-- Create /payment-plans page with list view
-- Implement API route: GET /api/payment-plans?status=&search=
-- Join with students, enrollments, branches, colleges for display
+- Create /payment-plans page with list view and comprehensive filtering UI
+- Implement API route: GET /api/payment-plans with query params for all filter options (status, student_id, college_id, branch_id, amount_min, amount_max, installments_min, installments_max, due_date_from, due_date_to, search)
+- Join with students, enrollments, branches, colleges for display and filtering
 - Create /payment-plans/[id] detail page
 - Show installments in chronological order with visual status indicators
 - Calculate overall plan status: if all installments paid → "completed", if any overdue → highlight
+- Filter UI supports multiple simultaneous filters with visual filter chips/tags
+- Include "Clear all filters" button
 - RLS policy using agency_id
 
 ---
@@ -841,11 +1054,11 @@ So that **the right people are alerted and can take action based on our agency's
 
 **Goal:** Surface critical KPIs, cash flow projections, and actionable insights through an interactive dashboard, delivering the transformation from chaos to control.
 
-### Story 6.1: Key Performance Indicators (KPIs) Widget
+### Story 6.1: Key Performance Indicators (KPIs) Widget with Seasonal and Market Insights
 
 As an **Agency Admin**,
-I want **to see high-level KPIs on my dashboard**,
-So that **I can quickly assess the health of my business at a glance**.
+I want **to see high-level KPIs with seasonal trends and market breakdown on my dashboard**,
+So that **I can quickly assess business health, identify peak months, and understand which schools and markets drive the most commission**.
 
 **Acceptance Criteria:**
 
@@ -860,19 +1073,46 @@ So that **I can quickly assess the health of my business at a glance**.
 **And** payment collection rate (% of expected payments received this month)
 **And** each KPI shows trend indicator (up/down vs last month)
 
+**And** I see a seasonal commission chart showing:
+**And** monthly commission totals for the last 12 months
+**And** visual indicators of peak and quiet months
+**And** year-over-year comparison (if historical data available)
+
+**And** I see commission breakdown by school displaying:
+**And** top 5 schools by commission earned (current month)
+**And** percentage share of total commission per school
+**And** trend indicator for each school (vs previous month)
+
+**And** I see commission breakdown by country of origin displaying:
+**And** top 5 countries by commission earned (current month)
+**And** percentage share of total commission per country
+**And** trend indicator for each country (vs previous month)
+
 **Prerequisites:** Story 5.5
 
 **Technical Notes:**
-- Implement API route: GET /api/dashboard/kpis
+- Implement API routes:
+  - GET /api/dashboard/kpis (current metrics + trends)
+  - GET /api/dashboard/seasonal-commission (12-month data)
+  - GET /api/dashboard/commission-by-school (top schools + trends)
+  - GET /api/dashboard/commission-by-country (top countries + trends)
 - Calculate metrics:
   - active_students: COUNT(students WHERE enrollments.status = 'active')
   - active_payment_plans: COUNT(payment_plans WHERE status = 'active')
   - outstanding_amount: SUM(installments.amount WHERE status IN ('pending', 'overdue'))
   - earned_commission: SUM across all payment_plans.earned_commission
   - collection_rate: (payments received this month / expected this month) * 100
-- Store previous month's values for trend comparison (consider monthly_metrics table)
-- Create React component: KPIWidget with trend arrows
+  - seasonal_data: GROUP BY month, SUM(commission) for last 12 months
+  - school_breakdown: JOIN schools, GROUP BY school_id, SUM(commission), calculate % share
+  - country_breakdown: JOIN students.country_of_origin, GROUP BY country, SUM(commission), calculate % share
+- Store previous month's values for trend comparison (monthly_metrics table or calculated on-the-fly)
+- Create React components:
+  - KPIWidget with trend arrows
+  - SeasonalCommissionChart (line/bar chart showing monthly patterns)
+  - CommissionBySchoolWidget (horizontal bar chart or table with % shares)
+  - CommissionByCountryWidget (horizontal bar chart or table with % shares)
 - Use color coding: green for positive trends, red for negative
+- Consider caching aggregated data for performance (refresh daily or on-demand)
 
 ---
 

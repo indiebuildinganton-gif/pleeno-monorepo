@@ -1,0 +1,30 @@
+# Execute Dev Story in Claude Code Web - Workflow Configuration
+name: "execute-dev-story-claude-code-web"
+description: "Generate task-specific development prompts from story context files for sequential execution in Claude Code Web with manifest tracking"
+author: "BMad"
+
+# Critical variables from config
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+date: system-generated
+
+# Recommended inputs - story context XML files
+recommended_inputs:
+  - story_context: "{output_folder}/stories/*.context.xml"
+
+# Optional input parameter - can be passed from slash command
+story_context_path: ""  # If provided, skip asking user
+
+# Module path and component files
+installed_path: "{project-root}/bmad/bmm/workflows/execute-dev-story-claude-code-web"
+template: false  # Action workflow - no template needed
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+
+# Output configuration - prompts saved to stories/prompts folder
+prompts_output_folder: "{output_folder}/stories/prompts/{story_id}"
+
+# Invocation control - can be run directly by users
+standalone: true
