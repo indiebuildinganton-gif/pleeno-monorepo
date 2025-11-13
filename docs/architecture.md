@@ -842,6 +842,68 @@ ORDER BY agency_id, status;
 
 **Affects Epics:** Epic 5 (Intelligent Status Automation), Epic 6 (Dashboard - overdue counts)
 
+---
+
+## Pattern 3: Automated Status State Machine - Operations
+
+### Deployment Checklist
+
+- [ ] Deploy Edge Function: `supabase functions deploy update-installment-statuses`
+- [ ] Set API key secret: `supabase secrets set SUPABASE_FUNCTION_KEY="<key>"`
+- [ ] Apply migration: `supabase db push`
+- [ ] Verify pg_cron schedule: `SELECT * FROM cron.job WHERE jobname = 'update-installment-statuses-daily';`
+- [ ] Test manual execution
+- [ ] Monitor first scheduled run
+
+### Operational Procedures
+
+**Daily Health Check:**
+```sql
+SELECT * FROM jobs_log WHERE job_name = 'update-installment-statuses' ORDER BY started_at DESC LIMIT 5;
+```
+
+**Manual Trigger:**
+```bash
+curl -X POST https://<project-ref>.supabase.co/functions/v1/update-installment-statuses \
+  -H "X-API-Key: <key>"
+```
+
+**Emergency Disable:**
+```sql
+SELECT cron.unschedule('update-installment-statuses-daily');
+```
+
+### Monitoring Metrics
+
+- **Success Rate:** > 99%
+- **Average Duration:** < 10 seconds
+- **Max Retries:** 3 per execution
+- **Alert Latency:** < 5 minutes
+
+### Testing Procedures
+
+For testing changes to the status update logic:
+
+1. Deploy to staging environment first
+2. Create test agencies and installments with various due dates
+3. Run manually: `SELECT * FROM update_installment_statuses();`
+4. Verify results in jobs_log and installments tables
+5. Test Edge Function: `curl ... -H "X-API-Key: <staging-key>"`
+6. Monitor one full scheduled run
+7. Deploy to production following deployment checklist
+
+### Rollback Procedures
+
+If issues arise after deployment:
+
+1. **Disable schedule:** `SELECT cron.unschedule('update-installment-statuses-daily');`
+2. **Roll back migration:** `supabase db reset` or apply down migration
+3. **Roll back Edge Function:** Deploy previous version
+4. **Investigate issue:** Review logs, jobs_log table, error messages
+5. **Fix and redeploy:** Follow deployment checklist again
+
+---
+
 ## Implementation Patterns
 
 ### Naming Conventions
