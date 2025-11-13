@@ -84,9 +84,10 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * perPage
 
     // Build query with RLS-enforced agency filtering
+    // Include branch count aggregation for each college
     let query = supabase
       .from('colleges')
-      .select('*', { count: 'exact' })
+      .select('*, branches(count)', { count: 'exact' })
       .eq('agency_id', userAgencyId)
 
     // Apply pagination and ordering
@@ -101,6 +102,15 @@ export async function GET(request: NextRequest) {
       throw new Error('Failed to fetch colleges')
     }
 
+    // Transform data to include branch_count as a number
+    const transformedColleges = (colleges || []).map((college: any) => {
+      const { branches, ...collegeData } = college
+      return {
+        ...collegeData,
+        branch_count: branches?.[0]?.count || 0,
+      }
+    })
+
     // Calculate total pages
     const totalPages = count ? Math.ceil(count / perPage) : 0
 
@@ -108,7 +118,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        data: colleges || [],
+        data: transformedColleges,
         meta: {
           total: count || 0,
           page,
