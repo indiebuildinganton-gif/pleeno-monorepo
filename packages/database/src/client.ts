@@ -44,3 +44,45 @@ export function createClient() {
  * Use this when you need to type a Supabase client instance
  */
 export type BrowserClient = ReturnType<typeof createClient>
+
+/**
+ * Get current user's agency_id from Supabase session
+ * Returns null if user not authenticated or no agency assigned
+ *
+ * @param client - The Supabase browser client instance
+ * @returns The agency_id as a string, or null if not found
+ *
+ * @example
+ * ```typescript
+ * const supabase = createClient()
+ * const agencyId = await getCurrentAgencyId(supabase)
+ * if (agencyId) {
+ *   console.log('User belongs to agency:', agencyId)
+ * }
+ * ```
+ */
+export async function getCurrentAgencyId(
+  client: BrowserClient
+): Promise<string | null> {
+  const {
+    data: { session },
+  } = await client.auth.getSession()
+
+  if (!session?.user) {
+    return null
+  }
+
+  // Get agency_id from users table
+  const { data: user, error } = await client
+    .from('users')
+    .select('agency_id')
+    .eq('id', session.user.id)
+    .single()
+
+  if (error || !user) {
+    console.error('Failed to get agency_id:', error)
+    return null
+  }
+
+  return user.agency_id
+}
