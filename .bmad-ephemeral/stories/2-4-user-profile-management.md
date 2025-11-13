@@ -142,14 +142,14 @@ so that **my account information is accurate and I can change my password**.
   - [x] Footer: "If you didn't request this change, please ignore this email"
   - [x] Styling: Professional, matches agency branding
 
-- [ ] Create validation schemas (AC: 1, 2, 3, 8)
-  - [ ] Create packages/validations/src/profile.schema.ts
-  - [ ] Define ProfileUpdateSchema: full_name (min 2 chars)
-  - [ ] Define PasswordChangeSchema: current_password, new_password, confirm_password
-  - [ ] Validate new_password: min 8 chars, regex for uppercase, lowercase, number, special
-  - [ ] Validate passwords match (new_password === confirm_password)
-  - [ ] Define EmailUpdateSchema: email (valid email format)
-  - [ ] Export TypeScript types
+- [x] Create validation schemas (AC: 1, 2, 3, 8)
+  - [x] Create packages/validations/src/profile.schema.ts
+  - [x] Define ProfileUpdateSchema: full_name (min 2 chars)
+  - [x] Define PasswordChangeSchema: current_password, new_password, confirm_password
+  - [x] Validate new_password: min 8 chars, regex for uppercase, lowercase, number, special
+  - [x] Validate passwords match (new_password === confirm_password)
+  - [x] Define EmailUpdateSchema: email (valid email format)
+  - [x] Export TypeScript types
 
 - [x] Add navigation link to profile (AC: 1)
   - [x] Update apps/agency/app/layout.tsx navigation
@@ -1002,6 +1002,71 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
   - Expiration notice (1 hour) ✓
   - Security disclaimer footer ✓
   - Integrated with email change API endpoint ✓
+**Task 12: Create validation schemas** (Completed: 2025-11-13)
+- All subtasks completed successfully
+- Validation schemas implemented in packages/validations/src/user.schema.ts:
+  - ✅ ProfileUpdateSchema: Validates full_name field
+    - Minimum 2 characters (updated from 1 to meet task requirements)
+    - Maximum 255 characters
+    - Automatic trimming of whitespace
+    - Supports international characters and special characters
+  - ✅ PasswordChangeSchema: Validates password change operations
+    - current_password: Required field for authentication
+    - new_password: Must meet all security requirements:
+      - Minimum 8 characters
+      - At least one uppercase letter (regex: /[A-Z]/)
+      - At least one lowercase letter (regex: /[a-z]/)
+      - At least one number (regex: /[0-9]/)
+      - At least one special character (regex: /[!@#$%^&*(),.?":{}|<>]/)
+    - confirm_password: Must match new_password exactly
+    - Password mismatch validation using Zod refine
+  - ✅ EmailUpdateSchema: Validates email update operations
+    - Valid email format
+    - Maximum 255 characters
+    - Automatic conversion to lowercase
+    - Automatic trimming of whitespace
+  - ✅ All TypeScript types exported: ProfileUpdate, PasswordChange, EmailUpdate
+- Important fix: Aligned special character regex between PasswordChangeSchema and password-strength utility
+  - Changed from /[^A-Za-z0-9]/ (any non-alphanumeric) to /[!@#$%^&*(),.?":{}|<>]/ (specific special chars)
+  - Prevents confusion where spaces, underscores, or hyphens would pass schema but fail strength indicator
+  - Ensures consistent validation between frontend password strength indicator and backend validation
+- Created comprehensive test suite in packages/validations/src/__tests__/user.schema.test.ts:
+  - ProfileUpdateSchema tests (20 test cases):
+    - ✅ Valid names with minimum/maximum length
+    - ✅ International characters and special characters (apostrophes, hyphens, accents)
+    - ✅ Whitespace trimming
+    - ✅ Validation errors for too short/long names
+    - ✅ Empty string and missing field validation
+  - PasswordChangeSchema tests (35+ test cases):
+    - ✅ Valid passwords meeting all requirements
+    - ✅ All special characters individually tested
+    - ✅ Each requirement tested in isolation (length, uppercase, lowercase, number, special char)
+    - ✅ Password mismatch detection (exact match, case sensitivity, whitespace)
+    - ✅ Missing fields validation
+    - ✅ Multiple validation errors reported together
+    - ✅ Edge cases: spaces, underscores, hyphens not accepted as special chars
+  - EmailUpdateSchema tests (15+ test cases):
+    - ✅ Valid email formats (simple, plus addressing, subdomains, international TLDs)
+    - ✅ Email normalization (lowercase, trimming)
+    - ✅ Invalid formats rejected (missing @, missing domain, double @, etc.)
+    - ✅ Length validation
+    - ✅ Empty and missing field validation
+  - UserRoleUpdateSchema and UserStatusUpdateSchema tests (8 test cases):
+    - ✅ Valid role and status values
+    - ✅ Invalid values rejected with descriptive errors
+- All schemas follow Zod best practices with clear error messages
+- Schemas aligned with architecture.md patterns and security requirements
+- All acceptance criteria (AC: 1, 2, 3, 8) met:
+  - AC1: ProfileUpdateSchema allows name updates ✓
+  - AC2: PasswordChangeSchema requires current password ✓
+  - AC3: Password security requirements enforced ✓
+  - AC8: EmailUpdateSchema validates admin email changes ✓
+- Note: Schemas placed in user.schema.ts instead of separate profile.schema.ts
+  - Decision made during earlier task implementation (Task 07)
+  - Makes semantic sense as profile updates are user entity updates
+  - Already in use by implemented API endpoints
+  - Properly exported from package index
+
 **Task 15: Write tests for profile management** (Completed: 2025-11-13)
 - All subtasks completed successfully
 - Created comprehensive test suite for all profile management endpoints
@@ -1097,6 +1162,10 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - `apps/agency/app/api/users/[id]/email/__tests__/route.test.ts` - Email change API tests (admin)
 - `apps/agency/app/api/users/verify-email/__tests__/route.test.ts` - Email verification API tests (already existed)
 
+**Task 12: Create validation schemas**
+- `packages/validations/src/user.schema.ts` - Updated profile validation schemas
+- `packages/validations/src/__tests__/user.schema.test.ts` - Comprehensive validation tests
+
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
@@ -1106,3 +1175,4 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - **2025-11-13:** Task 14 completed - Implement password strength validator utility with comprehensive checks and type exports
 - **2025-11-13:** Task 11 completed - Create email verification email template using React Email with professional branding, integrated with API endpoint
 - **2025-11-13:** Task 15 completed - Write comprehensive tests for profile management (38 test cases across 4 test files)
+- **2025-11-13:** Task 12 completed - Create validation schemas for profile, password, and email updates with comprehensive test coverage
