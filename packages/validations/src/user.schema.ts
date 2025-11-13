@@ -27,30 +27,51 @@ export type ProfileUpdate = z.infer<typeof ProfileUpdateSchema>
  * - At least one number
  * - At least one special character
  */
-export const PasswordChangeSchema = z.object({
-  current_password: z
-    .string()
-    .min(1, 'Current password is required'),
-  new_password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  confirm_password: z
-    .string()
-    .min(1, 'Password confirmation is required'),
-}).refine((data) => data.new_password === data.confirm_password, {
-  message: 'Passwords do not match',
-  path: ['confirm_password'],
-})
+export const PasswordChangeSchema = z
+  .object({
+    current_password: z.string().min(1, 'Current password is required'),
+    new_password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number')
+      .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+    confirm_password: z.string().min(1, 'Password confirmation is required'),
+  })
+  .refine((data) => data.new_password === data.confirm_password, {
+    message: 'Passwords do not match',
+    path: ['confirm_password'],
+  })
 
 /**
  * TypeScript type inferred from the PasswordChangeSchema
  * Use this type for type-safe password change operations
  */
 export type PasswordChange = z.infer<typeof PasswordChangeSchema>
+
+/**
+ * Zod schema for email updates by admin
+ * Used when an admin wants to change a user's email address
+ * Triggers email verification workflow
+ */
+export const EmailUpdateSchema = z.object({
+  email: z
+    .string()
+    .email('Invalid email address')
+    .min(1, 'Email is required')
+    .max(255, 'Email must be less than 255 characters')
+    .toLowerCase()
+    .trim(),
+})
+
+/**
+ * TypeScript type inferred from the EmailUpdateSchema
+ * Use this type for type-safe email update operations
+ */
+export type EmailUpdate = z.infer<typeof EmailUpdateSchema>
+
+/**
  * Schema for updating user role
  */
 export const UserRoleUpdateSchema = z.object({
