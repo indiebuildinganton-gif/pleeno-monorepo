@@ -1,13 +1,14 @@
 /**
- * User Registration Page
+ * User Login Page
  *
- * Provides a signup form for new users to create an account.
+ * Provides a login form for existing users to sign in.
  * Features:
  * - Client-side form validation with Zod
  * - Real-time validation feedback
- * - Password strength requirements
  * - Error handling and display
  * - Loading states
+ * - Link to password reset
+ * - Link to signup page
  */
 
 'use client'
@@ -20,23 +21,17 @@ import { z } from 'zod'
 import Link from 'next/link'
 
 /**
- * Signup form validation schema
+ * Login form validation schema
  * Mirrors the server-side validation for consistent UX
  */
-const signupSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email('Invalid email format'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Must contain uppercase letter')
-    .regex(/[a-z]/, 'Must contain lowercase letter')
-    .regex(/[0-9]/, 'Must contain number'),
-  full_name: z.string().min(1, 'Full name is required'),
-  agency_name: z.string().min(1, 'Agency name is required'),
+  password: z.string().min(1, 'Password is required'),
 })
 
-type SignupFormData = z.infer<typeof signupSchema>
+type LoginFormData = z.infer<typeof loginSchema>
 
-export default function SignupPage() {
+export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -45,16 +40,16 @@ export default function SignupPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -63,11 +58,12 @@ export default function SignupPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Signup failed')
+        throw new Error(result.error || 'Login failed')
       }
 
-      // Redirect to dashboard after successful signup
+      // Redirect to dashboard after successful login
       router.push('/dashboard')
+      router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -79,9 +75,9 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Sign In</h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign up to get started with Pleeno
+            Welcome back! Please sign in to continue.
           </p>
         </div>
 
@@ -91,38 +87,6 @@ export default function SignupPage() {
               {error}
             </div>
           )}
-
-          <div>
-            <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <input
-              {...register('full_name')}
-              type="text"
-              id="full_name"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="John Doe"
-            />
-            {errors.full_name && (
-              <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="agency_name" className="block text-sm font-medium text-gray-700">
-              Agency Name
-            </label>
-            <input
-              {...register('agency_name')}
-              type="text"
-              id="agency_name"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-              placeholder="My Agency"
-            />
-            {errors.agency_name && (
-              <p className="mt-1 text-sm text-red-600">{errors.agency_name.message}</p>
-            )}
-          </div>
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -154,9 +118,15 @@ export default function SignupPage() {
             {errors.password && (
               <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
-              Must be 8+ characters with uppercase, lowercase, and number
-            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Link
+              href="/reset-password"
+              className="text-sm font-medium text-blue-600 hover:text-blue-500"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           <button
@@ -164,14 +134,14 @@ export default function SignupPage() {
             disabled={loading}
             className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div className="text-center text-sm text-gray-600">
-          Already have an account?{' '}
-          <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            Log in
+          Don't have an account?{' '}
+          <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
+            Sign up
           </Link>
         </div>
       </div>
