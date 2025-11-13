@@ -63,6 +63,7 @@ cp .env.example .env.local
 ```
 
 Update `.env.local` with your Supabase credentials:
+
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 
@@ -84,6 +85,7 @@ pnpm dev
 ```
 
 This will start all zones:
+
 - Shell: http://localhost:3000
 - Dashboard: http://localhost:3001
 - Agency: http://localhost:3002

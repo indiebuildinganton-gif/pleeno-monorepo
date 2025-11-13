@@ -102,7 +102,7 @@ export function sanitizeError(error: any): any {
   const sanitized: any = {}
   for (const [key, value] of Object.entries(error)) {
     // Check if key contains sensitive field name (case-insensitive)
-    const isSensitive = SENSITIVE_FIELDS.some(field =>
+    const isSensitive = SENSITIVE_FIELDS.some((field) =>
       key.toLowerCase().includes(field.toLowerCase())
     )
 
