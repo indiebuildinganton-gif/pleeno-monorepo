@@ -6,3 +6,6 @@ export * from './user.schema'
 
 // Export invitation schemas and types
 export * from './invitation.schema'
+
+// Export student schemas and types
+export * from './student.schema'
