@@ -1,0 +1,315 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>5</storyId>
+    <title>Overdue Payments Summary Widget</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-5-overdue-payments-summary-widget.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>a dedicated widget highlighting all overdue payments</iWant>
+    <soThat>I can immediately focus on the most urgent follow-ups</soThat>
+    <tasks>
+- Task 1: Create Overdue Payments API Route (AC: #1-5)
+  - Create API route: GET /api/dashboard/overdue-payments
+  - Query installments table with status = 'overdue'
+  - Join with students, payment_plans, enrollments, colleges
+  - Calculate days_overdue = CURRENT_DATE - due_date
+  - Order by due_date ASC (oldest/most urgent first)
+  - Return formatted response with OverduePaymentsResponse interface
+  - Apply RLS filtering (agency_id auto-applied)
+  - Add 5-minute cache
+  - Test RLS, sorting, and totals
+
+- Task 2: Create OverduePaymentsWidget Component (AC: #1-6)
+  - Create React component at apps/dashboard/app/components/OverduePaymentsWidget.tsx
+  - Use TanStack Query to fetch from /api/dashboard/overdue-payments
+  - Display prominent header with title, badge, and total amount
+  - Display overdue payments table/list with Student Name, College, Amount, Days Overdue
+  - Color code days overdue: 1-7 days (yellow), 8-30 days (orange), 30+ days (red)
+  - Format amounts as currency
+  - Make rows clickable (navigate to /payments/plans/[plan_id])
+  - Responsive layout (table on desktop, cards on mobile)
+
+- Task 3: Implement Empty State (AC: #6)
+  - Show success message when no overdue payments
+  - Display celebration icon and positive styling
+  - Add subtle animation
+
+- Task 4: Add Loading and Error States
+  - Implement skeleton loader
+  - Implement error state with retry button
+
+- Task 5: Integrate Widget into Dashboard (AC: #1)
+  - Import OverduePaymentsWidget into apps/dashboard/app/page.tsx
+  - Position prominently (top or always-visible sidebar)
+  - Use urgent styling when overdue items exist
+  - Verify responsive layout
+
+- Task 6: Add Auto-Refresh (AC: #1)
+  - Configure TanStack Query with 5-minute refetch interval
+  - Add visual indicator when new overdue payments detected
+
+- Task 7: Testing (AC: All)
+  - Write API route unit tests
+  - Write component tests
+  - Write integration tests
+  - Test color coding and auto-refresh
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given I am viewing the dashboard, When overdue payments exist, Then I see a prominent widget listing all overdue installments
+
+2. And the widget shows: student name, college, amount, days overdue
+
+3. And the list is sorted by days overdue (most urgent first)
+
+4. And each item is clickable and navigates to the payment plan detail
+
+5. And the widget shows total count and total amount overdue
+
+6. And if no overdue payments exist, the widget shows a success message
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Business Intelligence Dashboard</title>
+        <section>Story 6.5: Overdue Payments Summary Widget</section>
+        <snippet>Widget shows student name, college, amount, days overdue. Sorted by days overdue (most urgent first). Clickable items navigate to payment plan detail. Shows total count and total amount overdue. Success message when empty.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Dashboard Zone - apps/dashboard/</section>
+        <snippet>Dashboard zone includes KPIWidget, CashFlowChart, and OverduePayments components. Next.js 15 with App Router, basePath: /dashboard. Server Components for initial load, Client Components for interactivity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>State Management Architecture</title>
+        <section>ADR-004: Zustand + TanStack Query</section>
+        <snippet>Use TanStack Query 5.90.7 for server state (API caching, mutations, optimistic updates). Zustand 5.0.8 for client state (filters, dashboard settings). Clear separation between client and server state.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Multi-Tenant Isolation</title>
+        <section>Row-Level Security (RLS)</section>
+        <snippet>All database queries automatically filter by agency_id via RLS policies. Use server-side Supabase client for API routes. No cross-agency data leakage possible.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Project Structure</title>
+        <section>Monorepo - Payments Domain</section>
+        <snippet>Payment plans in supabase/migrations/003_payments_domain/. Includes payment_plans_schema.sql, installments_schema.sql, status_constraints.sql. Installments table has status field ('pending', 'paid', 'overdue').</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-4-recent-activity-feed.md</path>
+        <title>Story 6.4: Recent Activity Feed</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Dashboard widgets use TanStack Query with auto-refresh. Activity feed uses 60-second interval. Currency formatting utility in packages/utils/src/formatters.ts. RLS auto-filters by agency_id. Shadcn UI patterns for components.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/dashboard/app/page.tsx</path>
+        <kind>page</kind>
+        <symbol>DashboardPage</symbol>
+        <lines>N/A - Not yet implemented</lines>
+        <reason>Main dashboard page where OverduePaymentsWidget will be integrated</reason>
+      </artifact>
+      <artifact>
+        <path>apps/dashboard/app/components/OverduePaymentsWidget.tsx</path>
+        <kind>component</kind>
+        <symbol>OverduePaymentsWidget</symbol>
+        <lines>N/A - To be created</lines>
+        <reason>New widget component to display overdue payments with urgency styling</reason>
+      </artifact>
+      <artifact>
+        <path>apps/dashboard/app/api/dashboard/overdue-payments/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET</symbol>
+        <lines>N/A - To be created</lines>
+        <reason>API route to query overdue installments with student/college details</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/formatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatCurrency</symbol>
+        <lines>N/A - Existing (from Story 6.4)</lines>
+        <reason>Format currency amounts for display in widget</reason>
+      </artifact>
+      <artifact>
+        <path>packages/database/src/server.ts</path>
+        <kind>database-client</kind>
+        <symbol>createServerClient</symbol>
+        <lines>N/A - Existing infrastructure</lines>
+        <reason>Server-side Supabase client for API routes with RLS enforcement</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="15.x">Next.js framework with App Router</package>
+        <package name="react" version="18.x">React library</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management, caching, auto-refresh</package>
+        <package name="@supabase/supabase-js" version="latest">Supabase client for database queries</package>
+        <package name="@supabase/ssr" version="latest">Supabase Server-Side Rendering helpers</package>
+        <package name="date-fns" version="4.1.0">Date manipulation and formatting</package>
+        <package name="zod" version="4.x">TypeScript-first validation</package>
+        <package name="tailwindcss" version="4.x">Utility-first CSS framework</package>
+      </node>
+      <ui-components>
+        <package name="shadcn-ui" version="latest">Radix UI components with Tailwind styling</package>
+        <package name="@radix-ui/react-*" version="latest">Accessible UI primitives</package>
+      </ui-components>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Dashboard Zone Architecture: Component must live in apps/dashboard/app/components/
+- API Route Location: API route at apps/dashboard/app/api/dashboard/overdue-payments/route.ts
+- Multi-Tenant Security: All database queries MUST respect RLS policies (agency_id filtering automatic)
+- Server-Side Client: Use server-side Supabase client (not anon key) in API routes
+- Urgency-Based Styling: Red/orange/yellow color coding by severity (30+ days red, 8-30 orange, 1-7 yellow)
+- Prominent Positioning: Widget should be positioned at top of dashboard or in always-visible sidebar for maximum visibility
+- Auto-Refresh Interval: 5-minute refresh interval (shorter than other widgets due to urgency)
+- Responsive Layout: Table on desktop, cards on mobile
+- Empty State Celebration: Show positive success message when no overdue payments exist
+- Clickable Navigation: Each overdue item navigates to /payments/plans/[plan_id]
+- Database Query: Query installments WHERE status = 'overdue', ORDER BY due_date ASC (oldest first)
+- Days Overdue Calculation: Calculate as CURRENT_DATE - due_date in SQL for performance
+- TanStack Query: Use for data fetching with staleTime: 300000 (5 min), refetchInterval: 300000
+- Currency Formatting: Use formatCurrency() utility from packages/utils/src/formatters.ts
+- Testing Standards: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/dashboard/overdue-payments</name>
+      <kind>REST endpoint</kind>
+      <signature>
+GET /api/dashboard/overdue-payments
+Response: OverduePaymentsResponse
+{
+  overdue_payments: OverduePayment[]
+  total_count: number
+  total_amount: number
+}
+
+OverduePayment {
+  id: string
+  student_id: string
+  student_name: string
+  college_id: string
+  college_name: string
+  amount: number
+  days_overdue: number
+  due_date: string
+  payment_plan_id: string
+  installment_number: number
+}
+      </signature>
+      <path>apps/dashboard/app/api/dashboard/overdue-payments/route.ts</path>
+    </interface>
+    <interface>
+      <name>OverduePaymentsWidget</name>
+      <kind>React Component</kind>
+      <signature>
+export function OverduePaymentsWidget(): JSX.Element
+
+Props: None (fetches data internally via TanStack Query)
+
+Renders:
+- Prominent header with count badge and total amount
+- List/table of overdue payments
+- Empty state when no overdue payments
+- Loading skeleton
+- Error state with retry
+      </signature>
+      <path>apps/dashboard/app/components/OverduePaymentsWidget.tsx</path>
+    </interface>
+    <interface>
+      <name>useOverduePayments</name>
+      <kind>React Hook (TanStack Query)</kind>
+      <signature>
+function useOverduePayments(): UseQueryResult&lt;OverduePaymentsResponse&gt;
+
+Returns:
+- data: OverduePaymentsResponse
+- isLoading: boolean
+- error: Error | null
+- refetch: () => void
+
+Query Config:
+- queryKey: ['overdue-payments']
+- staleTime: 300000 (5 min)
+- refetchInterval: 300000 (5 min)
+- refetchOnWindowFocus: true
+      </signature>
+      <path>apps/dashboard/app/hooks/useOverduePayments.ts</path>
+    </interface>
+    <interface>
+      <name>Installments Table Query</name>
+      <kind>SQL Query</kind>
+      <signature>
+SELECT
+  installments.id,
+  installments.amount,
+  installments.due_date,
+  installments.installment_number,
+  (CURRENT_DATE - installments.due_date) AS days_overdue,
+  students.id AS student_id,
+  students.name AS student_name,
+  colleges.id AS college_id,
+  colleges.name AS college_name,
+  payment_plans.id AS payment_plan_id
+FROM installments
+INNER JOIN payment_plans ON installments.payment_plan_id = payment_plans.id
+INNER JOIN enrollments ON payment_plans.enrollment_id = enrollments.id
+INNER JOIN students ON enrollments.student_id = students.id
+INNER JOIN colleges ON enrollments.college_id = colleges.id
+WHERE installments.status = 'overdue'
+  AND payment_plans.agency_id = auth.uid()
+ORDER BY installments.due_date ASC
+      </signature>
+      <path>apps/dashboard/app/api/dashboard/overdue-payments/route.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing uses Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. All tests must respect multi-tenant isolation and verify RLS policies. API routes tested with mocked Supabase client. Components tested with mock data and MSW for API mocking. E2E tests verify complete user flows.
+    </standards>
+    <locations>
+apps/dashboard/app/api/dashboard/overdue-payments/route.test.ts
+apps/dashboard/app/components/OverduePaymentsWidget.test.tsx
+apps/dashboard/app/hooks/useOverduePayments.test.ts
+tests/e2e/dashboard/overdue-payments.spec.ts
+    </locations>
+    <ideas>
+AC1: Test API route returns only overdue installments with status = 'overdue'
+AC1: Test API route filters by agency_id via RLS
+AC1: Test widget displays on dashboard page load
+AC2: Test widget shows student name, college, amount, days overdue
+AC3: Test list sorted by due_date ASC (oldest first)
+AC3: Test days overdue calculation (CURRENT_DATE - due_date)
+AC4: Test clickable rows navigate to /payments/plans/[plan_id]
+AC5: Test total count badge displays correct number
+AC5: Test total amount displays sum of all overdue amounts
+AC6: Test empty state shows success message when no overdue payments
+AC6: Test celebration styling on empty state
+Test: Color coding - 1-7 days yellow, 8-30 days orange, 30+ days red
+Test: Auto-refresh after 5 minutes
+Test: Refetch on window focus
+Test: Loading skeleton displays during fetch
+Test: Error state with retry button
+Test: Responsive layout (table desktop, cards mobile)
+Test: Currency formatting with formatCurrency()
+    </ideas>
+  </tests>
+</story-context>
