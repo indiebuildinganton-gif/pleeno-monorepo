@@ -1,1 +1,2 @@
-// Placeholder - Zod schemas will be added in future stories
+// Export agency schemas and types
+export * from './agency.schema'
