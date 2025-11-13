@@ -18,5 +18,9 @@ export * from './college.schema'
 
 // Export branch schemas and types
 export * from './branch.schema'
+
+// Export contact schemas and types
+export * from './contact.schema'
+
 // Export enrollment schemas and types
 export * from './enrollment.schema'
