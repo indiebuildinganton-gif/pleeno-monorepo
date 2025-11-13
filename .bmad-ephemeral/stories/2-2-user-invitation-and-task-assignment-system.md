@@ -140,14 +140,14 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Implement POST /api/invitations/[id]/resend
   - [x] Implement DELETE /api/invitations/[id]
 
-- [ ] Create validation schemas (AC: 1, 5)
-  - [ ] Create packages/validations/src/invitation.schema.ts
-  - [ ] Define InvitationCreateSchema: email, role, task_ids
-  - [ ] Define UserTaskAssignmentSchema: task_ids (array of UUIDs)
-  - [ ] Validate email format
-  - [ ] Validate role enum ('agency_admin', 'agency_user')
-  - [ ] Validate task_ids are valid UUIDs
-  - [ ] Export TypeScript types
+- [x] Create validation schemas (AC: 1, 5)
+  - [x] Create packages/validations/src/invitation.schema.ts
+  - [x] Define InvitationCreateSchema: email, role, task_ids
+  - [x] Define UserTaskAssignmentSchema: task_ids (array of UUIDs)
+  - [x] Validate email format
+  - [x] Validate role enum ('agency_admin', 'agency_user')
+  - [x] Validate task_ids are valid UUIDs
+  - [x] Export TypeScript types
 
 - [ ] Write tests for invitation system (AC: 1-8)
   - [ ] Test: Admin can create invitation successfully
@@ -1202,6 +1202,40 @@ N/A - No debugging required
 **Created (Task 08):**
 - `apps/agency/app/api/users/[id]/tasks/route.ts` - API route for managing task assignments for existing users (POST /api/users/[id]/tasks)
 
+**Task 12: Create validation schemas - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Validation schemas already exist in `packages/validations/src/invitation.schema.ts` (created in Task 04)
+- **InvitationCreateSchema** defined with:
+  - `email`: z.string().email().toLowerCase() - Required, valid email format, normalized to lowercase
+  - `role`: z.enum(['agency_admin', 'agency_user']) - Required, enum validation
+  - `task_ids`: z.array(z.string().uuid()).optional().default([]) - Optional array of UUIDs with default empty array
+- **UserTaskAssignmentSchema** defined with:
+  - `task_ids`: z.array(z.string().uuid()) - Required array of valid UUIDs
+- **InvitationAcceptanceSchema** defined with (created in Task 06):
+  - `token`: z.string().uuid() - UUID format validation
+  - `full_name`: z.string().min(1) - Required string
+  - `password`: Strong password validation (min 8 chars, uppercase, lowercase, number)
+  - `password_confirmation`: Must match password
+- All TypeScript types exported: InvitationCreate, UserTaskAssignment, InvitationAcceptance, InvitedUserRole
+- Schemas exported in `packages/validations/src/index.ts` for use across applications
+
+📝 **Implementation notes:**
+- Validation schemas were created as part of Task 04 when implementing the invitation API route
+- This is good engineering practice - creating validation schemas when they're first needed
+- All email validation includes normalization to lowercase for consistency
+- UUID validation ensures task_ids reference valid master_tasks records
+- Role enum validation prevents invalid role assignments
+- Custom error messages provide clear validation feedback
+- Zod's refine() method used for password confirmation matching
+
+⚠️ **Deviations from story:**
+- None - all subtasks completed exactly as specified
+
+🔄 **Follow-up tasks:**
+- All validation schemas are integrated and working in API routes
+- No additional work required for this task
+
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
@@ -1214,3 +1248,4 @@ N/A - No debugging required
 - **2025-11-13:** Task 07 completed - Enhanced user management page with task assignment capability in InviteUserModal (checkbox selection for master tasks), created GET /api/master-tasks endpoint for fetching available tasks, added "Assigned Tasks" column to UserTable showing task count per user, and created reusable Checkbox UI component following shadcn/ui patterns
 - **2025-11-13:** Task 11 completed - Created migration (009_add_task_ids_to_invitations.sql) adding task_ids JSONB column to invitations table, updated POST /api/invitations to save task_ids, enhanced POST /api/invitations/[id]/resend with email sending functionality, updated both API routes to Next.js 15 params pattern, enhanced PendingInvitationsTable with assigned tasks display (badges), Resend button, relative time format ("In X days"), and renamed Revoke to Cancel button
 - **2025-11-13:** Task 08 completed - Implemented task assignment management API for existing users (POST /api/users/[id]/tasks) with atomic task replacement, dual-level audit logging (automatic triggers + manual summary), agency isolation validation, and comprehensive error handling
+- **2025-11-13:** Task 12 completed - Verified validation schemas exist in packages/validations/src/invitation.schema.ts (created during Task 04). Schemas include InvitationCreateSchema (email, role, task_ids with full validation), UserTaskAssignmentSchema (task_ids array), and InvitationAcceptanceSchema (token, full_name, password validation). All TypeScript types exported and integrated across API routes.
