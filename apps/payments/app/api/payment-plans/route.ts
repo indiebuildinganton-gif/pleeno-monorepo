@@ -15,6 +15,7 @@ import {
   ValidationError,
   ForbiddenError,
   calculateExpectedCommission,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole } from '@pleeno/auth'
@@ -103,14 +104,24 @@ export async function POST(request: NextRequest) {
 
     // VALIDATION: Verify enrollment exists and belongs to same agency
     // Also fetch commission_rate_percent from branch for auto-population
+    // Fetch additional details for audit trail metadata
     const { data: enrollment, error: enrollmentError } = await supabase
       .from('enrollments')
       .select(
         `
         id,
         agency_id,
+        program_name,
+        student:students (
+          first_name,
+          last_name
+        ),
         branch:branches (
-          commission_rate_percent
+          commission_rate_percent,
+          city,
+          college:colleges (
+            name
+          )
         )
       `
       )
@@ -186,18 +197,43 @@ export async function POST(request: NextRequest) {
       throw new Error('Payment plan not found after creation')
     }
 
-    // Log payment plan creation to audit trail
-    await supabase.from('audit_logs').insert({
-      entity_type: 'payment_plan',
-      entity_id: paymentPlan.id,
-      user_id: user.id,
+    // Log payment plan creation to audit trail with comprehensive details
+    // This provides transparency for commission calculations and compliance tracking
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'payment_plan',
+      entityId: paymentPlan.id,
       action: 'create',
-      changes_json: {
+      newValues: {
         enrollment_id: paymentPlan.enrollment_id,
         total_amount: paymentPlan.total_amount,
+        currency: paymentPlan.currency,
         start_date: paymentPlan.start_date,
         commission_rate_percent: paymentPlan.commission_rate_percent,
         expected_commission: paymentPlan.expected_commission,
+        status: paymentPlan.status,
+        notes: paymentPlan.notes,
+        reference_number: paymentPlan.reference_number,
+      },
+      metadata: {
+        // Include commission calculation parameters for transparency
+        commission_calculation: {
+          formula: 'total_amount * (commission_rate_percent / 100)',
+          total_amount: paymentPlan.total_amount,
+          commission_rate_percent: paymentPlan.commission_rate_percent,
+          expected_commission: paymentPlan.expected_commission,
+        },
+        // Include enrollment context for audit trail
+        enrollment: {
+          enrollment_id: enrollment.id,
+          student_name: enrollment.student
+            ? `${enrollment.student.first_name} ${enrollment.student.last_name}`
+            : 'Unknown',
+          college_name: enrollment.branch?.college?.name || 'Unknown',
+          branch_city: enrollment.branch?.city || 'Unknown',
+          program_name: enrollment.program_name || 'Unknown',
+        },
       },
     })
 
