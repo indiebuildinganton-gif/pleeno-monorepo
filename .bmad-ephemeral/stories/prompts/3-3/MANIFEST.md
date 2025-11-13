@@ -22,10 +22,23 @@
     - Left unique constraint on payment_plans.enrollment_id commented out (needs clarification on 1:1 vs 1:many relationship)
 
 ### Task 2: Enrollment API Routes
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created enrollment validation schemas (EnrollmentCreateSchema, EnrollmentUpdateSchema, EnrollmentSchema) in packages/validations/src/enrollment.schema.ts
+  - Implemented POST /api/enrollments with duplicate check logic (apps/payments/app/api/enrollments/route.ts)
+    - Checks for existing active enrollment with same (student_id, branch_id, program_name)
+    - Reuses existing enrollment if found, otherwise creates new one
+    - Returns is_existing flag to indicate reuse vs. creation
+    - Includes audit logging for both create and reuse actions
+  - Implemented GET /api/enrollments/[id] with populated student/branch/college data (apps/entities/app/api/enrollments/[id]/route.ts)
+  - Implemented PATCH /api/enrollments/[id] for status updates with audit logging (apps/entities/app/api/enrollments/[id]/route.ts)
+  - Implemented GET /api/students/[id]/enrollments to fetch all enrollments for a student (apps/entities/app/api/students/[id]/enrollments/route.ts)
+  - Implemented GET /api/branches/[id]/enrollments to fetch all enrollments for a branch (apps/entities/app/api/branches/[id]/enrollments/route.ts)
+  - All routes include RLS enforcement via agency_id filtering
+  - All routes include proper error handling and validation
+  - All routes include comprehensive documentation
 
 ### Task 3: Offer Letter Upload API
 - Status: Not Started
