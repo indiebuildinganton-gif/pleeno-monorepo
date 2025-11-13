@@ -209,10 +209,38 @@
     - Component is fully reusable across different enrollment contexts
 
 ### Task 9: Enrollment Status Management UI
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Created EnrollmentStatusMenu component (packages/ui/src/components/enrollments/EnrollmentStatusMenu.tsx)
+    - Dropdown menu with status options (Mark as Active, Mark as Completed, Mark as Cancelled)
+    - Confirmation dialog using Dialog component
+    - Icon indicators for each status (RotateCcw, CheckCircle, XCircle)
+    - Excludes current status from available options
+    - Disabled state support during mutations
+  - ✅ Created useUpdateEnrollmentStatus mutation hook (apps/entities/hooks/useUpdateEnrollmentStatus.ts)
+    - PATCH /api/enrollments/[id] endpoint integration
+    - Optimistic updates to local cache (updates UI immediately)
+    - Automatic rollback on error
+    - Invalidates and refetches student/branch enrollment queries on success
+    - Toast notifications (success: "Enrollment status updated to {Status}", error: failure message)
+  - ✅ Integrated EnrollmentStatusMenu into EnrollmentsSection (student page)
+    - Added Actions column to enrollments table
+    - Status menu in each row with current status
+    - Disabled during mutations to prevent concurrent updates
+  - ✅ Integrated EnrollmentStatusMenu into EnrolledStudentsSection (college page)
+    - Added Actions column to enrolled students table
+    - Status menu in each row with current status
+    - Reuses same mutation hook and status menu component
+  - Key Implementation Details:
+    - Optimistic updates provide instant UI feedback
+    - Confirmation dialog prevents accidental status changes
+    - Only shows valid status transitions (can't select current status)
+    - Toast notifications provide clear success/error feedback
+    - TanStack Query cache invalidation ensures data consistency
+    - Component is fully reusable across different enrollment contexts
+    - All changes follow existing patterns from previous tasks
 
 ### Task 10: Duplicate Enrollment Handling Logic
 - Status: Not Started

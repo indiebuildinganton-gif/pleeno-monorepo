@@ -15,7 +15,7 @@
 'use client'
 
 import { useState } from 'react'
-import { EnrollmentStatusBadge, DocumentViewer } from '@pleeno/ui'
+import { EnrollmentStatusBadge, DocumentViewer, EnrollmentStatusMenu } from '@pleeno/ui'
 import {
   Table,
   TableBody,
@@ -26,6 +26,7 @@ import {
   Button,
 } from '@pleeno/ui'
 import { useBranchEnrollments } from '../../../../hooks/useBranchEnrollments'
+import { useUpdateEnrollmentStatus } from '../../../../hooks/useUpdateEnrollmentStatus'
 import { FileText, Eye } from 'lucide-react'
 import Link from 'next/link'
 
@@ -54,10 +55,15 @@ export function EnrolledStudentsSection({
 }: EnrolledStudentsSectionProps) {
   const { data, isLoading, error } = useBranchEnrollments(branchId)
   const enrollments = data?.data || []
+  const { mutate: updateStatus, isPending: isUpdating } = useUpdateEnrollmentStatus()
   const [viewingDocument, setViewingDocument] = useState<{
     url: string
     filename: string
   } | null>(null)
+
+  const handleStatusChange = (enrollmentId: string, newStatus: 'active' | 'completed' | 'cancelled') => {
+    updateStatus({ enrollmentId, newStatus })
+  }
 
   if (isLoading) {
     return (
@@ -122,6 +128,7 @@ export function EnrolledStudentsSection({
               <TableHead>Status</TableHead>
               <TableHead>Offer Letter</TableHead>
               <TableHead>Enrolled Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -183,6 +190,14 @@ export function EnrolledStudentsSection({
                       }
                     )}
                   </div>
+                </TableCell>
+                <TableCell>
+                  <EnrollmentStatusMenu
+                    currentStatus={enrollment.status}
+                    enrollmentId={enrollment.id}
+                    onStatusChange={handleStatusChange}
+                    disabled={isUpdating}
+                  />
                 </TableCell>
               </TableRow>
             ))}
