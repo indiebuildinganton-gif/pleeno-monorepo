@@ -39,12 +39,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './apps/agency'),
       '@pleeno/utils': path.resolve(__dirname, './packages/utils/src'),
       '@pleeno/ui': path.resolve(__dirname, './packages/ui/src'),
       '@pleeno/stores': path.resolve(__dirname, './packages/stores/src'),
       '@pleeno/database': path.resolve(__dirname, './packages/database/src'),
       '@pleeno/validations': path.resolve(__dirname, './packages/validations/src'),
+      '@pleeno/auth': path.resolve(__dirname, './packages/auth/src'),
+      // App-specific aliases for testing
+      '@agency': path.resolve(__dirname, './apps/agency'),
+      '@payments': path.resolve(__dirname, './apps/payments'),
+      '@dashboard': path.resolve(__dirname, './apps/dashboard'),
+      '@entities': path.resolve(__dirname, './apps/entities'),
+      '@shell': path.resolve(__dirname, './apps/shell'),
+      '@reports': path.resolve(__dirname, './apps/reports'),
       // Mock Next.js modules for testing
       'next/server': path.resolve(__dirname, './test/mocks/next-server.ts'),
       '@sentry/nextjs': path.resolve(__dirname, './test/mocks/sentry.ts'),
