@@ -20,10 +20,22 @@
   - Navigation includes links to Dashboard, Payment Plans, and Reports
 
 ### Task 2: Implement Payment Status Summary API Route
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created API endpoint at `apps/dashboard/app/api/dashboard/payment-status-summary/route.ts`
+  - Implements four separate queries for payment status categories:
+    - Pending: All installments with status = 'pending'
+    - Due Soon: Pending installments with student_due_date within next 7 days
+    - Overdue: All installments with status = 'overdue'
+    - Paid This Month: Paid installments with paid_date >= start of current month
+  - Uses timezone-aware date calculations based on agency.timezone
+  - Enforces authentication via requireRole (agency_admin or agency_user)
+  - RLS automatically applied via agency_id filtering in all queries
+  - Response includes count and total_amount for each category
+  - 5-minute cache configured via Next.js revalidate = 300
+  - Error handling with standardized responses via handleApiError and createSuccessResponse
 
 ### Task 3: Create PaymentStatusWidget Component
 - Status: Not Started
@@ -79,8 +91,47 @@
 - Turborepo configuration at `turbo.json` properly set up for build orchestration
 
 **Next Steps:**
-- Task 2: Implement Payment Status Summary API Route
+- ✅ Task 2: Implement Payment Status Summary API Route (COMPLETED)
 - Task 3: Create PaymentStatusWidget Component (will replace placeholder)
+
+### Task 2 Completion (2025-11-13)
+
+**Payment Status Summary API Implementation:**
+- Created RESTful API endpoint at `apps/dashboard/app/api/dashboard/payment-status-summary/route.ts`
+- Endpoint: `GET /api/dashboard/payment-status-summary`
+
+**Database Queries Implemented:**
+1. **Pending Installments**: Query all installments with `status = 'pending'`
+2. **Due Soon Installments**: Query pending installments where `student_due_date` is between current date and 7 days from now
+3. **Overdue Installments**: Query all installments with `status = 'overdue'`
+4. **Paid This Month**: Query paid installments where `paid_date >= start of current month`
+
+**Key Features:**
+- **Authentication**: Uses `requireRole` from `@pleeno/auth` to require agency_admin or agency_user role
+- **RLS Enforcement**: All queries automatically filtered by `agency_id` via Supabase RLS policies
+- **Timezone Awareness**: Date calculations use agency timezone from agencies table
+- **Response Format**: Returns JSON with success flag and data containing count/total_amount for each category
+- **Caching**: Configured with 5-minute cache via Next.js `revalidate = 300`
+- **Error Handling**: Uses standardized error handling via `handleApiError` and `createSuccessResponse` from `@pleeno/utils`
+
+**Technical Decisions:**
+- Used `student_due_date` field for "due soon" calculation (student payment timeline)
+- Used `paid_date` field for "paid this month" filtering (not `paid_amount` which is the actual amount)
+- Amounts are rounded to 2 decimal places using `Math.round(amount * 100) / 100`
+- Each query is independent for clarity and maintainability (could be optimized with UNION if needed)
+
+**Response Structure:**
+```json
+{
+  "success": true,
+  "data": {
+    "pending": { "count": 25, "total_amount": 50000.00 },
+    "due_soon": { "count": 5, "total_amount": 12000.00 },
+    "overdue": { "count": 3, "total_amount": 8500.00 },
+    "paid_this_month": { "count": 15, "total_amount": 35000.00 }
+  }
+}
+```
 
 ## Blockers / Issues
 
