@@ -3,7 +3,8 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(test:*)",
-      "SlashCommand(/bmad:core:workflows:brainstorming)"
+      "SlashCommand(/bmad:core:workflows:brainstorming)",
+      "SlashCommand(/execute-dev-story-claude-code-web)"
     ],
     "deny": [],
     "ask": []

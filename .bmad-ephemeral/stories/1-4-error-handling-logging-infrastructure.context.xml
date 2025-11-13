@@ -1,0 +1,236 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>Error Handling & Logging Infrastructure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-4-error-handling-logging-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>standardized error handling and logging throughout the application</iWant>
+    <soThat>I can diagnose issues quickly and provide helpful error messages to users</soThat>
+    <tasks>
+      - [ ] Create custom error classes and error utilities (AC: 1, 3)
+        - [ ] Create packages/utils/src/errors.ts with custom error classes
+        - [ ] Implement AppError base class with code, message, details
+        - [ ] Implement ValidationError, NotFoundError, UnauthorizedError, ForbiddenError classes
+        - [ ] Create ApiResponse type definitions (SuccessResponse, ErrorResponse, PaginatedResponse)
+        - [ ] Add error sanitization function to strip sensitive data
+      - [ ] Implement API route error handler middleware (AC: 1, 2, 3)
+        - [ ] Create packages/utils/src/api-error-handler.ts
+        - [ ] Implement handleApiError() function with status code mapping
+        - [ ] Add error logging with context (user_id, agency_id, timestamp)
+        - [ ] Create error response formatter
+        - [ ] Add stack trace logging for unexpected errors
+        - [ ] Implement sensitive data filtering (passwords, tokens, etc.)
+      - [ ] Create server-side logging utility (AC: 2)
+        - [ ] Create packages/utils/src/logger.ts with structured logging
+        - [ ] Implement log levels (info, warn, error, debug)
+        - [ ] Add context enrichment (user_id, agency_id, request_id)
+        - [ ] Format logs as JSON for production
+        - [ ] Add human-readable formatting for development
+        - [ ] Create helper functions: logInfo(), logWarn(), logError(), logDebug()
+      - [ ] Implement React Error Boundaries (AC: 4)
+        - [ ] Create packages/ui/src/components/ErrorBoundary.tsx
+        - [ ] Implement error state and fallback UI
+        - [ ] Add error logging to boundary component
+        - [ ] Create user-friendly error messages
+        - [ ] Add "Report Error" and "Retry" buttons
+        - [ ] Wrap zone layouts with ErrorBoundary
+      - [ ] Integrate error monitoring service (AC: 5)
+        - [ ] Choose monitoring service: Sentry or LogRocket
+        - [ ] Install and configure SDK in root layout
+        - [ ] Set up error tracking initialization
+        - [ ] Configure source maps for production builds
+        - [ ] Add user context to error reports (agency_id, user_id)
+        - [ ] Set up error alerting for critical issues
+        - [ ] Test error reporting end-to-end
+      - [ ] Apply error handling to existing API routes (AC: 1)
+        - [ ] Wrap API route handlers with try-catch
+        - [ ] Use handleApiError() in catch blocks
+        - [ ] Return standardized error responses
+        - [ ] Add input validation with Zod and return ValidationError
+        - [ ] Test error responses for each status code (400, 401, 403, 404, 500)
+      - [ ] Write error handling test suite (AC: 1, 2, 3, 4)
+        - [ ] Test: Custom error classes throw correct status codes
+        - [ ] Test: API errors return consistent JSON format
+        - [ ] Test: Sensitive data is filtered from error responses
+        - [ ] Test: Error context includes user_id, agency_id, timestamp
+        - [ ] Test: ErrorBoundary catches and displays errors
+        - [ ] Test: Monitoring service receives error reports
+        - [ ] Test: Server logs include structured context
+        - [ ] Test: 404 errors handled gracefully
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. **Given** the authentication framework is in place, **When** I implement error handling and logging, **Then** all API errors return consistent JSON structure with appropriate HTTP status codes
+    2. **And** errors are logged with sufficient context (user_id, agency_id, timestamp, stack trace)
+    3. **And** sensitive data is never exposed in error messages
+    4. **And** client-side error boundaries catch React errors gracefully
+    5. **And** logging integrates with monitoring service (e.g., Sentry, LogRocket)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Technical Requirements - Error Handling</section>
+        <snippet>Comprehensive error handling and logging infrastructure required for production-ready SaaS platform with multi-tenant architecture.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Error Handling Pattern</section>
+        <snippet>Custom error classes extend base AppError with standardized status code mapping (ValidationError → 400, NotFoundError → 404). API routes return consistent JSON format with sensitive data filtering in production.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Logging Pattern</section>
+        <snippet>Structured JSON logs in production with context enrichment (user_id, agency_id, request_id). Human-readable format for development. Error logs include full stack traces server-side only.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Implementation Patterns</section>
+        <snippet>Error handling conventions include API error response format, custom error classes, and React Error Boundary implementation patterns.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 1: Story 1.4 - Error Handling & Logging Infrastructure</section>
+        <snippet>Standardized error handling and logging throughout application. Custom error classes (ValidationError, AuthorizationError, NotFoundError), global error handler middleware, React Error Boundaries, structured logging with Winston or Pino, Sentry integration.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/1-3-authentication-authorization-framework.md</path>
+        <title>Story 1.3: Authentication & Authorization Framework</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Auth middleware will throw UnauthorizedError when JWT validation fails. ForbiddenError thrown when requireRole() check fails. Error classes imported by packages/auth. Logger uses user_id and agency_id from JWT claims.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code artifacts - this is foundation story creating new error handling infrastructure -->
+    </code>
+    <dependencies>
+      <node>
+        <!-- Dependencies will be added during implementation:
+        - @sentry/nextjs or loglevel for monitoring
+        - zod for validation (already in tech stack)
+        - Winston or Pino for structured logging (optional, can use console with formatting) -->
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Must follow Turborepo monorepo structure with shared packages pattern
+    - Error utilities located in packages/utils/src/ for sharing across all zones
+    - ErrorBoundary component located in packages/ui/src/components/ for reuse
+    - All API routes must use handleApiError() in catch blocks for consistency
+    - Sensitive data (passwords, tokens, keys, PII) must never be exposed in logs or error responses
+    - Stack traces only visible in development mode, never in production
+    - Error responses must follow standardized JSON format: { success: false, error: { code, message, details } }
+    - Status code mapping must be consistent: ValidationError=400, NotFoundError=404, UnauthorizedError=401, ForbiddenError=403, ServerError=500
+    - Logging must include context (user_id, agency_id, request_id, timestamp) for traceability
+    - React Error Boundaries must be wrapped around all zone layouts for graceful error handling
+    - Monitoring service (Sentry/LogRocket) integration required with user context attachment
+    - Source maps must be configured for production builds to enable readable stack traces in monitoring
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>AppError</name>
+      <kind>TypeScript Class</kind>
+      <signature>
+        export class AppError extends Error {
+          constructor(
+            public code: 'VALIDATION_ERROR' | 'NOT_FOUND' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'SERVER_ERROR',
+            message: string,
+            public details?: any
+          )
+        }
+      </signature>
+      <path>packages/utils/src/errors.ts</path>
+    </interface>
+    <interface>
+      <name>handleApiError</name>
+      <kind>Function Signature</kind>
+      <signature>
+        export async function handleApiError(error: unknown): Promise&lt;NextResponse&gt;
+      </signature>
+      <path>packages/utils/src/api-error-handler.ts</path>
+    </interface>
+    <interface>
+      <name>log</name>
+      <kind>Function Signature</kind>
+      <signature>
+        export function log(
+          level: 'info' | 'warn' | 'error' | 'debug',
+          message: string,
+          context?: LogContext,
+          error?: Error
+        ): void
+      </signature>
+      <path>packages/utils/src/logger.ts</path>
+    </interface>
+    <interface>
+      <name>ErrorBoundary</name>
+      <kind>React Component</kind>
+      <signature>
+        export class ErrorBoundary extends Component&lt;Props, State&gt;
+        interface Props { children: ReactNode; fallback?: ReactNode }
+      </signature>
+      <path>packages/ui/src/components/ErrorBoundary.tsx</path>
+    </interface>
+    <interface>
+      <name>ApiResponse</name>
+      <kind>TypeScript Type</kind>
+      <signature>
+        type SuccessResponse&lt;T&gt; = { success: true; data: T }
+        type ErrorResponse = { success: false; error: { code: string; message: string; details?: any } }
+        type ApiResponse&lt;T&gt; = SuccessResponse&lt;T&gt; | ErrorResponse
+      </signature>
+      <path>packages/utils/src/errors.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E.
+      All error handling utilities must have unit tests covering happy path, error cases, and edge cases.
+      API error handler must be tested with all custom error types and unknown errors.
+      Logger utility tests verify correct formatting in both development and production modes.
+      ErrorBoundary component tests verify error catching, fallback rendering, and monitoring integration.
+      Integration tests verify end-to-end error handling in API routes with all HTTP status codes.
+    </standards>
+    <locations>
+      - packages/utils/src/__tests__/errors.test.ts
+      - packages/utils/src/__tests__/api-error-handler.test.ts
+      - packages/utils/src/__tests__/logger.test.ts
+      - packages/ui/src/components/__tests__/ErrorBoundary.test.tsx
+      - __tests__/integration/error-handling.spec.ts
+    </locations>
+    <ideas>
+      - Test ValidationError returns 400 status code (AC: 1)
+      - Test NotFoundError returns 404 status code (AC: 1)
+      - Test UnauthorizedError returns 401 status code (AC: 1)
+      - Test ForbiddenError returns 403 status code (AC: 1)
+      - Test unknown errors return 500 with generic message (AC: 1, 3)
+      - Test API error responses follow consistent JSON structure (AC: 1)
+      - Test sensitive data filtering from error messages (AC: 3)
+      - Test logs include user_id, agency_id, timestamp context (AC: 2)
+      - Test stack traces included in error logs (AC: 2)
+      - Test ErrorBoundary catches render errors (AC: 4)
+      - Test ErrorBoundary displays fallback UI (AC: 4)
+      - Test ErrorBoundary retry button resets state (AC: 4)
+      - Test monitoring service receives error reports (AC: 5)
+      - Test user context attached to monitoring reports (AC: 5)
+      - Test 404 errors handled gracefully throughout app
+    </ideas>
+  </tests>
+</story-context>
