@@ -140,10 +140,34 @@
     - All components follow existing patterns from payments app
 
 ### Task 7: College Detail Page - Enrolled Students Section
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Created useBranchEnrollments hook (apps/entities/hooks/useBranchEnrollments.ts)
+    - TanStack Query hook for fetching branch enrollments
+    - Returns enrollment data with student information
+    - Implements proper error handling and loading states
+  - ✅ Created EnrolledStudentsSection component (apps/entities/app/colleges/[id]/components/EnrolledStudentsSection.tsx)
+    - Displays enrolled students in responsive table layout
+    - Shows student name (with clickable links to student detail page), program name, status badge, and offer letter download
+    - Implements loading, error, and empty states
+    - Uses lucide-react icons (FileText, Download)
+    - Reuses EnrollmentStatusBadge component from Task 6
+  - ✅ Created College Detail Page (apps/entities/app/colleges/[id]/page.tsx)
+    - Server component with proper authentication and RLS enforcement
+    - Displays college information card with profile details
+    - Shows branches list with commission rates
+    - Integrates EnrolledStudentsSection component for each branch
+    - Includes back navigation to colleges list
+  - Key Implementation Details:
+    - College detail page displays college information and all branches
+    - Each branch has its own EnrolledStudentsSection showing enrolled students
+    - Student names link to `/students/[id]` detail pages
+    - Offer letter download opens in new tab via GET /api/enrollments/[id]/offer-letter
+    - Status badges use existing Badge component variants
+    - Responsive design with proper mobile layout
+    - All components follow existing patterns from student detail page (Task 6)
 
 ### Task 8: Document Viewer Component
 - Status: Not Started
