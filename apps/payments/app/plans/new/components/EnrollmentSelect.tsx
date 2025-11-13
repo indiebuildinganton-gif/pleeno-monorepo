@@ -1,23 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Label, Select } from '@pleeno/ui'
-
-interface Enrollment {
-  id: string
-  student: {
-    first_name: string
-    last_name: string
-  }
-  college: {
-    name: string
-  }
-  branch: {
-    name: string
-    program_name: string
-    commission_rate_percent: number
-  }
-}
+import { useState } from 'react'
+import { Button, Label, Select } from '@pleeno/ui'
+import { useEnrollments, type Enrollment } from '@/hooks/useEnrollments'
 
 interface EnrollmentSelectProps {
   value: string
@@ -28,108 +13,150 @@ interface EnrollmentSelectProps {
 /**
  * EnrollmentSelect Component
  *
- * Provides a searchable dropdown for selecting enrollments.
- * Displays enrollments in the format: "Student Name - College (Branch) - Program"
- * Automatically filters enrollments by agency_id via RLS.
+ * Reusable dropdown component for selecting student enrollments.
+ * Fetches active enrollments, supports search/filter, and displays formatted enrollment info.
+ *
+ * Features:
+ * - Fetches enrollments with status=active filter
+ * - Display format: "Student Name - College Name (Branch City) - Program"
+ * - Search/filter by student name or college name
+ * - Loading state with skeleton UI
+ * - Empty state with helpful message and link to student creation
+ * - Automatic commission rate passthrough to parent
+ *
+ * Epic 4: Payments Domain
+ * Story 4.1: Payment Plan Creation
+ * Task 7: Enrollment Dropdown Component
  *
  * @param value - Currently selected enrollment ID
  * @param onChange - Callback when enrollment is selected (includes commission rate)
  * @param error - Validation error message
  */
 export function EnrollmentSelect({ value, onChange, error }: EnrollmentSelectProps) {
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const { data, isLoading, error: fetchError } = useEnrollments({ status: 'active' })
 
-  useEffect(() => {
-    const fetchEnrollments = async () => {
-      try {
-        setLoading(true)
+  const enrollments = data?.data || []
 
-        const response = await fetch('/api/enrollments')
-        const result = await response.json()
+  /**
+   * Formats enrollment data for display
+   * Format: "Student Name - College Name (Branch City) - Program"
+   */
+  const formatEnrollment = (enrollment: Enrollment): string => {
+    const studentName =
+      `${enrollment.student?.first_name || ''} ${enrollment.student?.last_name || ''}`.trim()
+    const collegeName = enrollment.branch?.college?.name || 'Unknown College'
+    const branchCity = enrollment.branch?.city || 'Unknown City'
+    const programName = enrollment.program_name || 'Unknown Program'
 
-        if (!response.ok) {
-          console.error('Error fetching enrollments:', result.message)
-          return
-        }
+    return `${studentName} - ${collegeName} (${branchCity}) - ${programName}`
+  }
 
-        if (result.data) {
-          setEnrollments(result.data)
-        }
-      } catch (err) {
-        console.error('Failed to fetch enrollments:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchEnrollments()
-  }, [])
-
+  /**
+   * Handles enrollment selection and passes commission rate to parent
+   */
   const handleChange = (enrollmentId: string) => {
     const selectedEnrollment = enrollments.find((e) => e.id === enrollmentId)
     const commissionRate = selectedEnrollment?.branch?.commission_rate_percent || 0
     onChange(enrollmentId, commissionRate)
   }
 
-  const getEnrollmentLabel = (enrollment: Enrollment): string => {
-    const studentName =
-      `${enrollment.student?.first_name || ''} ${enrollment.student?.last_name || ''}`.trim()
-    const collegeName = enrollment.college?.name || 'Unknown College'
-    const branchName = enrollment.branch?.name || 'Unknown Branch'
-    const programName = enrollment.branch?.program_name || 'Unknown Program'
-
-    return `${studentName} - ${collegeName} (${branchName}) - ${programName}`
-  }
-
+  /**
+   * Filters enrollments by search term (student name or college name)
+   */
   const filteredEnrollments = enrollments.filter((enrollment) => {
     if (!searchTerm) return true
-    const label = getEnrollmentLabel(enrollment).toLowerCase()
+    const label = formatEnrollment(enrollment).toLowerCase()
     return label.includes(searchTerm.toLowerCase())
   })
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="enrollment_id">
+          Student Enrollment <span className="text-destructive">*</span>
+        </Label>
+        <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground animate-pulse">
+          Loading enrollments...
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (fetchError) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="enrollment_id">
+          Student Enrollment <span className="text-destructive">*</span>
+        </Label>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-3">
+          <p className="text-sm text-destructive">
+            Failed to load enrollments. Please try again.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Empty state - no active enrollments found
+  if (enrollments.length === 0) {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="enrollment_id">
+          Student Enrollment <span className="text-destructive">*</span>
+        </Label>
+        <div className="rounded-lg border border-dashed border-muted-foreground/25 bg-muted/20 p-6 text-center">
+          <p className="text-sm text-muted-foreground mb-4">
+            No active enrollments found. Create a student enrollment first.
+          </p>
+          <Button asChild variant="outline">
+            <a href="/students/new">Create Student & Enrollment</a>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Main component - enrollment selection
   return (
     <div className="space-y-2">
       <Label htmlFor="enrollment_id">
-        Enrollment <span className="text-destructive">*</span>
+        Student Enrollment <span className="text-destructive">*</span>
       </Label>
 
-      {loading ? (
-        <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground">
-          Loading enrollments...
-        </div>
-      ) : (
-        <>
-          <input
-            type="text"
-            placeholder="Search enrollments..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mb-2"
-          />
+      {/* Search input for filtering enrollments */}
+      <input
+        type="text"
+        placeholder="Search by student or college name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mb-2"
+      />
 
-          <Select
-            id="enrollment_id"
-            value={value}
-            onChange={(e) => handleChange(e.target.value)}
-            disabled={loading || enrollments.length === 0}
-          >
-            <option value="">Select an enrollment</option>
-            {filteredEnrollments.map((enrollment) => (
-              <option key={enrollment.id} value={enrollment.id}>
-                {getEnrollmentLabel(enrollment)}
-              </option>
-            ))}
-          </Select>
-        </>
-      )}
+      {/* Enrollment dropdown */}
+      <Select
+        id="enrollment_id"
+        value={value}
+        onChange={(e) => handleChange(e.target.value)}
+        disabled={isLoading || enrollments.length === 0}
+      >
+        <option value="">Select an enrollment</option>
+        {filteredEnrollments.map((enrollment) => (
+          <option key={enrollment.id} value={enrollment.id}>
+            {formatEnrollment(enrollment)}
+          </option>
+        ))}
+      </Select>
 
+      {/* Validation error message */}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {!loading && enrollments.length === 0 && (
+      {/* No results message when search returns nothing */}
+      {!isLoading && searchTerm && filteredEnrollments.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          No enrollments found. Please create an enrollment first.
+          No enrollments found matching "{searchTerm}". Try a different search term.
         </p>
       )}
     </div>
