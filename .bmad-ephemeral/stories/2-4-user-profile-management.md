@@ -843,7 +843,7 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### Completion Notes List
 
-**Task 13: Add navigation link to profile** (Completed: 2025-11-13)
+**Task 13: Add navigation link to profile** (Completed: 2025-11-13, Fixed: 2025-11-13)
 - All subtasks completed
 - Created dropdown-menu UI component:
   - Added @radix-ui/react-dropdown-menu dependency to ui package
@@ -870,6 +870,9 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
   - Sticky header with backdrop blur effect
 - Updated root layout:
   - Modified apps/agency/app/layout.tsx to include AppHeader
+  - Fixed: Replaced Navigation component with AppHeader (2025-11-13)
+  - Removed redundant user data fetching (UserMenu handles this internally)
+  - Simplified layout code - AppHeader and UserMenu are self-contained
   - Updated metadata with proper title and description
   - Header renders for all authenticated pages
 - All acceptance criteria (AC: 1) met:
