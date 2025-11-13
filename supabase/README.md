@@ -43,11 +43,22 @@ This directory contains the Supabase configuration and database migrations for t
 ### ✅ Supabase Configuration
 - **File**: `config.toml`
 - **Configured**:
+  - Project ID: `pleeno-local`
   - PostgreSQL 15
   - API, Auth, Storage, Studio ports
   - Email testing server (Inbucket)
   - JWT settings (1 hour expiry)
   - Development site URL (localhost:3000)
+  - Redirect URLs (http://localhost:3000/**)
+
+### ✅ Domain-Driven Migration Structure (Task 4)
+- **Created**: Domain-based migration folder structure
+  - `000_foundation/` - Foundation schema setup
+  - `001_agency_domain/` - Agency and user tables (populated)
+  - `002_entities_domain/` - Future: Entities, clients, representatives
+  - `003_payments_domain/` - Future: Payments and commissions
+  - `004_reports_domain/` - Future: Reporting and analytics
+- **Foundation Migration**: Placeholder created at `000_foundation/00000000000000_initial_setup.sql`
 
 ### ✅ Package Structure
 - **Directory**: `packages/database/`
@@ -69,6 +80,23 @@ This directory contains the Supabase configuration and database migrations for t
 - AC3: RLS automatic filtering (Story 1.2, Task 5)
 - AC4: Bypass prevention (Story 1.2, Task 6)
 - AC5: Version-controlled migrations (COMPLETE)
+
+## Current Status: Task 4 Completion
+
+### ✅ Completed
+- Supabase initialized with `npx supabase init`
+- `config.toml` configured with project settings
+- Domain-driven migration folder structure created
+- Foundation migration placeholder created
+- Configuration updated for local development
+
+### ⚠️ Docker Requirement
+**Important**: Supabase local development requires Docker to be installed and running. The configuration is complete, but the following steps require Docker:
+
+- Starting local Supabase (`npx supabase start`)
+- Applying migrations (`npx supabase db reset`)
+- Accessing Supabase Studio (http://localhost:54323)
+- Testing database connections
 
 ## Next Steps
 
