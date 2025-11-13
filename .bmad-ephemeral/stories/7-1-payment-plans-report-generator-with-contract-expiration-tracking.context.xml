@@ -1,0 +1,419 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>1</storyId>
+    <title>Payment Plans Report Generator with Contract Expiration Tracking</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/7-1-payment-plans-report-generator-with-contract-expiration-tracking.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to generate custom reports on payment plans with flexible filtering and contract expiration tracking</iWant>
+    <soThat>I can analyze payment data for specific time periods, colleges, or students, and proactively manage contract renewals</soThat>
+    <tasks>
+- Task 1: Create Reports Zone Foundation (AC: #1)
+- Task 2: Create Report Builder UI (AC: #1, #2, #8)
+- Task 3: Create Payment Plans Report API Route (AC: #1, #3, #4, #6, #7, #8, #9)
+- Task 4: Create Report Results Table Component (AC: #3, #4, #9)
+- Task 5: Integrate Report Builder and Results (AC: #1, #3, #5)
+- Task 6: Add Contract Expiration Quick Filters (AC: #8)
+- Task 7: Create Colleges/Branches/Students Lookup APIs (AC: #1)
+- Task 8: Testing (AC: All)
+- Task 9: Add Responsive Design and Accessibility (AC: #3)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Filter by: date range, college/branch, student, payment status, contract expiration date
+2. Select which columns to include in the report
+3. Report displays in a table with sorting and pagination
+4. Report shows summary totals at the bottom (total amount, total paid, total commission)
+5. Preview the report before exporting
+6. Report respects RLS and only shows agency's data
+7. Report includes contract expiration dates for each college/branch
+8. Filter to show only contracts expiring within a specified date range (e.g., next 30/60/90 days)
+9. Contracts nearing expiration are highlighted in the report
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 7: Reporting &amp; Export</title>
+        <section>Story 7.1: Payment Plans Report Generator with Contract Expiration Tracking</section>
+        <snippet>Enable agencies to generate ad-hoc reports on payment plans with flexible filtering (date range, college/branch, student, payment status, contract expiration). Report displays in table with sorting, pagination, and summary totals. Includes contract expiration tracking with visual highlighting for contracts nearing expiration (30/60/90 days presets).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Reports Zone Architecture</title>
+        <section>Epic 7: Reporting Zone (apps/reports/)</section>
+        <snippet>New microfrontend zone at apps/reports/ with basePath: /reports. Handles all reporting and export functionality. Uses ReportBuilder component for filters and PDFExporter for exports. Queries all domains (payments, students, colleges). API route: POST /api/reports/payment-plans with filters and column selection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Multi-Tenant Isolation (Row-Level Security)</title>
+        <section>Security Architecture</section>
+        <snippet>RLS policies auto-filter all queries by agency_id. Pattern: CREATE POLICY "tenant_isolation" ON {table_name} FOR ALL USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid())). Impossible to query other agencies' data - enforced at database level.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Technology Stack</title>
+        <section>Decision Summary</section>
+        <snippet>Frontend: Next.js 15 (App Router), TypeScript 5, Turborepo monorepo, Tailwind CSS 4. State: Zustand 5.0.8 (client), TanStack Query 5.90.7 (server). Forms: React Hook Form 7.66.0 + Zod 4. UI: Shadcn UI (Radix UI + Tailwind). Tables: TanStack Table 8.21.3. Testing: Vitest + RTL + Playwright.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Project Structure - Reports Zone</title>
+        <section>Monorepo Architecture</section>
+        <snippet>apps/reports/ zone with app/page.tsx (landing), app/commissions/ and app/payments/ pages, app/components/ (ReportBuilder, PDFExporter), next.config.js with basePath: /reports. Shared packages: packages/ui (Shadcn components), packages/database (Supabase client), packages/utils (formatters, commission calculator), packages/validations (Zod schemas).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Database Schema - Contract Expiration</title>
+        <section>Schema Organization</section>
+        <snippet>enrollments table includes contract_expiration_date field. Query joins: payment_plans → enrollments → students, colleges, branches. Computed fields: days_until_contract_expiration (enrollments.contract_expiration_date - CURRENT_DATE), contract_status (expired/expiring_soon/active based on 30-day threshold).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>N/A - Greenfield Project</path>
+        <kind>project_status</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>This is Story 7.1 in a greenfield project. No existing code to reference. The Reports zone (apps/reports/) will be created in this story. Previous stories (1.x-6.x) may have established foundation (shell, database, other zones), but Reports zone is new.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <frontend>
+        <package name="next" version="15.x">App Router framework with Server Components</package>
+        <package name="react" version="19.x">UI library with concurrent features</package>
+        <package name="typescript" version="5.x">Static typing for type safety</package>
+        <package name="tailwindcss" version="4.x">Utility-first CSS framework</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management with caching and mutations</package>
+        <package name="@tanstack/react-table" version="8.21.3">Headless table library for sorting, pagination, filtering</package>
+        <package name="zustand" version="5.0.8">Lightweight client-side state management</package>
+        <package name="react-hook-form" version="7.66.0">Form state management with validation</package>
+        <package name="@hookform/resolvers" version="latest">Form validation resolvers (Zod integration)</package>
+        <package name="zod" version="4.x">TypeScript-first schema validation</package>
+        <package name="date-fns" version="4.1.0">Date manipulation with timezone support</package>
+        <package name="@radix-ui/*" version="latest">Unstyled accessible UI primitives (via Shadcn UI)</package>
+      </frontend>
+      <backend>
+        <package name="@supabase/supabase-js" version="latest">Supabase JavaScript client</package>
+        <package name="@supabase/ssr" version="latest">Supabase SSR utilities for Next.js</package>
+      </backend>
+      <testing>
+        <package name="vitest" version="latest">Fast unit test runner</package>
+        <package name="@testing-library/react" version="latest">React component testing utilities</package>
+        <package name="playwright" version="latest">E2E testing framework</package>
+      </testing>
+      <monorepo>
+        <package name="turbo" version="latest">Turborepo for build caching and orchestration</package>
+      </monorepo>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-Zone Architecture: Create new Reports zone at apps/reports/ with basePath: /reports. Configure zone rewrites in apps/shell/next.config.js and apps/shell/middleware.ts.</constraint>
+    <constraint>Row-Level Security (RLS): All database queries MUST respect RLS policies. Use server-side Supabase client (packages/database). Agency_id filtering is automatic - do not manually filter. Impossible to query other agencies' data.</constraint>
+    <constraint>TypeScript Strict Mode: All code must be TypeScript with strict mode enabled. Use proper types for all API requests/responses, form data, and database queries.</constraint>
+    <constraint>Shared Packages: Use packages/ui for Shadcn UI components, packages/database for Supabase client, packages/utils for formatters (formatCurrency, formatDate) and commission calculator, packages/validations for Zod schemas.</constraint>
+    <constraint>API Route Pattern: POST /api/reports/payment-plans for report generation (not GET - uses request body for complex filters). Return paginated results with summary totals.</constraint>
+    <constraint>Form Validation: Use React Hook Form + Zod for all forms. Validate filters (date ranges, column selection). Require at least one column selected.</constraint>
+    <constraint>Server-Side Pagination: Implement pagination at database level (LIMIT/OFFSET) to reduce data transfer. Do not load all results client-side.</constraint>
+    <constraint>Testing Requirements: Write unit tests (Vitest) for API routes, component tests (React Testing Library) for UI components, and E2E tests (Playwright) for critical user flows. Test RLS enforcement.</constraint>
+    <constraint>Responsive Design: Desktop (full table), tablet (scrollable table), mobile (card list). Use Shadcn UI responsive patterns.</constraint>
+    <constraint>Accessibility: WCAG 2.1 AA compliance. Use ARIA labels, keyboard navigation, screen reader support. Shadcn UI components are accessible by default (Radix UI).</constraint>
+    <constraint>Contract Expiration Highlighting: Use color-coded row backgrounds (yellow for &lt;30 days, orange for &lt;7 days, red for expired). Add ContractExpirationBadge component with urgency indicators.</constraint>
+    <constraint>Database Schema: enrollments table must include contract_expiration_date field (DATE type). Add index on contract_expiration_date for efficient filtering. Calculate days_until_contract_expiration in SQL query.</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/reports/payment-plans</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+Request Body (JSON):
+{
+  filters: {
+    date_from?: string (ISO date)
+    date_to?: string (ISO date)
+    college_ids?: string[]
+    branch_ids?: string[]
+    student_ids?: string[]
+    status?: ('pending' | 'paid' | 'overdue' | 'cancelled')[]
+    contract_expiration_from?: string (ISO date)
+    contract_expiration_to?: string (ISO date)
+  }
+  columns: string[] (required, min: 1)
+  pagination: {
+    page: number (positive integer)
+    page_size: number (positive integer, e.g., 10, 25, 50, 100)
+  }
+  sort?: {
+    column: string
+    direction: 'asc' | 'desc'
+  }
+}
+
+Response (JSON):
+{
+  data: PaymentPlanReportRow[] (see PaymentPlanReportRow interface)
+  pagination: {
+    page: number
+    page_size: number
+    total_count: number
+    total_pages: number
+  }
+  summary: {
+    total_plan_amount: number
+    total_paid_amount: number
+    total_commission: number
+  }
+}
+      </signature>
+      <path>apps/reports/app/api/reports/payment-plans/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/reports/lookup/colleges</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+Response (JSON):
+{
+  id: string
+  name: string
+  branch_count: number
+}[]
+      </signature>
+      <path>apps/reports/app/api/reports/lookup/colleges/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/reports/lookup/branches?college_id=X</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+Query Params: college_id (optional, repeatable for multiple colleges)
+
+Response (JSON):
+{
+  id: string
+  name: string
+  college_id: string
+  contract_expiration_date?: string (ISO date)
+}[]
+      </signature>
+      <path>apps/reports/app/api/reports/lookup/branches/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/reports/lookup/students?search=X</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+Query Params: search (string, min 2 characters)
+
+Response (JSON, max 50 results):
+{
+  id: string
+  name: string
+  college_name: string
+}[]
+      </signature>
+      <path>apps/reports/app/api/reports/lookup/students/route.ts</path>
+    </interface>
+    <interface>
+      <name>PaymentPlanReportRow</name>
+      <kind>TypeScript Interface</kind>
+      <signature>
+export interface PaymentPlanReportRow {
+  id: string
+  student_id: string
+  student_name: string
+  college_id: string
+  college_name: string
+  branch_id?: string
+  branch_name?: string
+  plan_amount: number
+  total_paid: number
+  total_remaining: number
+  earned_commission: number
+  status: 'pending' | 'paid' | 'overdue' | 'cancelled'
+  created_at: string (ISO date)
+  payment_frequency?: string
+  installments_count?: number
+  contract_expiration_date?: string (ISO date)
+  days_until_contract_expiration?: number
+  contract_status?: 'active' | 'expiring_soon' | 'expired'
+}
+      </signature>
+      <path>apps/reports/app/api/reports/payment-plans/types.ts</path>
+    </interface>
+    <interface>
+      <name>ReportBuilder</name>
+      <kind>React Component</kind>
+      <signature>
+Props:
+{
+  onGenerate: (data: ReportBuilderFormData) =&gt; void
+}
+
+Component exports:
+- ReportBuilder: Main filter form component
+- Uses React Hook Form + Zod validation
+- Includes filter inputs, column selection, preset buttons
+- Calls onGenerate on form submit
+      </signature>
+      <path>apps/reports/app/components/ReportBuilder.tsx</path>
+    </interface>
+    <interface>
+      <name>ReportResultsTable</name>
+      <kind>React Component</kind>
+      <signature>
+Props:
+{
+  data: PaymentPlanReportRow[]
+  pagination: { page, page_size, total_count, total_pages }
+  summary: { total_plan_amount, total_paid_amount, total_commission }
+  onPageChange: (page: number) =&gt; void
+  onSort: (column: string, direction: 'asc' | 'desc') =&gt; void
+}
+
+Component exports:
+- ReportResultsTable: TanStack Table with sorting, pagination, highlighting
+- Includes summary totals footer row
+- Color-coded rows based on contract_status
+      </signature>
+      <path>apps/reports/app/components/ReportResultsTable.tsx</path>
+    </interface>
+    <interface>
+      <name>formatCurrency</name>
+      <kind>Utility Function</kind>
+      <signature>
+export function formatCurrency(amount: number, currency: string = 'USD'): string
+
+Returns formatted currency string (e.g., "$1,234.56")
+      </signature>
+      <path>packages/utils/src/formatters.ts</path>
+    </interface>
+    <interface>
+      <name>Supabase Client (Server-Side)</name>
+      <kind>Database Client</kind>
+      <signature>
+import { createClient } from 'packages/database/server'
+
+const supabase = createClient()
+
+// RLS automatically applied - queries filtered by auth.uid() agency_id
+const { data, error } = await supabase
+  .from('payment_plans')
+  .select('*, enrollments(*), students(*), colleges(*)')
+  .eq('status', 'active')
+
+// Use .rpc() for custom database functions
+const { data, error } = await supabase.rpc('calculate_commission', { plan_id })
+      </signature>
+      <path>packages/database/src/server.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing follows a three-tier approach using Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests.
+
+**Unit Tests (Vitest):**
+- Test API routes with mocked Supabase client
+- Test utility functions (formatters, validators)
+- Test business logic in isolation
+- Run with: npm run test or npm run test:watch
+- Located alongside source files: *.test.ts or *.test.tsx
+
+**Component Tests (React Testing Library):**
+- Test React components in isolation
+- Test user interactions (clicks, form inputs)
+- Test rendering with different props/states
+- Mock API calls with MSW or manual mocks
+- Focus on user-visible behavior, not implementation details
+- Located: __tests__/components/ or alongside components
+
+**E2E Tests (Playwright):**
+- Test critical user flows end-to-end
+- Test across browsers (Chrome, Firefox, Safari)
+- Test responsive layouts (desktop, tablet, mobile)
+- Run against local or staging environment
+- Located: __tests__/e2e/
+- Run with: npm run test:e2e
+
+**Testing Standards:**
+- All new features require tests (unit + component + E2E for critical flows)
+- Test coverage target: 80%+ for business logic
+- Test RLS enforcement (mock different agencies)
+- Test error states and edge cases
+- Test accessibility (keyboard navigation, ARIA labels)
+- Use descriptive test names: "should show error when no columns selected"
+    </standards>
+    <locations>
+- Unit tests: apps/reports/**/*.test.ts, packages/utils/**/*.test.ts
+- Component tests: apps/reports/__tests__/components/, apps/reports/app/components/**/*.test.tsx
+- E2E tests: __tests__/e2e/reports/
+- Test setup: __tests__/setup/test-helpers.ts
+    </locations>
+    <ideas>
+**AC #1: Filter Configuration**
+- Unit: Test filter validation (date range from &lt;= to)
+- Component: Test ReportBuilder renders all filter inputs
+- Component: Test preset buttons populate filters correctly
+- E2E: Set filters → Generate report → Verify API called with correct params
+
+**AC #2: Column Selection**
+- Component: Test column checkboxes render
+- Component: Test validation (at least one column required)
+- Component: Test form shows error when no columns selected
+- Unit: Test API returns only requested columns
+
+**AC #3: Table Display with Sorting and Pagination**
+- Component: Test ReportResultsTable renders with mock data
+- Component: Test table sorting (click column header)
+- Component: Test pagination controls (next, previous, page size)
+- Unit: Test API pagination (LIMIT/OFFSET queries)
+- E2E: Generate report → Sort column → Verify results reorder
+
+**AC #4: Summary Totals**
+- Component: Test summary totals footer row displays
+- Unit: Test summary calculation (total_plan_amount, total_paid, total_commission)
+- Component: Test totals formatted as currency
+
+**AC #5: Preview Before Exporting**
+- Component: Test report displays in read-only mode
+- E2E: Generate report → Preview → Adjust filters → Regenerate
+
+**AC #6: RLS Enforcement**
+- Unit: Test API queries filtered by agency_id
+- Unit: Mock different users → Verify only their agency data returned
+- Unit: Test cross-agency data leakage prevention
+
+**AC #7: Contract Expiration Dates**
+- Unit: Test query joins enrollments for contract_expiration_date
+- Component: Test contract expiration column displays date
+- Unit: Test days_until_contract_expiration calculation
+
+**AC #8: Contract Expiration Filtering**
+- Component: Test contract expiration preset buttons (30/60/90 days)
+- Unit: Test API filters by contract_expiration_from/to
+- E2E: Click "Expiring in 30 days" → Generate → Verify results
+
+**AC #9: Contract Expiration Highlighting**
+- Component: Test row highlighting (yellow/orange/red based on days)
+- Component: Test ContractExpirationBadge colors (active/warning/critical/expired)
+- Component: Test expired contracts have red background
+- E2E: Filter expired contracts → Verify red highlighted rows
+
+**Additional Test Ideas:**
+- Test empty state (no results matching filters)
+- Test loading state (skeleton during API call)
+- Test error state (API failure, retry button)
+- Test responsive layout (desktop table → mobile cards)
+- Test accessibility (keyboard navigation, screen reader)
+- Test lookup APIs (colleges, branches, students)
+- Test typeahead search (students) with debounce
+- Test Reset Filters button clears form
+    </ideas>
+  </tests>
+</story-context>

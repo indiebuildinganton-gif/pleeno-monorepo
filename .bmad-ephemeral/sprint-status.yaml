@@ -76,13 +76,13 @@ development_status:
   6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights: ready-for-dev
   6-2-cash-flow-projection-chart: ready-for-dev
   6-3-commission-breakdown-by-college: ready-for-dev
-  6-4-recent-activity-feed: backlog
-  6-5-overdue-payments-summary-widget: backlog
+  6-4-recent-activity-feed: ready-for-dev
+  6-5-overdue-payments-summary-widget: ready-for-dev
   epic-6-retrospective: optional
 
   epic-7: backlog
-  7-1-payment-plans-report-generator-with-contract-expiration-tracking: backlog
-  7-2-csv-export-functionality: backlog
+  7-1-payment-plans-report-generator-with-contract-expiration-tracking: ready-for-dev
+  7-2-csv-export-functionality: ready-for-dev
   7-3-pdf-export-functionality: backlog
   7-4-commission-report-by-college: backlog
   7-5-student-payment-history-report: backlog

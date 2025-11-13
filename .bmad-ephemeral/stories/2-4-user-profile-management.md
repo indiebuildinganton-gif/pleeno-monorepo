@@ -158,16 +158,16 @@ so that **my account information is accurate and I can change my password**.
   - [x] Show current user name in dropdown trigger
   - [x] Active state highlighting for profile page
 
-- [ ] Implement password strength validator utility (AC: 3)
-  - [ ] Create packages/utils/src/password-strength.ts
-  - [ ] Function: calculatePasswordStrength(password: string)
-  - [ ] Check minimum length (8)
-  - [ ] Check uppercase letter (regex: /[A-Z]/)
-  - [ ] Check lowercase letter (regex: /[a-z]/)
-  - [ ] Check number (regex: /[0-9]/)
-  - [ ] Check special character (regex: /[!@#$%^&*(),.?":{}|<>]/)
-  - [ ] Return object: { strength: 'weak' | 'medium' | 'strong', checks: {...} }
-  - [ ] Export PasswordStrength type
+- [x] Implement password strength validator utility (AC: 3)
+  - [x] Create packages/utils/src/password-strength.ts
+  - [x] Function: calculatePasswordStrength(password: string)
+  - [x] Check minimum length (8)
+  - [x] Check uppercase letter (regex: /[A-Z]/)
+  - [x] Check lowercase letter (regex: /[a-z]/)
+  - [x] Check number (regex: /[0-9]/)
+  - [x] Check special character (regex: /[!@#$%^&*(),.?":{}|<>]/)
+  - [x] Return object: { strength: 'weak' | 'medium' | 'strong', checks: {...} }
+  - [x] Export PasswordStrength type
 
 - [ ] Write tests for profile management (AC: 1-10)
   - [ ] Test: User can update their full name (200)
@@ -907,6 +907,30 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - Integration with ProfileForm.tsx confirmed
 - All acceptance criteria (AC: 2, 3, 4) met
 
+**Task 14: Implement password strength validator utility** (Completed: 2025-11-13)
+- All subtasks completed successfully
+- Created packages/utils/src/password-strength.ts:
+  - Implemented calculatePasswordStrength(password: string) function
+  - Checks minimum length (8 characters)
+  - Checks uppercase letter using regex /[A-Z]/
+  - Checks lowercase letter using regex /[a-z]/
+  - Checks number using regex /[0-9]/
+  - Checks special character using regex /[!@#$%^&*(),.?":{}|<>]/
+  - Returns comprehensive PasswordStrength object with:
+    - strength: 'weak' | 'medium' | 'strong' (based on requirements met)
+    - checks: PasswordChecks object with individual boolean flags
+    - score: number of requirements met (0-5)
+- Exported types:
+  - PasswordStrength interface (main return type)
+  - PasswordChecks interface (individual requirement checks)
+- Strength calculation logic:
+  - Weak: 0-2 requirements met
+  - Medium: 3-4 requirements met
+  - Strong: all 5 requirements met
+- Updated packages/utils/src/index.ts to export password-strength module
+- Comprehensive JSDoc documentation with usage examples
+- All acceptance criteria (AC: 3) met
+
 ### File List
 
 **Task 13: Add navigation link to profile**
@@ -923,8 +947,13 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - `apps/agency/app/api/users/me/password/route.ts` - Password change API endpoint
 - `packages/validations/src/user.schema.ts` - PasswordChangeSchema validation
 
+**Task 14: Implement password strength validator utility**
+- `packages/utils/src/password-strength.ts` - Password strength validator utility
+- `packages/utils/src/index.ts` - Updated with password-strength export
+
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
 - **2025-11-13:** Task 07 verified complete - Change password dialog with all functionality implemented
 - **2025-11-13:** Task 13 completed - Add navigation link to profile with user menu dropdown and active state highlighting
+- **2025-11-13:** Task 14 completed - Implement password strength validator utility with comprehensive checks and type exports

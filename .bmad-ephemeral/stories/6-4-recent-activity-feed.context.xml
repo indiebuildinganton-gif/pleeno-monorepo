@@ -1,0 +1,190 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>4</storyId>
+    <title>Recent Activity Feed</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-4-recent-activity-feed.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to see a feed of recent activity in the system</iWant>
+    <soThat>I'm aware of what's happening and can stay in sync with my team</soThat>
+    <tasks>
+      <task id="1" ac="1-8">Create Activity Log Database Schema</task>
+      <task id="2" ac="2-6">Implement Activity Logging in Existing API Routes</task>
+      <task id="3" ac="1,7-8">Create Activity Feed API Route</task>
+      <task id="4" ac="1,7-8">Create ActivityFeed Component</task>
+      <task id="5" ac="1">Implement Auto-Refresh for Real-Time Feel</task>
+      <task id="6" ac="1">Make Activities Clickable</task>
+      <task id="7" ac="1">Integrate into Dashboard Page</task>
+      <task id="8" ac="All">Testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>I am viewing the dashboard</given>
+      <when>the page loads</when>
+      <then>I see a chronological feed of recent activities</then>
+    </criterion>
+    <criterion id="2">Activities include: payments recorded</criterion>
+    <criterion id="3">Activities include: new payment plans created</criterion>
+    <criterion id="4">Activities include: new students added</criterion>
+    <criterion id="5">Activities include: new enrollments added</criterion>
+    <criterion id="6">Activities include: installments marked as overdue</criterion>
+    <criterion id="7">Each activity shows: timestamp, action description, user who performed it (if applicable)</criterion>
+    <criterion id="8">The feed shows the most recent 20 activities</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>pleeno - Epic Breakdown</title>
+        <section>Epic 6: Business Intelligence Dashboard - Story 6.4</section>
+        <snippet>As an Agency User, I want to see a feed of recent activity in the system, so that I'm aware of what's happening and can stay in sync with my team. Technical notes include: Create activity_log table with id, agency_id, user_id, entity_type, entity_id, action, description, created_at. Log activities in relevant API endpoints. Implement GET /api/activity-log?limit=20. Create React component: ActivityFeed. Format descriptions like "John Doe recorded payment of $500 for Student XYZ". Use relative timestamps: "2 hours ago", "yesterday". Consider auto-refresh every 60 seconds for real-time feel.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Dashboard Zone</section>
+        <snippet>Dashboard zone: apps/dashboard/app/components/ for widgets, apps/dashboard/app/api/ for API routes. Uses TanStack Query for server state management with auto-refresh capabilities. Component styling follows Shadcn UI patterns. All database queries respect RLS policies with automatic agency_id filtering.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Multi-Tenant Isolation</section>
+        <snippet>PostgreSQL Row-Level Security (RLS) enforces multi-tenant isolation. All tables with tenant data must have RLS policies enabled. RLS policies automatically filter queries by agency_id from JWT claims. No application code can bypass RLS protections.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>State Management</section>
+        <snippet>TanStack Query for server state with configurable stale times and refetch intervals. Supports automatic background refetching on window focus and polling intervals. Cache configuration per query based on data volatility.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-3-commission-breakdown-by-college.md</path>
+        <title>Story 6.3: Commission Breakdown by College</title>
+        <section>Dev Notes - Architecture Context</section>
+        <snippet>Dashboard zone patterns established: Component at apps/dashboard/app/components/, API route at apps/dashboard/app/api/. TanStack Query caching configured with 5-minute stale time. Loading/error states use skeleton and error UI patterns. Currency formatting utility at packages/utils/src/formatters.ts.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- Greenfield project - no existing code to reference. This story creates new patterns for activity logging across the application. -->
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="15.x">Framework for React Server Components and API routes</package>
+        <package name="react" version="18.x">UI component library</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management with auto-refresh</package>
+        <package name="@supabase/supabase-js" version="latest">Database client for PostgreSQL with RLS</package>
+        <package name="@supabase/ssr" version="latest">Server-side Supabase authentication</package>
+        <package name="date-fns" version="4.1.0">Date formatting and relative timestamps</package>
+        <package name="zod" version="4.x">TypeScript-first validation for API requests</package>
+        <package name="zustand" version="5.0.8">Lightweight state management (if needed for UI state)</package>
+      </node>
+      <testing>
+        <package name="vitest" version="latest">Fast unit testing framework</package>
+        <package name="@testing-library/react" version="latest">Component testing utilities</package>
+        <package name="playwright" version="latest">End-to-end testing for activity feed interactions</package>
+      </testing>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Activity logging must be implemented via centralized utility function in packages/database/src/activity-logger.ts to ensure consistency</constraint>
+    <constraint type="security">All activity_log queries MUST respect RLS policies - use server-side Supabase client with JWT auth</constraint>
+    <constraint type="security">Activity descriptions must NOT include sensitive data (passwords, tokens, full payment details)</constraint>
+    <constraint type="database">activity_log table requires RLS policy: CREATE POLICY activity_agency_isolation ON activity_log USING (agency_id = auth.uid())</constraint>
+    <constraint type="database">Index required for performance: CREATE INDEX idx_activity_log_agency_created ON activity_log(agency_id, created_at DESC)</constraint>
+    <constraint type="api">Activity feed API must apply 1-minute cache for performance (frequent dashboard access)</constraint>
+    <constraint type="ui">Component must follow Shadcn UI patterns and Tailwind CSS styling conventions</constraint>
+    <constraint type="ui">Activity feed must handle loading, error, and empty states with appropriate UI components</constraint>
+    <constraint type="testing">All database queries must be tested with RLS verification to ensure no cross-agency data leakage</constraint>
+    <constraint type="testing">Component tests must verify auto-refresh behavior and relative timestamp formatting</constraint>
+    <constraint type="cross-cutting">This story introduces activity logging infrastructure used by multiple zones - coordinate with Entity and Payment zones for consistent implementation</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/activity-log</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/activity-log?limit=20
+Response: Activity[]
+interface Activity {
+  id: string
+  timestamp: string
+  action: string
+  description: string
+  user: { id: string; name: string } | null
+  entity_type: 'payment' | 'payment_plan' | 'student' | 'enrollment' | 'installment'
+  entity_id: string
+  metadata: Record&lt;string, any&gt;
+}</signature>
+      <path>apps/dashboard/app/api/activity-log/route.ts</path>
+    </interface>
+    <interface>
+      <name>logActivity</name>
+      <kind>Utility function</kind>
+      <signature>async function logActivity(
+  agency_id: string,
+  user_id: string | null,
+  entity_type: ActivityEntityType,
+  entity_id: string,
+  action: ActivityAction,
+  description: string,
+  metadata?: Record&lt;string, any&gt;
+): Promise&lt;void&gt;</signature>
+      <path>packages/database/src/activity-logger.ts</path>
+    </interface>
+    <interface>
+      <name>ActivityFeed Component</name>
+      <kind>React component</kind>
+      <signature>export function ActivityFeed(): JSX.Element
+Displays recent 20 activities with auto-refresh every 60 seconds</signature>
+      <path>apps/dashboard/app/components/ActivityFeed.tsx</path>
+    </interface>
+    <interface>
+      <name>activity_log Table</name>
+      <kind>Database schema</kind>
+      <signature>CREATE TABLE activity_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agency_id uuid NOT NULL REFERENCES agencies(id),
+  user_id uuid REFERENCES users(id),
+  entity_type varchar NOT NULL,
+  entity_id uuid NOT NULL,
+  action varchar NOT NULL,
+  description text NOT NULL,
+  metadata jsonb,
+  created_at timestamp NOT NULL DEFAULT now()
+)</signature>
+      <path>supabase/migrations/YYYYMMDD_create_activity_log.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Testing framework: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E tests. All tests must verify RLS policies prevent cross-agency data access. Mock Supabase client in unit tests using vi.mock(). Component tests should use MSW for API mocking. E2E tests should create isolated test data per agency.</standards>
+    <locations>
+      <location>apps/dashboard/app/api/activity-log/route.test.ts</location>
+      <location>packages/database/src/activity-logger.test.ts</location>
+      <location>apps/dashboard/app/components/ActivityFeed.test.tsx</location>
+      <location>e2e/activity-feed.spec.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test ActivityFeed component renders with mock activity data and displays all 20 activities</idea>
+      <idea ac="2-6">Test activity logger creates records for each entity type (payment, payment_plan, student, enrollment, installment)</idea>
+      <idea ac="7">Test relative timestamps display correctly ("2 hours ago", "yesterday") using date-fns formatDistanceToNow</idea>
+      <idea ac="7">Test user name displays correctly for user actions and "System" for null user_id</idea>
+      <idea ac="8">Test API route returns exactly 20 most recent activities ordered by created_at DESC</idea>
+      <idea ac="1">Test TanStack Query auto-refresh: wait 60 seconds and verify refetch occurs</idea>
+      <idea ac="1">Test activity feed refetches on window focus</idea>
+      <idea ac="All">Test RLS policy prevents users from seeing other agency's activities</idea>
+      <idea ac="All">Test clickable activities navigate to correct entity detail pages</idea>
+      <idea ac="All">Test loading state shows skeleton UI, error state shows retry button, empty state shows appropriate message</idea>
+    </ideas>
+  </tests>
+</story-context>

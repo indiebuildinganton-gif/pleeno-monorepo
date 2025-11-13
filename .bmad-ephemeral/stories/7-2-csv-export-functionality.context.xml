@@ -1,0 +1,206 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>2</storyId>
+    <title>CSV Export Functionality</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/7-2-csv-export-functionality.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to export reports to CSV format</iWant>
+    <soThat>I can import payment data into Excel or accounting software</soThat>
+    <tasks>
+- Task 1: Create CSV Export API Route (AC: #1, 3-6)
+- Task 2: Format CSV Data Correctly (AC: #2, 4-5)
+- Task 3: Support Large Dataset Streaming (AC: #1)
+- Task 4: Add Export Button to Report UI (AC: #1)
+- Task 5: Add Export Tracking (AC: #1)
+- Task 6: Handle Column Selection (AC: #3)
+- Task 7: Testing (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given I have generated a report, When I click "Export to CSV", Then a CSV file is downloaded with all report data
+2. And the CSV includes column headers
+3. And the CSV respects the selected columns and filters
+4. And currency amounts are formatted correctly
+5. And dates are in ISO format (YYYY-MM-DD)
+6. And the filename includes the report type and timestamp (e.g., "payment_plans_2025-11-10.csv")
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Reporting Zone</section>
+        <snippet>Epic 7: Reporting Zone - apps/reports/ with ReportBuilder, PDFExporter components. Report generation API at /api/reports/payment-plans with filtering. CSV/PDF export endpoints.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>API Patterns</section>
+        <snippet>API routes follow REST conventions. Export endpoints: POST /api/agencies/:id/export-data. Query params for filters, format selection (csv/pdf).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Date/Time Handling</section>
+        <snippet>Use date-fns for date formatting. formatInTimeZone for agency timezone display. Always store dates in UTC. ISO 8601 format for exports.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 7.2: CSV Export Functionality</section>
+        <snippet>Export reports to CSV with proper formatting, BOM for Excel, streaming for large datasets. CSV library: csv-stringify (Node.js stream-based). Headers, currency decimal format, ISO dates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Success Criteria</section>
+        <snippet>Report generation must complete in <5 seconds for standard reports. Agencies save 10-20 hours/week on payment tracking. Zero calculation errors in commission logic.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield implementation -->
+      <artifact>
+        <path>apps/reports/app/api/reports/payment-plans/export/route.ts</path>
+        <kind>API route</kind>
+        <symbol>GET handler</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Main CSV export endpoint accepting filters and columns, returns CSV file with proper headers</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/csv-formatter.ts</path>
+        <kind>utility module</kind>
+        <symbol>exportAsCSV, formatCSVRow, generateCSVHeaders</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>CSV formatting utilities: BOM addition, header mapping, currency/date formatting, special character escaping</reason>
+      </artifact>
+      <artifact>
+        <path>apps/reports/app/components/ExportButtons.tsx</path>
+        <kind>React component</kind>
+        <symbol>ExportButtons</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>UI component with Export CSV button, handles filter params, triggers download, shows loading states</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="csv-stringify" version="latest">CSV generation library (stream-based for large datasets)</package>
+        <package name="date-fns" version="4.1.0">Date formatting (ISO 8601) - already installed per architecture</package>
+        <package name="@supabase/supabase-js" version="latest">Database client with RLS - already installed</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management - already installed</package>
+        <package name="papaparse" version="latest" optional="true">Alternative CSV library (browser-friendly but less optimal for streaming)</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="security">All export queries MUST filter by agency_id via RLS policies - no cross-tenant data leakage</constraint>
+    <constraint type="security">Validate all filter inputs to prevent SQL injection</constraint>
+    <constraint type="security">Rate limit exports to max 10 per minute per user</constraint>
+    <constraint type="performance">Use streaming for datasets >1000 rows to avoid memory overflow</constraint>
+    <constraint type="performance">Export queries must complete in <5 seconds per PRD</constraint>
+    <constraint type="compatibility">Add UTF-8 BOM (\uFEFF) at file start for Excel compatibility</constraint>
+    <constraint type="compatibility">Quote all CSV fields to handle commas, quotes, newlines</constraint>
+    <constraint type="data-format">Currency amounts: decimal format "1234.56" (no symbols, 2 decimals)</constraint>
+    <constraint type="data-format">Dates: ISO 8601 format "YYYY-MM-DD"</constraint>
+    <constraint type="data-format">Filename: "payment_plans_YYYY-MM-DD_HHmmss.csv" with timestamp</constraint>
+    <constraint type="architecture">Reuse same query logic and filters from report generation API (Story 7.1)</constraint>
+    <constraint type="architecture">Follow Next.js App Router conventions - route at apps/reports/app/api/</constraint>
+    <constraint type="testing">All CSV formatting functions must have unit tests with Vitest</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/reports/payment-plans/export</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Query params:
+- format: "csv" (or "pdf" for Story 7.3)
+- date_from, date_to: ISO date strings (optional)
+- college_id, branch_id, student_id: UUIDs (optional)
+- status[]: Array of payment status strings (optional)
+- contract_expiration_from, contract_expiration_to: ISO date strings (optional)
+- columns[]: Array of column keys (optional, defaults to all columns)
+
+Response:
+- Content-Type: text/csv; charset=utf-8
+- Content-Disposition: attachment; filename="payment_plans_YYYY-MM-DD_HHmmss.csv"
+- Body: CSV file with UTF-8 BOM, headers, and data rows
+      </signature>
+      <path>apps/reports/app/api/reports/payment-plans/export/route.ts</path>
+    </interface>
+    <interface>
+      <name>exportAsCSV</name>
+      <kind>Utility function</kind>
+      <signature>
+function exportAsCSV(data: any[], columns: string[]): Response
+// Transforms JSON data to CSV format with:
+// - UTF-8 BOM prepended
+// - Human-readable column headers
+// - Formatted currency (decimal), dates (ISO), and escaped text
+// - Returns Next.js Response with proper Content-Type headers
+      </signature>
+      <path>packages/utils/src/csv-formatter.ts</path>
+    </interface>
+    <interface>
+      <name>logActivity</name>
+      <kind>Utility function (from Story 6.4)</kind>
+      <signature>
+function logActivity(
+  agency_id: string,
+  user_id: string | null,
+  entity_type: 'report',
+  entity_id: string,
+  action: 'exported',
+  description: string,
+  metadata: { report_type: string; format: 'csv'; row_count: number; filters: any }
+): Promise<void>
+      </signature>
+      <path>packages/database/src/activity-logger.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Framework: Vitest for unit tests, React Testing Library for components, Playwright for E2E.
+Pattern: Test files colocated with source (e.g., csv-formatter.test.ts).
+Coverage: Unit tests for all formatting functions, integration tests for API routes, E2E for full export flow.
+API tests: Mock Supabase client, verify queries, test RLS filtering.
+Component tests: Mock fetch, verify button click triggers download, test loading/error states.
+    </standards>
+    <locations>
+packages/utils/src/__tests__/csv-formatter.test.ts
+apps/reports/app/api/reports/payment-plans/export/__tests__/route.test.ts
+apps/reports/app/components/__tests__/ExportButtons.test.tsx
+e2e/reports/csv-export.spec.ts
+    </locations>
+    <ideas>
+AC #1: Test export button click triggers CSV download with correct filename format
+AC #2: Test CSV includes column headers mapped from column keys to human-readable labels
+AC #3: Test CSV respects filter selections (date range, college, student, status)
+AC #3: Test CSV respects column selections (only selected columns appear)
+AC #4: Test currency formatting - verify decimal format "1234.56" (no symbols, 2 decimals)
+AC #5: Test date formatting - verify ISO 8601 "YYYY-MM-DD" format
+AC #6: Test filename includes timestamp in format "payment_plans_YYYY-MM-DD_HHmmss.csv"
+Unit: Test formatCurrencyForCSV(1234.56) returns "1234.56"
+Unit: Test formatDateISO('2025-11-10T12:00:00Z') returns "2025-11-10"
+Unit: Test addUTF8BOM('data') returns "\uFEFFdata"
+Unit: Test special character escaping - verify quotes handled: "He said \"hello\"" becomes proper CSV
+Integration: Test RLS filtering - verify agency_id automatically filters results
+Integration: Test empty results - verify CSV with headers only, no data rows
+Integration: Test large dataset (5000+ rows) - verify streaming works without memory overflow
+E2E: Full flow - Login → Reports → Generate report → Click Export CSV → Verify file downloads
+E2E: Open exported CSV in Excel → Verify readable format and proper encoding
+Security: Test SQL injection prevention in filter params
+Performance: Test export completes in <5 seconds per PRD requirement
+    </ideas>
+  </tests>
+</story-context>

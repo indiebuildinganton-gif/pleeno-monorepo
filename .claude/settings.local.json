@@ -6,7 +6,8 @@
       "SlashCommand(/bmad:core:workflows:brainstorming)",
       "SlashCommand(/execute-dev-story-claude-code-web)",
       "Bash(cat:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "SlashCommand(/bmad:bmm:workflows:story-context)"
     ],
     "deny": [],
     "ask": []
