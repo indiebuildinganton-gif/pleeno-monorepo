@@ -41,8 +41,8 @@ so that **I can build my team and flexibly delegate work based on individual nee
 - [x] Create audit logging schema for user profile changes (AC: 8)
   - [x] Create audit_log table: id, entity_type, entity_id, user_id, action, changes_json, created_at
   - [x] Add RLS policy: Admins can view audit logs for their agency
-  - [ ] Create trigger function to log profile changes automatically
-  - [ ] Create trigger function to log task assignment changes automatically
+  - [x] Create trigger function to log profile changes automatically
+  - [x] Create trigger function to log task assignment changes automatically
   - [x] Add indexes on audit_log (entity_type, entity_id, created_at, user_id)
 
 - [ ] Seed master tasks list with common agency tasks (AC: 5)
@@ -774,15 +774,51 @@ N/A - No debugging required
 
 🔄 **Follow-up tasks:**
 - Seed master_tasks with initial task list (separate task in story)
-- Create trigger functions for automatic audit logging (separate subtasks)
 - Test migration when Supabase instance is available
+
+**Task 02: Create audit logging schema for user profile changes - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created migration file: `supabase/migrations/001_agency_domain/007_audit_triggers.sql`
+- Implemented 2 trigger functions:
+  1. **audit_user_changes()** - Automatically logs all changes to user profiles
+     - Tracks changes to: email, full_name, role, status
+     - Captures before/after values in JSONB format
+     - Only logs UPDATE when relevant fields actually change
+     - Handles INSERT, UPDATE, DELETE operations
+  2. **audit_task_assignment_changes()** - Automatically logs task assignment changes
+     - Tracks all task assignments and revocations
+     - Captures task_id, assigned_by, assigned_at
+     - Handles INSERT, UPDATE, DELETE operations
+- Created triggers on both tables:
+  - `audit_user_changes_trigger` on users table (AFTER INSERT/UPDATE/DELETE)
+  - `audit_task_assignment_changes_trigger` on user_task_assignments table (AFTER INSERT/UPDATE/DELETE)
+- Added comprehensive documentation comments for all functions and triggers
+
+📝 **Implementation notes:**
+- Used SECURITY DEFINER for trigger functions to ensure audit logs are always created (bypasses RLS)
+- Trigger functions use auth.uid() to capture who made the change
+- JSONB changes format: `{"before": {...}, "after": {...}}` for easy querying
+- For DELETE operations, entity_id uses the deleted record's ID for proper tracking
+- For user_task_assignments, entity_id uses user_id for grouping all task changes per user
+- UPDATE on users table only logs when auditable fields change (prevents noise from updated_at changes)
+
+⚠️ **Deviations from story:**
+- None - implementation matches specification exactly
+
+🔄 **Follow-up tasks:**
+- Test triggers with actual data when Supabase instance is available
+- Verify audit logs capture all required information
+- Consider adding API endpoint to query audit logs for admin dashboard
 
 ### File List
 
 **Created:**
 - `supabase/migrations/001_agency_domain/006_invitations_schema.sql` - Database schema migration for invitations, tasks, and audit logging
+- `supabase/migrations/001_agency_domain/007_audit_triggers.sql` - Audit logging trigger functions for user profiles and task assignments
 
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
 - **2025-11-13:** Task 01 completed - Created database schema migration (006_invitations_schema.sql) with invitations, master_tasks, user_task_assignments, and audit_log tables including RLS policies and indexes
+- **2025-11-13:** Task 02 completed - Created audit logging triggers (007_audit_triggers.sql) for automatic logging of user profile changes and task assignment changes
