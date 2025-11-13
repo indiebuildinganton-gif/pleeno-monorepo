@@ -1,5 +1,7 @@
 import { stringify } from 'csv-stringify/sync'
+import { stringify as stringifyStream } from 'csv-stringify'
 import { format as formatDate } from 'date-fns'
+import { Readable } from 'stream'
 
 export interface ExportColumn {
   key: string
@@ -130,4 +132,122 @@ export function generateCSVHeaders(columns: string[]): string[] {
  */
 export function addUTF8BOM(content: string): string {
   return '\uFEFF' + content
+}
+
+/**
+ * Export large dataset to CSV using streaming approach
+ * Avoids loading all data into memory by streaming rows incrementally
+ *
+ * @param queryFn Async generator function that yields data in batches
+ * @param columns Array of column keys to include
+ * @param totalRows Estimated total rows (for optimization)
+ * @returns Response with streaming CSV
+ */
+export async function exportAsCSVStream(
+  queryFn: () => AsyncGenerator<any[], void, unknown>,
+  columns: string[],
+  totalRows?: number
+): Promise<Response> {
+  const headers = generateCSVHeaders(columns)
+
+  // Create CSV stringifier stream with same options as sync version
+  const stringifier = stringifyStream({
+    header: true,
+    columns: headers,
+    quoted: true,
+    quoted_empty: true,
+    escape: '"',
+  })
+
+  let isFirstChunk = true
+
+  // Create readable stream that feeds data to stringifier
+  const readable = new Readable({
+    async read() {
+      try {
+        // Add BOM at start of stream
+        if (isFirstChunk) {
+          this.push('\uFEFF')
+          isFirstChunk = false
+        }
+
+        // Get the generator
+        const generator = queryFn()
+
+        // Stream rows from query in batches
+        for await (const batch of generator) {
+          for (const row of batch) {
+            const formattedRow = formatRowForCSV(row, columns)
+            if (!stringifier.write(formattedRow)) {
+              // Backpressure: wait for drain event
+              await new Promise((resolve) => stringifier.once('drain', resolve))
+            }
+          }
+        }
+
+        // Signal end of data
+        stringifier.end()
+        this.push(null)
+      } catch (error) {
+        console.error('Streaming export error:', error)
+        this.destroy(error as Error)
+      }
+    },
+  })
+
+  // Pipe stringifier output to readable stream
+  stringifier.on('readable', function () {
+    let row
+    while ((row = stringifier.read()) !== null) {
+      readable.push(row)
+    }
+  })
+
+  stringifier.on('error', (err) => {
+    console.error('CSV stringifier error:', err)
+    readable.destroy(err)
+  })
+
+  // Generate filename with timestamp
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+  const filename = `payment_plans_${timestamp}.csv`
+
+  return new Response(readable as any, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Transfer-Encoding': 'chunked',
+      'Cache-Control': 'no-cache',
+    },
+  })
+}
+
+/**
+ * Format single row for CSV export
+ * Used by both sync and streaming export functions
+ *
+ * @param row Data row
+ * @param columns Array of column keys
+ * @returns Formatted row data as object with column keys
+ */
+export function formatRowForCSV(row: any, columns: string[]): Record<string, string> {
+  const formatted: Record<string, string> = {}
+
+  columns.forEach((col) => {
+    const value = getNestedValue(row, col)
+
+    // Format based on data type - same logic as sync version
+    if (col.includes('amount') || col.includes('commission')) {
+      formatted[col] = formatCurrencyForCSV(value)
+    } else if (col.includes('date')) {
+      formatted[col] = formatDateISO(value)
+    } else if (col.includes('rate') && col.includes('percent')) {
+      formatted[col] = value != null ? value.toString() : ''
+    } else {
+      formatted[col] = value || ''
+    }
+  })
+
+  return formatted
 }

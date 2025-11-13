@@ -816,6 +816,207 @@ describe('GET /api/reports/payment-plans/export', () => {
     })
   })
 
+  describe('Streaming vs Synchronous Export', () => {
+    beforeEach(() => {
+      vi.mocked(requireRole).mockResolvedValue({
+        user: mockUser,
+        role: 'agency_admin',
+      })
+    })
+
+    it('uses synchronous export for datasets <= 1000 rows', async () => {
+      // Mock count to return 1000 rows
+      const mockCountQuery = vi.fn().mockReturnValue({
+        gte: vi.fn().mockReturnThis(),
+        lte: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+      })
+
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockImplementation((query, options) => {
+          if (options?.count === 'exact' && options?.head === true) {
+            // This is the count query
+            return {
+              eq: vi.fn().mockResolvedValue({
+                count: 1000,
+                error: null,
+              }),
+            }
+          }
+          // This is the data query
+          return {
+            eq: mockEq,
+          }
+        }),
+      })
+
+      mockIn.mockResolvedValue({
+        data: mockPaymentPlansData,
+        error: null,
+      })
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/reports/payment-plans/export?format=csv',
+        {
+          method: 'GET',
+        }
+      )
+
+      const response = await GET(request)
+      expect(response.status).toBe(200)
+
+      // Should NOT have Transfer-Encoding: chunked for small datasets
+      expect(response.headers.get('Transfer-Encoding')).toBeNull()
+    })
+
+    it('uses streaming export for datasets > 1000 rows', async () => {
+      // Mock count to return 1001 rows (just over threshold)
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockImplementation((query, options) => {
+          if (options?.count === 'exact' && options?.head === true) {
+            // This is the count query
+            return {
+              eq: vi.fn().mockResolvedValue({
+                count: 1001,
+                error: null,
+              }),
+            }
+          }
+          // This is the data query for streaming batches
+          return {
+            eq: vi.fn().mockReturnValue({
+              range: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: mockPaymentPlansData,
+                  error: null,
+                }),
+              }),
+            }),
+          }
+        }),
+      })
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/reports/payment-plans/export?format=csv',
+        {
+          method: 'GET',
+        }
+      )
+
+      const response = await GET(request)
+      expect(response.status).toBe(200)
+
+      // Should have Transfer-Encoding: chunked for large datasets
+      expect(response.headers.get('Transfer-Encoding')).toBe('chunked')
+    })
+
+    it('uses streaming export for datasets with 5000+ rows', async () => {
+      // Mock count to return 5000 rows
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockImplementation((query, options) => {
+          if (options?.count === 'exact' && options?.head === true) {
+            // This is the count query
+            return {
+              eq: vi.fn().mockResolvedValue({
+                count: 5000,
+                error: null,
+              }),
+            }
+          }
+          // This is the data query for streaming batches
+          return {
+            eq: vi.fn().mockReturnValue({
+              range: vi.fn().mockReturnValue({
+                order: vi.fn().mockResolvedValue({
+                  data: mockPaymentPlansData,
+                  error: null,
+                }),
+              }),
+            }),
+          }
+        }),
+      })
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/reports/payment-plans/export?format=csv',
+        {
+          method: 'GET',
+        }
+      )
+
+      const response = await GET(request)
+      expect(response.status).toBe(200)
+      expect(response.headers.get('Transfer-Encoding')).toBe('chunked')
+    })
+
+    it('handles count query errors gracefully', async () => {
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockImplementation((query, options) => {
+          if (options?.count === 'exact' && options?.head === true) {
+            // This is the count query - return error
+            return {
+              eq: vi.fn().mockResolvedValue({
+                count: null,
+                error: { message: 'Count failed', code: 'COUNT_ERROR' },
+              }),
+            }
+          }
+          return {
+            eq: mockEq,
+          }
+        }),
+      })
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/reports/payment-plans/export?format=csv',
+        {
+          method: 'GET',
+        }
+      )
+
+      const response = await GET(request)
+      expect(response.status).toBe(500)
+
+      const data = await response.json()
+      expect(data.success).toBe(false)
+    })
+
+    it('returns empty CSV when count is 0', async () => {
+      mockFrom.mockReturnValue({
+        select: vi.fn().mockImplementation((query, options) => {
+          if (options?.count === 'exact' && options?.head === true) {
+            // This is the count query - return 0
+            return {
+              eq: vi.fn().mockResolvedValue({
+                count: 0,
+                error: null,
+              }),
+            }
+          }
+          return {
+            eq: mockEq,
+          }
+        }),
+      })
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/reports/payment-plans/export?format=csv',
+        {
+          method: 'GET',
+        }
+      )
+
+      const response = await GET(request)
+      expect(response.status).toBe(200)
+
+      const csvText = await response.text()
+      // Should have headers but no data rows
+      expect(csvText).toContain('Reference Number')
+      const lines = csvText.trim().split('\n')
+      expect(lines.length).toBe(1) // Only header row
+    })
+  })
+
   describe('Data Transformation', () => {
     beforeEach(() => {
       vi.mocked(requireRole).mockResolvedValue({
