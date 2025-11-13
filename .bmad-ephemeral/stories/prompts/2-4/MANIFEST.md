@@ -62,10 +62,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 9. Create request email change dialog (regular user)
-- [ ] Prompt: `09-create-request-email-change-dialog-regular-user-.md`
-- [ ] Implementation complete
+- [x] Prompt: `09-create-request-email-change-dialog-regular-user-.md`
+- [x] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 10. Create email verification page
 - [ ] Prompt: `10-create-email-verification-page.md`
@@ -106,9 +107,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 5
+- Completed: 6
 - In progress: 0
-- Remaining: 10
+- Remaining: 9
 
 ## Notes
 
@@ -173,6 +174,20 @@ Add notes here as you work through the tasks:
   - Resets form and closes dialog on success
   - Proper error handling with toast notifications
   - Follows AC8 and AC9: Admin can update email with verification workflow
+- **Task 9 (2025-11-13):** Created RequestEmailChangeDialog component (regular users)
+  - Created component at apps/agency/app/profile/components/RequestEmailChangeDialog.tsx
+  - Imports UI components from @pleeno/ui package (Dialog, Button, Input, Label, useToast)
+  - Custom alert-style divs using Tailwind CSS (no Alert component needed)
+  - Uses lucide-react AlertCircle icon for visual emphasis
+  - Yellow warning alert: "Email changes must be approved by an Agency Admin"
+  - Form field: Requested Email Address (email input, required)
+  - Form field: Reason for Change (textarea, optional) - native HTML textarea with Tailwind styling
+  - Blue informational note about MVP limitations
+  - Cancel and "Acknowledge" buttons
+  - On submit: Shows toast message directing user to contact Agency Admin (8-second duration)
+  - Resets form and closes dialog after submission
+  - For MVP: No actual request submission (future: notification system)
+  - Follows AC6 and AC7: Regular users must request email changes from Agency Admin
 
 ## Issues / Blockers
 
