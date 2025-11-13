@@ -243,10 +243,37 @@
     - All changes follow existing patterns from previous tasks
 
 ### Task 10: Duplicate Enrollment Handling Logic
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Reviewed existing findOrCreateEnrollment implementation in enrollment-helpers.ts (created in Task 5)
+  - ✅ Function already implements duplicate enrollment handling via POST /api/enrollments endpoint
+  - ✅ Created comprehensive unit tests (18 tests) in packages/utils/src/__tests__/enrollment-helpers.test.ts
+    - Tests all three helper functions: findOrCreateEnrollment, uploadOfferLetter, createEnrollmentWithOfferLetter
+    - Tests duplicate detection, enrollment reuse, new enrollment creation scenarios
+    - Tests error handling and validation
+    - Tests multiple payment plans for same enrollment
+    - Tests different programs and branches
+  - ✅ Created integration tests (7 tests) in packages/utils/src/__tests__/enrollment-duplicate-handling-integration.test.ts
+    - Tests complete flow: create new → reuse existing → handle cancelled enrollments
+    - Tests multiple payment plans linking to same enrollment
+    - Tests composite uniqueness key (student_id, branch_id, program_name)
+    - Tests status-based logic (active vs cancelled/completed)
+    - Tests separate enrollments for different programs/branches
+  - ✅ Created API route integration tests in apps/payments/app/api/enrollments/__tests__/route.test.ts
+    - Tests duplicate detection at API level
+    - Tests audit logging for creation and reuse
+    - Tests validation and error handling
+    - Tests authentication and authorization
+  - ✅ All 25 enrollment-specific tests passing (18 unit + 7 integration)
+  - Key Implementation Details:
+    - Duplicate check on composite key: (student_id, branch_id, program_name)
+    - Only active enrollments are reused; cancelled/completed trigger new enrollment creation
+    - Multiple payment plans can link to the same enrollment
+    - Server-side logic in POST /api/enrollments handles all duplicate detection
+    - Client-side findOrCreateEnrollment function provides type-safe wrapper
+    - Comprehensive test coverage for all AC6 requirements
 
 ### Task 11: Audit Logging
 - Status: Not Started
