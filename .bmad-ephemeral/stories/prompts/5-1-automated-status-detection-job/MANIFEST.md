@@ -60,11 +60,26 @@
   - Service role key used to bypass RLS for system-level operations
 
 ### Task 4: Configure pg_cron Schedule
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/drafts/configure_pg_cron_schedule.sql
+  - supabase/migrations/drafts/test_configure_pg_cron_schedule.sql
+  - supabase/migrations/drafts/pg_cron_testing_guide.md
 - Notes:
+  - Enabled pg_cron and http extensions for job scheduling and HTTP requests
+  - Configured API key storage using PostgreSQL custom setting: app.supabase_function_key
+  - Scheduled daily job at 7:00 AM UTC (5:00 PM Brisbane AEST) with cron expression: 0 7 * * *
+  - Job invokes Edge Function via net.http_post() with API key authentication
+  - Implemented idempotent scheduling: automatically unschedules existing job before re-scheduling
+  - Job command includes dynamic URL and API key retrieval via current_setting()
+  - Placeholder project URL and API key configured (to be updated in production)
+  - Comprehensive test suite with 10 automated tests covering extensions, configuration, and scheduling
+  - Testing guide documents manual verification steps and troubleshooting procedures
+  - Job execution logged to jobs_log table (via Edge Function)
+  - Cron run history available in cron.job_run_details table
+  - Production deployment checklist included in migration comments
 
 ### Task 5: Implement API Key Authentication
 - Status: Not Started
@@ -151,4 +166,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Tasks 1-3 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-4 completed)
