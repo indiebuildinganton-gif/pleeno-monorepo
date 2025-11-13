@@ -2,35 +2,155 @@
  * Commission Calculator Utility
  *
  * Provides client-side commission calculation that matches the database
- * calculate_expected_commission() function exactly.
+ * functions exactly. Includes support for:
+ * - Non-commissionable fees (materials, admin, other)
+ * - GST inclusive/exclusive handling
+ *
+ * These utilities enable real-time preview calculations in the payment plan wizard
+ * before values are persisted to the database.
  *
  * @module commission-calculator
  */
 
 /**
- * Calculate expected commission based on total amount and commission rate.
+ * Calculate the commission-eligible value by subtracting non-commissionable fees
+ * from the total course value.
  *
- * This function matches the database formula exactly:
- * expected_commission = total_amount * (commission_rate_percent / 100)
+ * This function matches the database calculate_commissionable_value() function exactly.
  *
- * @param totalAmount - Total payment plan amount (must be >= 0)
- * @param commissionRatePercent - Commission rate as percentage (0-100)
+ * Formula:
+ * Commissionable Value = Total Course Value - Materials Cost - Admin Fees - Other Fees
+ *
+ * @param totalCourseValue - Total course/program value (must be >= 0)
+ * @param materialsCost - Cost of materials, books, supplies (default: 0)
+ * @param adminFees - Administrative or enrollment fees (default: 0)
+ * @param otherFees - Miscellaneous fees (default: 0)
+ * @returns Commission-eligible value rounded to 2 decimal places, minimum 0
+ *
+ * @example
+ * ```typescript
+ * // Basic calculation
+ * calculateCommissionableValue(10000, 500, 200, 100) // Returns 9200.00
+ *
+ * // No fees
+ * calculateCommissionableValue(10000, 0, 0, 0) // Returns 10000.00
+ *
+ * // Only materials cost
+ * calculateCommissionableValue(5000, 500) // Returns 4500.00
+ *
+ * // Fees exceed total (edge case)
+ * calculateCommissionableValue(1000, 500, 400, 300) // Returns 0.00
+ * ```
+ *
+ * @remarks
+ * - All parameters must be non-negative numbers
+ * - NULL/undefined fee values are treated as 0
+ * - If fees exceed total course value, returns 0 (not negative)
+ * - Result is rounded to 2 decimal places to match database precision
+ * - Use this for Step 2 real-time preview in payment plan wizard
+ */
+export function calculateCommissionableValue(
+  totalCourseValue: number,
+  materialsCost: number = 0,
+  adminFees: number = 0,
+  otherFees: number = 0
+): number {
+  // Handle NULL, undefined, or negative values for total
+  if (!totalCourseValue || totalCourseValue < 0) {
+    return 0
+  }
+
+  // Treat NULL/undefined/negative fees as 0
+  const validMaterialsCost = materialsCost && materialsCost >= 0 ? materialsCost : 0
+  const validAdminFees = adminFees && adminFees >= 0 ? adminFees : 0
+  const validOtherFees = otherFees && otherFees >= 0 ? otherFees : 0
+
+  // Calculate commissionable value
+  const commissionableValue = totalCourseValue - validMaterialsCost - validAdminFees - validOtherFees
+
+  // Ensure result is not negative and round to 2 decimal places
+  const result = Math.max(commissionableValue, 0)
+  return Math.round(result * 100) / 100
+}
+
+/**
+ * Calculate expected commission with GST handling support.
+ *
+ * This function matches the enhanced database calculate_expected_commission() function
+ * from Story 4.2.
+ *
+ * Formula:
+ * - If GST Inclusive: base = commissionableValue
+ * - If GST Exclusive: base = commissionableValue / 1.10 (removes 10% GST)
+ * - Expected Commission = base × commissionRate
+ *
+ * @param commissionableValue - Commission-eligible value (from calculateCommissionableValue)
+ * @param commissionRate - Commission rate as decimal (e.g., 0.15 for 15%)
+ * @param gstInclusive - Whether amounts already include GST (default: true)
  * @returns Expected commission rounded to 2 decimal places
  *
  * @example
  * ```typescript
- * calculateExpectedCommission(10000, 15) // Returns 1500.00
- * calculateExpectedCommission(5000, 0) // Returns 0.00
- * calculateExpectedCommission(3500, 20) // Returns 700.00
- * calculateExpectedCommission(100000, 0.5) // Returns 500.00
+ * // GST Inclusive (default)
+ * calculateExpectedCommission(9200, 0.15, true) // Returns 1380.00
+ *
+ * // GST Exclusive (removes 10% GST before calculating commission)
+ * calculateExpectedCommission(9200, 0.15, false) // Returns 1254.55
+ *
+ * // Zero commission rate
+ * calculateExpectedCommission(10000, 0) // Returns 0.00
+ *
+ * // Zero commissionable value
+ * calculateExpectedCommission(0, 0.15) // Returns 0.00
  * ```
  *
  * @remarks
  * - Returns 0 for NULL, undefined, or negative values
+ * - GST rate is fixed at 10% (Australian GST)
  * - Result is rounded to 2 decimal places to match database precision
- * - Use this for real-time preview calculations before database insert
+ * - When gstInclusive=false, divides by 1.10 to remove GST before calculating commission
+ * - Use this for Step 2 real-time preview in payment plan wizard
  */
 export function calculateExpectedCommission(
+  commissionableValue: number,
+  commissionRate: number,
+  gstInclusive: boolean = true
+): number {
+  // Handle NULL, undefined, or negative values
+  if (!commissionableValue || commissionableValue < 0) {
+    return 0
+  }
+
+  if (commissionRate === undefined || commissionRate === null || commissionRate < 0) {
+    return 0
+  }
+
+  // Calculate base amount (with GST handling if needed)
+  let base: number
+  if (gstInclusive) {
+    // GST is already included, use full amount
+    base = commissionableValue
+  } else {
+    // GST is exclusive, remove 10% GST (divide by 1.10)
+    base = commissionableValue / 1.10
+  }
+
+  // Calculate commission and round to 2 decimal places
+  // Using Math.round with * 100 / 100 to avoid floating point precision issues
+  return Math.round(base * commissionRate * 100) / 100
+}
+
+/**
+ * @deprecated Use calculateExpectedCommission with commissionableValue instead.
+ * This function is maintained for backward compatibility with Story 4.1 code.
+ *
+ * Calculate expected commission based on total amount and commission rate percentage.
+ *
+ * @param totalAmount - Total payment plan amount (must be >= 0)
+ * @param commissionRatePercent - Commission rate as percentage (0-100)
+ * @returns Expected commission rounded to 2 decimal places
+ */
+export function calculateExpectedCommissionLegacy(
   totalAmount: number,
   commissionRatePercent: number
 ): number {
