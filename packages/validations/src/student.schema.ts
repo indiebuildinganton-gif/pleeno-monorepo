@@ -141,3 +141,58 @@ export const StudentSchema = z.object({
  * TypeScript type inferred from the StudentSchema
  */
 export type Student = z.infer<typeof StudentSchema>
+
+/**
+ * Zod schema for creating a new student note
+ * Used for validating note creation requests
+ *
+ * Required fields:
+ * - content: Note content (max 2000 characters)
+ */
+export const NoteCreateSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Note content is required')
+    .max(2000, 'Note content must be less than 2000 characters')
+    .trim(),
+})
+
+/**
+ * TypeScript type inferred from the NoteCreateSchema
+ */
+export type NoteCreate = z.infer<typeof NoteCreateSchema>
+
+/**
+ * Zod schema for updating an existing student note
+ * Content field is required for updates
+ */
+export const NoteUpdateSchema = z.object({
+  content: z
+    .string()
+    .min(1, 'Note content cannot be empty')
+    .max(2000, 'Note content must be less than 2000 characters')
+    .trim(),
+})
+
+/**
+ * TypeScript type inferred from the NoteUpdateSchema
+ */
+export type NoteUpdate = z.infer<typeof NoteUpdateSchema>
+
+/**
+ * Student note response type (matches database schema)
+ */
+export const NoteSchema = z.object({
+  id: z.string().uuid(),
+  student_id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  agency_id: z.string().uuid(),
+  content: z.string(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+})
+
+/**
+ * TypeScript type inferred from the NoteSchema
+ */
+export type Note = z.infer<typeof NoteSchema>
