@@ -123,13 +123,13 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Show success toast: "Task assignments updated"
   - [x] Optimistic UI update with TanStack Query
 
-- [ ] Implement invitation expiration validation (AC: 2)
-  - [ ] Create packages/utils/src/invitation-helpers.ts
-  - [ ] Implement isInvitationExpired(invitation) function
-  - [ ] Check expires_at < current_timestamp
-  - [ ] Use in invitation acceptance page
-  - [ ] Display error message: "This invitation has expired. Please request a new invitation from your agency admin."
-  - [ ] Prevent signup with expired token
+- [x] Implement invitation expiration validation (AC: 2)
+  - [x] Create packages/utils/src/invitation-helpers.ts
+  - [x] Implement isInvitationExpired(invitation) function
+  - [x] Check expires_at < current_timestamp
+  - [x] Use in invitation acceptance page
+  - [x] Display error message: "This invitation has expired. Please request a new invitation from your agency admin."
+  - [x] Prevent signup with expired token
 
 - [x] Display pending invitations in user management (AC: 1)
   - [x] Query invitations table for pending (used_at = NULL, not expired)
@@ -1260,6 +1260,61 @@ N/A - No debugging required
 
 **Modified (Task 09):**
 - `apps/agency/app/users/components/UserTable.tsx` - Cleaned up dead code and fixed Assigned Tasks column rendering
+
+**Created (Task 10):**
+- `packages/utils/src/invitation-helpers.ts` - Invitation helper utilities with isInvitationExpired(), getExpirationMessage(), isInvitationUsed(), and validateInvitation() functions
+- `packages/utils/src/__tests__/invitation-helpers.test.ts` - Comprehensive unit tests for invitation helper functions with 30+ test cases
+
+**Modified (Task 10):**
+- `packages/utils/src/index.ts` - Added export for invitation-helpers
+- `apps/shell/app/accept-invitation/[token]/page.tsx` - Updated to use isInvitationExpired() helper function instead of inline validation
+- `apps/shell/app/api/accept-invitation/route.ts` - Updated to use isInvitationExpired() helper function for consistent validation
+
+**Task 10: Implement invitation expiration validation - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created utility file: `packages/utils/src/invitation-helpers.ts`
+  - **isInvitationExpired(invitation)** - Core function that checks if invitation's expires_at is in the past
+  - **getExpirationMessage(invitation)** - Returns human-readable expiration status messages
+  - **isInvitationUsed(invitation)** - Checks if invitation has already been used
+  - **validateInvitation(invitation)** - Comprehensive validation combining expiration and usage checks
+  - **Invitation interface** - TypeScript type for invitation objects
+- Exported helpers from `packages/utils/src/index.ts` for use across applications
+- Updated invitation acceptance page: `apps/shell/app/accept-invitation/[token]/page.tsx`
+  - Replaced inline expiration validation (lines 59-61) with isInvitationExpired() helper
+  - Maintains existing error message: "This invitation has expired. Please request a new invitation from your agency admin."
+  - Prevents signup with expired tokens
+- Updated invitation acceptance API route: `apps/shell/app/api/accept-invitation/route.ts`
+  - Replaced inline expiration validation (lines 43-47) with isInvitationExpired() helper
+  - Consistent error handling using ValidationError
+  - Prevents user creation with expired tokens
+- Created comprehensive unit tests: `packages/utils/src/__tests__/invitation-helpers.test.ts`
+  - 30+ test cases covering all helper functions
+  - Tests for expired and non-expired invitations
+  - Tests for used and unused invitations
+  - Tests for validateInvitation() with all combinations
+  - Edge cases: exact boundary time, very old dates, far future dates
+  - Uses Vitest with mocked timers for consistent test execution
+
+📝 **Implementation notes:**
+- Helper functions centralize expiration logic following DRY principle
+- isInvitationExpired() compares expires_at timestamp with current time (expires_at < now)
+- Acceptance page displays user-friendly error message with expiration date
+- API route throws ValidationError with same error message for consistency
+- Helper functions are reusable across invitation-related features
+- TypeScript interface ensures type safety for invitation objects
+- Tests use vi.useFakeTimers() to mock current time for deterministic results
+- All tests follow AAA pattern (Arrange, Act, Assert)
+
+⚠️ **Deviations from story:**
+- None - all subtasks completed exactly as specified
+- Additional helper functions added (getExpirationMessage, isInvitationUsed, validateInvitation) beyond minimum requirements to provide comprehensive invitation validation utilities
+
+🔄 **Follow-up tasks:**
+- Helper functions can be used in other parts of the application (e.g., admin dashboard showing invitation status)
+- Consider using getExpirationMessage() to display "expires in X days" warnings to users
+- validateInvitation() can be used to simplify validation logic in other invitation-related flows
+
 **Task 12: Create validation schemas - COMPLETED (2025-11-13)**
 
 ✅ **What was completed:**
@@ -1307,4 +1362,5 @@ N/A - No debugging required
 - **2025-11-13:** Task 11 completed - Created migration (009_add_task_ids_to_invitations.sql) adding task_ids JSONB column to invitations table, updated POST /api/invitations to save task_ids, enhanced POST /api/invitations/[id]/resend with email sending functionality, updated both API routes to Next.js 15 params pattern, enhanced PendingInvitationsTable with assigned tasks display (badges), Resend button, relative time format ("In X days"), and renamed Revoke to Cancel button
 - **2025-11-13:** Task 08 completed - Implemented task assignment management API for existing users (POST /api/users/[id]/tasks) with atomic task replacement, dual-level audit logging (automatic triggers + manual summary), agency isolation validation, and comprehensive error handling
 - **2025-11-13:** Task 09 completed - Created task assignment UI for existing users with user detail page (apps/agency/app/users/[id]/page.tsx) displaying profile and task assignments, client component (TaskAssignmentForm.tsx) with checkbox list for master tasks, TanStack Query mutation with optimistic updates, success toast notification, error rollback, and unsaved changes indicator. Enhanced UserTable component by cleaning up dead code and fixing Assigned Tasks column rendering
+- **2025-11-13:** Task 10 completed - Implemented invitation expiration validation with reusable helper utilities. Created packages/utils/src/invitation-helpers.ts with isInvitationExpired(), getExpirationMessage(), isInvitationUsed(), and validateInvitation() functions. Updated invitation acceptance page (apps/shell/app/accept-invitation/[token]/page.tsx) and API route (apps/shell/app/api/accept-invitation/route.ts) to use helper function instead of inline validation. Exported helpers from utils package index. Created comprehensive unit tests (packages/utils/src/__tests__/invitation-helpers.test.ts) with 30+ test cases covering expiration scenarios, edge cases, and all helper functions. Follows DRY principle by centralizing expiration logic in reusable utility.
 - **2025-11-13:** Task 12 completed - Verified validation schemas exist in packages/validations/src/invitation.schema.ts (created during Task 04). Schemas include InvitationCreateSchema (email, role, task_ids with full validation), UserTaskAssignmentSchema (task_ids array), and InvitationAcceptanceSchema (token, full_name, password validation). All TypeScript types exported and integrated across API routes.

@@ -18,6 +18,7 @@
 
 import { createServerClient } from '@pleeno/database/server'
 import { redirect } from 'next/navigation'
+import { isInvitationExpired } from '@pleeno/utils'
 import AcceptInvitationForm from './AcceptInvitationForm'
 
 interface PageProps {
@@ -56,11 +57,8 @@ export default async function AcceptInvitationPage({ params, searchParams }: Pag
   }
 
   // Validate invitation not expired
-  const now = new Date()
-  const expiresAt = new Date(invitation.expires_at)
-  const isExpired = expiresAt < now
-
-  if (isExpired) {
+  if (isInvitationExpired(invitation)) {
+    const expiresAt = new Date(invitation.expires_at)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
