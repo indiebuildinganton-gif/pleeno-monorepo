@@ -122,3 +122,24 @@ export const SUPPORTED_TIMEZONES = VALID_TIMEZONES
  * Export the list of supported currencies for use in UI components
  */
 export const SUPPORTED_CURRENCIES = ['AUD', 'USD', 'EUR', 'GBP', 'NZD', 'CAD'] as const
+
+/**
+ * Zod schema for agency settings updates
+ * Used for validating agency configuration settings like notification thresholds
+ * Epic 5: Automated Installment Status Management
+ * Story 5.2: Due Soon Notification Flags
+ */
+export const AgencySettingsUpdateSchema = z.object({
+  due_soon_threshold_days: z
+    .number()
+    .int('Threshold must be a whole number')
+    .min(1, 'Threshold must be at least 1 day')
+    .max(30, 'Threshold must be at most 30 days')
+    .optional(),
+})
+
+/**
+ * TypeScript type inferred from the AgencySettingsUpdateSchema
+ * Use this type for type-safe agency settings update operations
+ */
+export type AgencySettingsUpdate = z.infer<typeof AgencySettingsUpdateSchema>
