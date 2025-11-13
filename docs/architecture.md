@@ -2144,6 +2144,28 @@ CREATE POLICY "tenant_isolation"
 - RLS policies reference `auth.uid()` to filter by agency
 - Impossible to query other agencies' data (enforced at DB level)
 
+## Multi-Tenant Architecture Implementation Status
+
+**Status**: ✅ Implemented in Story 1.2
+
+### RLS Policy Pattern (Established)
+
+All tenant-scoped tables follow the standard RLS policy pattern documented in [docs/development/rls-policy-patterns.md](development/rls-policy-patterns.md).
+
+**Key Resources**:
+- RLS Policy Template: `supabase/migrations/_TEMPLATE_tenant_scoped_table.sql`
+- Security Testing Guidelines: `docs/development/security-testing-guidelines.md`
+- Comprehensive Test Suite: `supabase/tests/rls-comprehensive-test-suite.sql`
+
+### Migration Standards
+
+1. **Domain-Driven Organization**: Migrations grouped by epic/domain (e.g., `001_agency_domain/`)
+2. **Naming Convention**: `{number}_{description}.sql` (e.g., `001_agencies_schema.sql`)
+3. **RLS Template**: Use `_TEMPLATE_tenant_scoped_table.sql` for new tables
+4. **Testing**: Run `./supabase/scripts/run-all-tests.sh` before committing
+
+See [Story 1.2 Documentation](.bmad-ephemeral/stories/1-2-multi-tenant-database-schema-with-rls.md) for complete implementation details.
+
 ### Authentication Flow
 
 1. User submits login (email/password) → Supabase Auth

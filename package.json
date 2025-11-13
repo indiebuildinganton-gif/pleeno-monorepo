@@ -1,0 +1,89 @@
+{
+  "name": "pleeno-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "type-check": "turbo run type-check",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "dev:shell": "cd apps/shell && npm run dev -- --port 3000",
+    "dev:dashboard": "cd apps/dashboard && npm run dev -- --port 3001",
+    "dev:agency": "cd apps/agency && npm run dev -- --port 3002",
+    "dev:entities": "cd apps/entities && npm run dev -- --port 3003",
+    "dev:payments": "cd apps/payments && npm run dev -- --port 3004",
+    "dev:reports": "cd apps/reports && npm run dev -- --port 3005",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@turbo/gen": "^2.3.3",
+    "@types/react": "^19.2.4",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/ui": "^4.0.8",
+    "@vitest/coverage-v8": "^4.0.8",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "happy-dom": "^20.0.10",
+    "husky": "^9.1.7",
+    "jsdom": "^27.2.0",
+    "lint-staged": "^16.2.6",
+    "msw": "^2.12.1",
+    "prettier": "^3.4.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "turbo": "^2.6.1",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.8"
+  },
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "apps/**/*.{js,jsx,ts,tsx}": [
+      "bash -c 'ESLINT_USE_FLAT_CONFIG=false eslint --fix \"$@\"' --"
+    ],
+    "packages/**/*.{ts,tsx}": [
+      "bash -c 'ESLINT_USE_FLAT_CONFIG=false eslint --fix \"$@\"' --"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.553.0",
+    "tailwind-merge": "^3.4.0"
+  }
+}
