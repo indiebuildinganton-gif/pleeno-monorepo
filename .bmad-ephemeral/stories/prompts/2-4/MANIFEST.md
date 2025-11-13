@@ -76,10 +76,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 11. Create email verification email template
-- [ ] Prompt: `11-create-email-verification-email-template.md`
-- [ ] Implementation complete
+- [x] Prompt: `11-create-email-verification-email-template.md`
+- [x] Implementation complete
 - [ ] Tests written
-- [ ] Story file updated
+- [x] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 12. Create validation schemas
 - [ ] Prompt: `12-create-validation-schemas.md`
@@ -108,9 +109,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 7
+- Completed: 8
 - In progress: 0
-- Remaining: 8
+- Remaining: 7
 
 ## Notes
 
@@ -214,6 +215,36 @@ Add notes here as you work through the tasks:
   - Story file updated with completion notes and changelog entry
   - Manifest file updated with task completion status
   - Follows AC9: Email changes require verification with user-friendly flow
+- **Task 11 (2025-11-13):** Created email verification email template
+  - Created React Email template at emails/email-verification.tsx
+  - Implemented EmailVerificationEmail component with TypeScript interface (EmailVerificationProps)
+  - Uses @react-email/components: Html, Head, Body, Container, Section, Text, Button, Hr
+  - Professional email design matching agency branding, consistent with invitation.tsx template
+  - Brand color #0066ff for CTA button, clean modern design with white card on #f6f9fc background
+  - Email content includes:
+    - Subject: "Verify your new email address" (displayed in heading)
+    - Personalized greeting with user name
+    - Agency name prominently mentioned in body text
+    - Clear explanation of email verification request
+    - Primary CTA button: "Verify Email Address" with prominent styling
+    - Fallback verification link in styled code block (copy/paste option)
+    - Security notice: "This verification link will expire in 1 hour"
+    - Disclaimer footer: "If you didn't request this change, please ignore this email"
+    - Automated message notice at bottom
+  - Template props interface:
+    - agencyName: string - Agency name from database (fetched via join)
+    - userName: string - Full name of user
+    - verificationUrl: string - Complete URL with token ({APP_URL}/verify-email?token={token})
+  - Updated API endpoint apps/agency/app/api/users/[id]/email/route.ts:
+    - Imported EmailVerificationEmail template using relative path from monorepo root
+    - Updated database query to join agencies table: .select('full_name, email, agencies(name)')
+    - Extracted agency name from join result with fallback to 'Your Agency'
+    - Replaced simple HTML email with React Email template
+    - Uses resend.emails.send() with 'react' property instead of 'html'
+    - Passes agencyName, userName (targetUser.full_name), and verificationUrl to template
+  - Story file updated with completion notes in Dev Agent Record section
+  - Manifest file updated with task completion status and detailed notes
+  - Follows AC9: Email changes require administrator verification via professional email template
 
 ## Issues / Blockers
 
