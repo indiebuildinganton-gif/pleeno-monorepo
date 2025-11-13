@@ -144,11 +144,41 @@
     ✅ Security best practices: no version control, cryptographically secure generation, per-environment keys
 
 ### Task 6: Add Agency Timezone and Cutoff Time Fields
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/001_agency_domain/010_add_agency_timezone_fields.sql
+  - supabase/migrations/001_agency_domain/README-010-TIMEZONE.md
+  - supabase/tests/test-agency-timezone-fields.sql
 - Notes:
+  - Added overdue_cutoff_time column (TIME, default '17:00:00') for time-of-day overdue detection
+  - Added due_soon_threshold_days column (INT, default 4) for future Story 5.2
+  - timezone column already exists from migration 001, added check constraint validation
+  - Implemented three check constraints:
+    - agencies_timezone_check: Validates IANA timezone names (50+ supported timezones)
+    - agencies_cutoff_time_check: Ensures cutoff time between 00:00:00 and 23:59:59
+    - agencies_due_soon_days_check: Ensures threshold days between 1 and 30
+  - Supported timezone regions: Australia (8), Americas (10), Europe (10), Asia (10), Pacific (4), UTC
+  - Column comments added for documentation and future maintainability
+  - Backfill UPDATE ensures existing agencies have default values
+  - Comprehensive test suite with 10 test scenarios:
+    - Column schema verification (data types, defaults, nullability)
+    - Check constraints existence and enforcement
+    - Valid values insertion (5 scenarios across different timezones)
+    - Invalid timezone, cutoff time, and threshold days rejection
+    - Timezone conversion functionality verification
+    - Default values verification for existing and new agencies
+  - README documentation includes:
+    - Migration overview and change summary
+    - Running instructions (local and production)
+    - Complete test coverage documentation
+    - Usage examples from status update function
+    - Future enhancements (Story 5.2, Admin UI)
+    - Rollback procedures
+  - All columns use NOT NULL with DEFAULT to ensure data consistency
+  - No database running during development; migration ready for deployment
+  - Migration follows project conventions (001_agency_domain folder, sequential numbering)
 
 ### Task 7: Testing
 - Status: Not Started
@@ -221,4 +251,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Tasks 1-5 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-6 completed)
