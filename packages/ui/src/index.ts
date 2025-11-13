@@ -21,5 +21,8 @@ export * from './components/ui/select'
 // Auth Components
 export * from './components/auth'
 
+// Enrollment Components
+export * from './components/enrollments'
+
 // Utils
 export { cn } from './lib/utils'
