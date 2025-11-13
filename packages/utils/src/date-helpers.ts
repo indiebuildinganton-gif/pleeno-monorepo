@@ -1,4 +1,14 @@
-import { format, formatDistanceToNow } from 'date-fns'
+import {
+  format,
+  formatDistanceToNow,
+  addDays,
+  subDays,
+  addMonths,
+  isAfter,
+  isBefore,
+  startOfDay,
+  isSameDay,
+} from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 
 /**
@@ -122,4 +132,163 @@ export function formatDateWithPreset(
   preset: keyof typeof DateFormatPresets
 ): string {
   return formatDateInAgencyTimezone(date, timezone, DateFormatPresets[preset])
+}
+
+/**
+ * Check if a date is "due soon" based on a threshold in days
+ * @param dueDate - The due date to check (UTC or string)
+ * @param thresholdDays - Number of days before due date to consider "due soon" (default: 4)
+ * @param timezone - IANA timezone for agency-aware calculations (default: 'UTC')
+ * @returns true if the due date is between today and today + thresholdDays (inclusive)
+ * @example
+ * ```ts
+ * // Today is 2024-01-01
+ * isDueSoon('2024-01-03T00:00:00Z', 4) // Returns: true (3 days away, within 4-day threshold)
+ * isDueSoon('2024-01-06T00:00:00Z', 4) // Returns: false (5 days away, outside 4-day threshold)
+ * isDueSoon('2024-01-04T23:59:59Z', 4) // Returns: true (3 days away)
+ * isDueSoon('2023-12-31T00:00:00Z', 4) // Returns: false (in the past)
+ *
+ * // With timezone awareness (Brisbane is UTC+10)
+ * // Current time in Brisbane: 2024-01-01 10:00 AM
+ * // Current time in UTC: 2024-01-01 00:00 AM
+ * isDueSoon('2024-01-04T00:00:00Z', 4, 'Australia/Brisbane') // Checks against Brisbane's current date
+ * ```
+ */
+export function isDueSoon(
+  dueDate: Date | string,
+  thresholdDays: number = 4,
+  timezone: string = 'UTC'
+): boolean {
+  if (!dueDate) {
+    return false
+  }
+
+  // Convert due date to Date object if string
+  const dueDateObj = typeof dueDate === 'string' ? new Date(dueDate) : dueDate
+
+  // Get current date in agency timezone (start of day)
+  const now = new Date()
+  const agencyNow = toZonedTime(now, timezone)
+  const agencyToday = startOfDay(agencyNow)
+
+  // Convert due date to agency timezone (start of day)
+  const agencyDueDate = toZonedTime(dueDateObj, timezone)
+  const agencyDueDateStartOfDay = startOfDay(agencyDueDate)
+
+  // Calculate threshold date (today + thresholdDays)
+  const thresholdDate = addDays(agencyToday, thresholdDays)
+
+  // Check if due date is:
+  // 1. On or after today (not in the past)
+  // 2. On or before threshold date (within threshold)
+  const isNotPast =
+    isAfter(agencyDueDateStartOfDay, agencyToday) || isSameDay(agencyDueDateStartOfDay, agencyToday)
+  const isWithinThreshold =
+    isBefore(agencyDueDateStartOfDay, thresholdDate) ||
+    isSameDay(agencyDueDateStartOfDay, thresholdDate)
+
+  return isNotPast && isWithinThreshold
+}
+
+/**
+ * Calculates when student must pay based on college due date and lead time buffer.
+ *
+ * @param collegeDueDate - Date when agency must pay college
+ * @param studentLeadTimeDays - Number of days before college due date
+ * @returns Date when student must pay agency
+ *
+ * @example
+ * calculateStudentDueDate(new Date('2025-03-15'), 7)
+ * // Returns: Date('2025-03-08') - student pays 7 days before college due date
+ */
+export function calculateStudentDueDate(collegeDueDate: Date, studentLeadTimeDays: number): Date {
+  // Input validation
+  if (!(collegeDueDate instanceof Date) || isNaN(collegeDueDate.getTime())) {
+    throw new Error('Invalid college due date: must be a valid Date object')
+  }
+
+  if (typeof studentLeadTimeDays !== 'number' || studentLeadTimeDays < 0) {
+    throw new Error('Invalid student lead time: must be a non-negative number')
+  }
+
+  return subDays(collegeDueDate, studentLeadTimeDays)
+}
+
+/**
+ * Calculates when agency must pay college based on student payment date and lead time.
+ *
+ * @param studentDueDate - Date when student must pay agency
+ * @param studentLeadTimeDays - Number of days buffer for agency
+ * @returns Date when agency must pay college
+ *
+ * @example
+ * calculateCollegeDueDate(new Date('2025-03-08'), 7)
+ * // Returns: Date('2025-03-15') - agency pays 7 days after student pays
+ */
+export function calculateCollegeDueDate(studentDueDate: Date, studentLeadTimeDays: number): Date {
+  // Input validation
+  if (!(studentDueDate instanceof Date) || isNaN(studentDueDate.getTime())) {
+    throw new Error('Invalid student due date: must be a valid Date object')
+  }
+
+  if (typeof studentLeadTimeDays !== 'number' || studentLeadTimeDays < 0) {
+    throw new Error('Invalid student lead time: must be a non-negative number')
+  }
+
+  return addDays(studentDueDate, studentLeadTimeDays)
+}
+
+/**
+ * Generates an array of due dates for installments based on frequency.
+ *
+ * @param firstDueDate - The first installment due date
+ * @param count - Number of installments (excluding initial payment)
+ * @param frequency - 'monthly' or 'quarterly'
+ * @returns Array of Date objects for each installment
+ *
+ * @example
+ * generateInstallmentDueDates(new Date('2025-02-01'), 3, 'monthly')
+ * // Returns: [
+ * //   Date('2025-02-01'),  // Installment 1
+ * //   Date('2025-03-01'),  // Installment 2
+ * //   Date('2025-04-01')   // Installment 3
+ * // ]
+ *
+ * @example
+ * generateInstallmentDueDates(new Date('2025-02-01'), 3, 'quarterly')
+ * // Returns: [
+ * //   Date('2025-02-01'),  // Installment 1
+ * //   Date('2025-05-01'),  // Installment 2 (3 months later)
+ * //   Date('2025-08-01')   // Installment 3 (3 months later)
+ * // ]
+ */
+export function generateInstallmentDueDates(
+  firstDueDate: Date,
+  count: number,
+  frequency: 'monthly' | 'quarterly'
+): Date[] {
+  // Input validation
+  if (!(firstDueDate instanceof Date) || isNaN(firstDueDate.getTime())) {
+    throw new Error('Invalid first due date: must be a valid Date object')
+  }
+
+  if (typeof count !== 'number' || count <= 0 || !Number.isInteger(count)) {
+    throw new Error('Invalid count: must be a positive integer')
+  }
+
+  if (frequency !== 'monthly' && frequency !== 'quarterly') {
+    throw new Error("Invalid frequency: must be 'monthly' or 'quarterly'")
+  }
+
+  // Calculate month increment based on frequency
+  const monthIncrement = frequency === 'monthly' ? 1 : 3
+
+  // Generate array of due dates
+  const dueDates: Date[] = []
+  for (let i = 0; i < count; i++) {
+    const dueDate = addMonths(firstDueDate, i * monthIncrement)
+    dueDates.push(dueDate)
+  }
+
+  return dueDates
 }

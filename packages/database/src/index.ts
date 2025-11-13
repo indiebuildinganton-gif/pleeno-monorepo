@@ -56,8 +56,9 @@
 // Client-side: import from '@pleeno/database/client'
 // Middleware: import from '@pleeno/database/middleware'
 
+// Export only types from the main entry point
+// Import server/client/middleware from their specific paths
 export * from './types/database.types'
-export * from './server'
-export * from './client'
-export * from './middleware'
-export * from './types/database.types'
+
+// Export activity logger types and functions
+export * from './activity-logger'

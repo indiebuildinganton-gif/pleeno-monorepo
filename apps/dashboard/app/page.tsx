@@ -1,18 +1,23 @@
 /**
  * Dashboard Page
  *
- * Main dashboard page for the application. Displays unauthorized error
- * messages when users attempt to access restricted areas.
+ * Main dashboard page displaying KPI metrics and business insights.
  *
- * Epic 2: Agency Configuration & User Management
- * Story 2-1: Agency Profile Setup
- * Task 6: Add Role-Based Access Control for Settings Page
+ * Epic 6: Dashboard & Reporting Zone
+ * Story 6.1: KPI Widgets with Trends and Market Breakdown
+ * Task 9: Integrate Widgets into Dashboard Page
  */
 
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { KPIWidget } from './components/KPIWidget'
+import { SeasonalCommissionChart } from './components/SeasonalCommissionChart'
+import { CommissionBySchoolWidget } from './components/CommissionBySchoolWidget'
+import { CommissionByCountryWidget } from './components/CommissionByCountryWidget'
+import PaymentStatusWidget from './components/PaymentStatusWidget'
+import { OverduePaymentsSummary } from './components/OverduePaymentsSummary'
 
 export default function Dashboard() {
   const searchParams = useSearchParams()
@@ -35,7 +40,7 @@ export default function Dashboard() {
   }, [searchParams])
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto px-4 py-8">
       {error && (
         <div className="mb-6 p-4 rounded-md bg-red-50 text-red-800 border border-red-200">
           <div className="flex items-center gap-2">
@@ -56,19 +61,48 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="mb-6">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome to your agency dashboard</p>
+        <p className="text-muted-foreground mt-2">High-level KPIs and business health metrics</p>
       </div>
 
-      <div className="grid gap-6">
-        <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-2">Getting Started</h2>
-          <p className="text-muted-foreground">
-            This is your main dashboard. From here you can access various features and manage your
-            agency.
-          </p>
-        </div>
+      {/* Overdue Payments Section - TOP PRIORITY */}
+      <div className="mb-8">
+        <OverduePaymentsSummary />
+      </div>
+
+      <div className="space-y-8">
+        {/* Row 1: Key Metrics */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Key Metrics</h2>
+          <KPIWidget />
+        </section>
+
+        {/* Row 2: Seasonal Trends */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Seasonal Trends</h2>
+          <div className="bg-white rounded-lg shadow p-6">
+            <SeasonalCommissionChart />
+          </div>
+        </section>
+
+        {/* Row 3: Commission Breakdown */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Commission Breakdown</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <CommissionBySchoolWidget />
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <CommissionByCountryWidget />
+            </div>
+          </div>
+        </section>
+        {/* Row 4: Payment Status Overview */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Payment Status Overview</h2>
+          <PaymentStatusWidget />
+        </section>
       </div>
     </div>
   )

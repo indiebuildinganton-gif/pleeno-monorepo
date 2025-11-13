@@ -113,15 +113,15 @@ so that **I know which institutions are most valuable, understand tax implicatio
     - Commission: X% of total
     - GST: Y% of total
 
-- [ ] **Task 6: Add Widget Header and Controls** (AC: #1, 4)
-  - [ ] Add widget container with header:
+- [x] **Task 6: Add Widget Header and Controls** (AC: #1, 4)
+  - [x] Add widget container with header:
     - Title: "Commission Breakdown by College"
     - Refresh button (manual refetch)
     - Export to CSV button (future enhancement placeholder)
     - Time period filter dropdown
-  - [ ] Add college/branch filter controls below header
-  - [ ] Add date range indicator based on selected period: "All Time", "Jan 1 - Dec 31, 2025", etc.
-  - [ ] Responsive layout (full width widget, stacks on mobile)
+  - [x] Add college/branch filter controls below header
+  - [x] Add date range indicator based on selected period: "All Time", "Jan 1 - Dec 31, 2025", etc.
+  - [x] Responsive layout (full width widget, stacks on mobile)
 
 - [ ] **Task 7: Integrate GST Calculation Logic** (AC: #7)
   - [ ] Create utility function in `packages/utils/src/commission-calculator.ts`:

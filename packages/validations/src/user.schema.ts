@@ -7,7 +7,7 @@ import { z } from 'zod'
 export const ProfileUpdateSchema = z.object({
   full_name: z
     .string()
-    .min(1, 'Full name is required')
+    .min(2, 'Full name must be at least 2 characters')
     .max(255, 'Full name must be less than 255 characters')
     .trim(),
 })
@@ -25,7 +25,7 @@ export type ProfileUpdate = z.infer<typeof ProfileUpdateSchema>
  * - At least one uppercase letter
  * - At least one lowercase letter
  * - At least one number
- * - At least one special character
+ * - At least one special character (!@#$%^&*(),.?":{}|<>)
  */
 export const PasswordChangeSchema = z
   .object({
@@ -36,7 +36,10 @@ export const PasswordChangeSchema = z
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number')
-      .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+      .regex(
+        /[!@#$%^&*(),.?":{}|<>]/,
+        'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'
+      ),
     confirm_password: z.string().min(1, 'Password confirmation is required'),
   })
   .refine((data) => data.new_password === data.confirm_password, {

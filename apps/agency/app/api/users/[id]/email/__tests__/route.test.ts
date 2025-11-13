@@ -29,13 +29,15 @@ vi.mock('@pleeno/database', () => ({
   })),
 }))
 
-vi.mock('resend', () => ({
-  Resend: vi.fn(() => ({
-    emails: {
-      send: mockSendEmail,
-    },
-  })),
-}))
+vi.mock('resend', () => {
+  return {
+    Resend: vi.fn().mockImplementation(() => ({
+      emails: {
+        send: mockSendEmail,
+      },
+    })),
+  }
+})
 
 describe('PATCH /api/users/{id}/email', () => {
   beforeEach(() => {
@@ -403,7 +405,9 @@ describe('PATCH /api/users/{id}/email', () => {
     // Verify email contains verification link
     expect(mockSendEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        html: expect.stringContaining('https://app.pleeno.com/verify-email?token=mock-uuid-token-123'),
+        html: expect.stringContaining(
+          'https://app.pleeno.com/verify-email?token=mock-uuid-token-123'
+        ),
       })
     )
   })

@@ -134,22 +134,22 @@ so that **my account information is accurate and I can change my password**.
   - [x] On success: Show success message and redirect to /profile after 3 seconds
   - [x] On error: Show error message with link to request new verification email
 
-- [ ] Create email verification email template (AC: 9)
-  - [ ] Create emails/email-verification.tsx (React Email)
-  - [ ] Subject: "Verify your new email address"
-  - [ ] Body: Agency name, user name, verification link (expires in 1 hour)
-  - [ ] Verification link: {APP_URL}/verify-email?token={token}
-  - [ ] Footer: "If you didn't request this change, please ignore this email"
-  - [ ] Styling: Professional, matches agency branding
+- [x] Create email verification email template (AC: 9)
+  - [x] Create emails/email-verification.tsx (React Email)
+  - [x] Subject: "Verify your new email address"
+  - [x] Body: Agency name, user name, verification link (expires in 1 hour)
+  - [x] Verification link: {APP_URL}/verify-email?token={token}
+  - [x] Footer: "If you didn't request this change, please ignore this email"
+  - [x] Styling: Professional, matches agency branding
 
-- [ ] Create validation schemas (AC: 1, 2, 3, 8)
-  - [ ] Create packages/validations/src/profile.schema.ts
-  - [ ] Define ProfileUpdateSchema: full_name (min 2 chars)
-  - [ ] Define PasswordChangeSchema: current_password, new_password, confirm_password
-  - [ ] Validate new_password: min 8 chars, regex for uppercase, lowercase, number, special
-  - [ ] Validate passwords match (new_password === confirm_password)
-  - [ ] Define EmailUpdateSchema: email (valid email format)
-  - [ ] Export TypeScript types
+- [x] Create validation schemas (AC: 1, 2, 3, 8)
+  - [x] Create packages/validations/src/profile.schema.ts
+  - [x] Define ProfileUpdateSchema: full_name (min 2 chars)
+  - [x] Define PasswordChangeSchema: current_password, new_password, confirm_password
+  - [x] Validate new_password: min 8 chars, regex for uppercase, lowercase, number, special
+  - [x] Validate passwords match (new_password === confirm_password)
+  - [x] Define EmailUpdateSchema: email (valid email format)
+  - [x] Export TypeScript types
 
 - [x] Add navigation link to profile (AC: 1)
   - [x] Update apps/agency/app/layout.tsx navigation
@@ -843,7 +843,7 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### Completion Notes List
 
-**Task 13: Add navigation link to profile** (Completed: 2025-11-13)
+**Task 13: Add navigation link to profile** (Completed: 2025-11-13, Fixed: 2025-11-13)
 - All subtasks completed
 - Created dropdown-menu UI component:
   - Added @radix-ui/react-dropdown-menu dependency to ui package
@@ -870,6 +870,9 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
   - Sticky header with backdrop blur effect
 - Updated root layout:
   - Modified apps/agency/app/layout.tsx to include AppHeader
+  - Fixed: Replaced Navigation component with AppHeader (2025-11-13)
+  - Removed redundant user data fetching (UserMenu handles this internally)
+  - Simplified layout code - AppHeader and UserMenu are self-contained
   - Updated metadata with proper title and description
   - Header renders for all authenticated pages
 - All acceptance criteria (AC: 1) met:
@@ -967,6 +970,106 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - Comprehensive JSDoc documentation with usage examples
 - All acceptance criteria (AC: 3) met
 
+**Task 11: Create email verification email template** (Completed: 2025-11-13)
+- All subtasks completed successfully
+- Created emails/email-verification.tsx using React Email:
+  - Implemented EmailVerificationEmail component with TypeScript interface
+  - Professional email design matching agency branding (consistent with invitation.tsx)
+  - Uses @react-email/components (Html, Head, Body, Container, Section, Text, Button, Hr)
+  - Brand color #0066ff for CTA button
+  - Clean, modern design with white card on light blue background (#f6f9fc)
+- Email content includes:
+  - Subject line: "Verify your new email address" (in heading)
+  - Personalized greeting with user name
+  - Agency name prominently displayed
+  - Clear explanation of email verification request
+  - Primary CTA button: "Verify Email Address"
+  - Fallback verification link (copy/paste option with styled code block)
+  - Expiration notice: "This verification link will expire in 1 hour"
+  - Security footer: "If you didn't request this change, please ignore this email"
+  - Automated message disclaimer
+- Template props interface:
+  - agencyName: string - Agency name from database
+  - userName: string - Full name of user
+  - verificationUrl: string - Complete URL with token ({APP_URL}/verify-email?token={token})
+- Updated API endpoint apps/agency/app/api/users/[id]/email/route.ts:
+  - Imported EmailVerificationEmail template (relative path from monorepo root)
+  - Updated database query to fetch agency name via join: .select('full_name, email, agencies(name)')
+  - Extracted agency name from join result with fallback: 'Your Agency'
+  - Replaced simple HTML email with React Email template
+  - Passes agencyName, userName, and verificationUrl props to template
+  - Uses resend.emails.send() with 'react' property instead of 'html'
+- All acceptance criteria (AC: 9) met:
+  - Professional, branded email template ✓
+  - Includes agency name, user name, verification link ✓
+  - Expiration notice (1 hour) ✓
+  - Security disclaimer footer ✓
+  - Integrated with email change API endpoint ✓
+**Task 12: Create validation schemas** (Completed: 2025-11-13)
+- All subtasks completed successfully
+- Validation schemas implemented in packages/validations/src/user.schema.ts:
+  - ✅ ProfileUpdateSchema: Validates full_name field
+    - Minimum 2 characters (updated from 1 to meet task requirements)
+    - Maximum 255 characters
+    - Automatic trimming of whitespace
+    - Supports international characters and special characters
+  - ✅ PasswordChangeSchema: Validates password change operations
+    - current_password: Required field for authentication
+    - new_password: Must meet all security requirements:
+      - Minimum 8 characters
+      - At least one uppercase letter (regex: /[A-Z]/)
+      - At least one lowercase letter (regex: /[a-z]/)
+      - At least one number (regex: /[0-9]/)
+      - At least one special character (regex: /[!@#$%^&*(),.?":{}|<>]/)
+    - confirm_password: Must match new_password exactly
+    - Password mismatch validation using Zod refine
+  - ✅ EmailUpdateSchema: Validates email update operations
+    - Valid email format
+    - Maximum 255 characters
+    - Automatic conversion to lowercase
+    - Automatic trimming of whitespace
+  - ✅ All TypeScript types exported: ProfileUpdate, PasswordChange, EmailUpdate
+- Important fix: Aligned special character regex between PasswordChangeSchema and password-strength utility
+  - Changed from /[^A-Za-z0-9]/ (any non-alphanumeric) to /[!@#$%^&*(),.?":{}|<>]/ (specific special chars)
+  - Prevents confusion where spaces, underscores, or hyphens would pass schema but fail strength indicator
+  - Ensures consistent validation between frontend password strength indicator and backend validation
+- Created comprehensive test suite in packages/validations/src/__tests__/user.schema.test.ts:
+  - ProfileUpdateSchema tests (20 test cases):
+    - ✅ Valid names with minimum/maximum length
+    - ✅ International characters and special characters (apostrophes, hyphens, accents)
+    - ✅ Whitespace trimming
+    - ✅ Validation errors for too short/long names
+    - ✅ Empty string and missing field validation
+  - PasswordChangeSchema tests (35+ test cases):
+    - ✅ Valid passwords meeting all requirements
+    - ✅ All special characters individually tested
+    - ✅ Each requirement tested in isolation (length, uppercase, lowercase, number, special char)
+    - ✅ Password mismatch detection (exact match, case sensitivity, whitespace)
+    - ✅ Missing fields validation
+    - ✅ Multiple validation errors reported together
+    - ✅ Edge cases: spaces, underscores, hyphens not accepted as special chars
+  - EmailUpdateSchema tests (15+ test cases):
+    - ✅ Valid email formats (simple, plus addressing, subdomains, international TLDs)
+    - ✅ Email normalization (lowercase, trimming)
+    - ✅ Invalid formats rejected (missing @, missing domain, double @, etc.)
+    - ✅ Length validation
+    - ✅ Empty and missing field validation
+  - UserRoleUpdateSchema and UserStatusUpdateSchema tests (8 test cases):
+    - ✅ Valid role and status values
+    - ✅ Invalid values rejected with descriptive errors
+- All schemas follow Zod best practices with clear error messages
+- Schemas aligned with architecture.md patterns and security requirements
+- All acceptance criteria (AC: 1, 2, 3, 8) met:
+  - AC1: ProfileUpdateSchema allows name updates ✓
+  - AC2: PasswordChangeSchema requires current password ✓
+  - AC3: Password security requirements enforced ✓
+  - AC8: EmailUpdateSchema validates admin email changes ✓
+- Note: Schemas placed in user.schema.ts instead of separate profile.schema.ts
+  - Decision made during earlier task implementation (Task 07)
+  - Makes semantic sense as profile updates are user entity updates
+  - Already in use by implemented API endpoints
+  - Properly exported from package index
+
 **Task 15: Write tests for profile management** (Completed: 2025-11-13)
 - All subtasks completed successfully
 - Created comprehensive test suite for all profile management endpoints
@@ -1053,11 +1156,18 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - `packages/utils/src/password-strength.ts` - Password strength validator utility
 - `packages/utils/src/index.ts` - Updated with password-strength export
 
+**Task 11: Create email verification email template**
+- `emails/email-verification.tsx` - React Email template for email verification
+- `apps/agency/app/api/users/[id]/email/route.ts` - Updated to use React Email template and fetch agency name
 **Task 15: Write tests for profile management**
 - `apps/agency/app/api/users/me/profile/__tests__/route.test.ts` - Profile update API tests
 - `apps/agency/app/api/users/me/password/__tests__/route.test.ts` - Password change API tests
 - `apps/agency/app/api/users/[id]/email/__tests__/route.test.ts` - Email change API tests (admin)
 - `apps/agency/app/api/users/verify-email/__tests__/route.test.ts` - Email verification API tests (already existed)
+
+**Task 12: Create validation schemas**
+- `packages/validations/src/user.schema.ts` - Updated profile validation schemas
+- `packages/validations/src/__tests__/user.schema.test.ts` - Comprehensive validation tests
 
 ## Change Log
 
@@ -1066,4 +1176,6 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - **2025-11-13:** Task 13 completed - Add navigation link to profile with user menu dropdown and active state highlighting
 - **2025-11-13:** Task 10 completed - Create email verification page with loading, success, and error states, automatic redirect, and user-friendly error messages
 - **2025-11-13:** Task 14 completed - Implement password strength validator utility with comprehensive checks and type exports
+- **2025-11-13:** Task 11 completed - Create email verification email template using React Email with professional branding, integrated with API endpoint
 - **2025-11-13:** Task 15 completed - Write comprehensive tests for profile management (38 test cases across 4 test files)
+- **2025-11-13:** Task 12 completed - Create validation schemas for profile, password, and email updates with comprehensive test coverage
