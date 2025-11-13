@@ -38,10 +38,27 @@
   - Error handling with standardized responses via handleApiError and createSuccessResponse
 
 ### Task 3: Create PaymentStatusWidget Component
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created PaymentStatusWidget component at `apps/dashboard/app/components/PaymentStatusWidget.tsx`
+  - Uses TanStack Query with 5-minute stale time (matches API cache)
+  - Fetches data from `/api/dashboard/payment-status-summary`
+  - Implements four color-coded status cards:
+    - Pending (Gray) - Clock icon
+    - Due Soon (Amber) - AlertCircle icon
+    - Overdue (Red) - AlertTriangle icon
+    - Paid This Month (Green) - CheckCircle icon
+  - Each card displays count of installments and total amount as currency
+  - Responsive grid layout: 2 columns on mobile, 4 columns on desktop
+  - Loading state with skeleton UI (4 animated placeholder cards)
+  - Error state with retry button
+  - Integrated into dashboard page at `apps/dashboard/app/page.tsx` as "Row 4: Payment Status Overview"
+  - Uses lucide-react icons for visual indicators
+  - Uses @pleeno/ui Card components for consistent styling
+  - Currency formatting with Intl.NumberFormat (AUD default)
+  - Cards are clickable with hover effects (navigation will be added in Task 4)
 
 ### Task 4: Add Navigation to Payment Plans with Filters
 - Status: Not Started
@@ -132,6 +149,76 @@
   }
 }
 ```
+
+### Task 3 Completion (2025-11-13)
+
+**PaymentStatusWidget Component Implementation:**
+- Created client component at `apps/dashboard/app/components/PaymentStatusWidget.tsx`
+- Component location: `apps/dashboard/app/components/PaymentStatusWidget.tsx`
+
+**Component Structure:**
+1. **Main Component**: `PaymentStatusWidget()` - Fetches and displays payment status data
+2. **StatusCard**: Sub-component for individual status cards with color-coded styling
+3. **PaymentStatusSkeleton**: Loading state with 4 animated skeleton cards
+4. **PaymentStatusError**: Error state with retry functionality
+
+**TanStack Query Configuration:**
+- Query Key: `['payment-status-summary']`
+- Endpoint: `/api/dashboard/payment-status-summary`
+- Stale Time: 5 minutes (300,000ms) - matches API cache duration
+- Refetch on Window Focus: Enabled for fresh data when user returns to tab
+- Error Handling: Automatic retry with user-triggered manual retry option
+
+**Status Cards Implemented:**
+1. **Pending** (Gray)
+   - Icon: Clock (lucide-react)
+   - Border: `border-gray-200`, Background: `bg-gray-50`
+   - Shows count and total amount of pending installments
+2. **Due Soon** (Amber/Yellow)
+   - Icon: AlertCircle (lucide-react)
+   - Border: `border-amber-200`, Background: `bg-amber-50`
+   - Shows installments due in next 7 days
+3. **Overdue** (Red)
+   - Icon: AlertTriangle (lucide-react)
+   - Border: `border-red-200`, Background: `bg-red-50`
+   - Shows overdue installments requiring immediate attention
+4. **Paid This Month** (Green)
+   - Icon: CheckCircle (lucide-react)
+   - Border: `border-green-200`, Background: `bg-green-50`
+   - Shows successfully collected payments this month
+
+**UI/UX Features:**
+- Responsive grid layout: `md:grid-cols-2` (tablet), `lg:grid-cols-4` (desktop)
+- Hover effects: `hover:shadow-lg` for visual feedback
+- Cursor pointer indicates clickable cards (navigation to be added in Task 4)
+- Currency formatting: Uses `Intl.NumberFormat` with AUD default
+- Installment count: Proper singular/plural handling ("1 installment" vs "N installments")
+- Color-coded text: Status-specific text colors for better visual hierarchy
+
+**Integration:**
+- Added import to `apps/dashboard/app/page.tsx`
+- Integrated as "Row 4: Payment Status Overview" section
+- Consistent with other dashboard sections (Key Metrics, Seasonal Trends, Commission Breakdown)
+
+**Technical Decisions:**
+- Used lucide-react icons (already in dashboard dependencies)
+- Followed KPIWidget pattern for consistency
+- Uses @pleeno/ui Card components for consistent styling across dashboard
+- Loading and error states follow same UX patterns as existing widgets
+- No custom skeleton component needed - built simple animated divs
+
+**Acceptance Criteria Met:**
+- ✅ AC #1: Widget displays payment status summary with count and total value for each status category
+- ✅ AC #2: Widget displays count and total value of pending payments
+- ✅ AC #3: Widget displays count and total value of due soon payments (next 7 days)
+- ✅ AC #4: Widget displays count and total value of overdue payments
+- ✅ AC #5: Widget displays count and total value of paid payments (this month)
+
+**Next Steps:**
+- Task 4: Add Navigation to Payment Plans with Filters
+  - Make cards clickable with navigation to payment plans page
+  - Apply appropriate filters based on status clicked
+  - Use Next.js Link or router.push for navigation
 
 ## Blockers / Issues
 
