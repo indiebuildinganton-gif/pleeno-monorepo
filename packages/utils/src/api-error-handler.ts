@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server'
-import {
-  AppError,
-  ErrorResponse,
-  SuccessResponse,
-  sanitizeError,
-  ValidationError,
-  NotFoundError,
-  UnauthorizedError,
-  ForbiddenError
-} from './errors'
+import { ZodError } from 'zod'
+import { AppError, ErrorResponse, SuccessResponse, sanitizeError } from './errors'
 
 // Status code mapping
 const STATUS_CODE_MAP: Record<string, number> = {
@@ -33,6 +25,40 @@ export async function handleApiError(
 ): Promise<NextResponse<ErrorResponse>> {
   // Log the error with context
   logError(error, context)
+
+  // Handle JSON parsing errors
+  if (error instanceof SyntaxError && error.message.includes('JSON')) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid JSON in request body',
+        },
+      },
+      { status: 400 }
+    )
+  }
+
+  // Handle Zod validation errors
+  if (error instanceof ZodError) {
+    const formattedErrors = error.errors.map((err) => ({
+      path: err.path.join('.'),
+      message: err.message,
+    }))
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: formattedErrors[0]?.message || 'Validation failed',
+          details: formattedErrors,
+        },
+      },
+      { status: 400 }
+    )
+  }
 
   // Handle known AppError types
   if (error instanceof AppError) {
@@ -60,9 +86,8 @@ export async function handleApiError(
       success: false,
       error: {
         code: 'SERVER_ERROR',
-        message: process.env.NODE_ENV === 'production'
-          ? 'An unexpected error occurred'
-          : String(error),
+        message:
+          process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : String(error),
       },
     },
     { status: 500 }
@@ -106,7 +131,7 @@ function logError(
 /**
  * Helper to extract user context from Supabase auth
  */
-export async function getUserContext(request: Request): Promise<{
+export async function getUserContext(_request: Request): Promise<{
   user_id?: string
   agency_id?: string
 }> {
@@ -122,9 +147,7 @@ export async function getUserContext(request: Request): Promise<{
 /**
  * Wrapper for API route handlers with automatic error handling
  */
-export function withErrorHandling<T>(
-  handler: (req: Request) => Promise<NextResponse<T>>
-) {
+export function withErrorHandling<T>(handler: (req: Request) => Promise<NextResponse<T>>) {
   return async (req: Request): Promise<NextResponse<T | ErrorResponse>> => {
     try {
       return await handler(req)
