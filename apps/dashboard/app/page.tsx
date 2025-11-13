@@ -16,6 +16,7 @@ import { KPIWidget } from './components/KPIWidget'
 import { SeasonalCommissionChart } from './components/SeasonalCommissionChart'
 import { CommissionBySchoolWidget } from './components/CommissionBySchoolWidget'
 import { CommissionByCountryWidget } from './components/CommissionByCountryWidget'
+import PaymentStatusWidget from './components/PaymentStatusWidget'
 
 export default function Dashboard() {
   const searchParams = useSearchParams()
@@ -91,16 +92,11 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
-      <div className="space-y-6">
-        <KPIWidget />
-
-        {/* Payment Status Widget - Task 3: Create PaymentStatusWidget Component */}
-        <div className="rounded-lg border bg-card p-6">
-          <h2 className="text-xl font-semibold mb-4">Payment Status Overview</h2>
-          <p className="text-sm text-muted-foreground">
-            Payment status widget will be integrated here in Task 3
-          </p>
-        </div>
+        {/* Row 4: Payment Status Overview */}
+        <section>
+          <h2 className="text-2xl font-bold mb-4">Payment Status Overview</h2>
+          <PaymentStatusWidget />
+        </section>
       </div>
     </div>
   )
