@@ -134,13 +134,13 @@ so that **my account information is accurate and I can change my password**.
   - [x] On success: Show success message and redirect to /profile after 3 seconds
   - [x] On error: Show error message with link to request new verification email
 
-- [ ] Create email verification email template (AC: 9)
-  - [ ] Create emails/email-verification.tsx (React Email)
-  - [ ] Subject: "Verify your new email address"
-  - [ ] Body: Agency name, user name, verification link (expires in 1 hour)
-  - [ ] Verification link: {APP_URL}/verify-email?token={token}
-  - [ ] Footer: "If you didn't request this change, please ignore this email"
-  - [ ] Styling: Professional, matches agency branding
+- [x] Create email verification email template (AC: 9)
+  - [x] Create emails/email-verification.tsx (React Email)
+  - [x] Subject: "Verify your new email address"
+  - [x] Body: Agency name, user name, verification link (expires in 1 hour)
+  - [x] Verification link: {APP_URL}/verify-email?token={token}
+  - [x] Footer: "If you didn't request this change, please ignore this email"
+  - [x] Styling: Professional, matches agency branding
 
 - [ ] Create validation schemas (AC: 1, 2, 3, 8)
   - [ ] Create packages/validations/src/profile.schema.ts
@@ -967,6 +967,41 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - Comprehensive JSDoc documentation with usage examples
 - All acceptance criteria (AC: 3) met
 
+**Task 11: Create email verification email template** (Completed: 2025-11-13)
+- All subtasks completed successfully
+- Created emails/email-verification.tsx using React Email:
+  - Implemented EmailVerificationEmail component with TypeScript interface
+  - Professional email design matching agency branding (consistent with invitation.tsx)
+  - Uses @react-email/components (Html, Head, Body, Container, Section, Text, Button, Hr)
+  - Brand color #0066ff for CTA button
+  - Clean, modern design with white card on light blue background (#f6f9fc)
+- Email content includes:
+  - Subject line: "Verify your new email address" (in heading)
+  - Personalized greeting with user name
+  - Agency name prominently displayed
+  - Clear explanation of email verification request
+  - Primary CTA button: "Verify Email Address"
+  - Fallback verification link (copy/paste option with styled code block)
+  - Expiration notice: "This verification link will expire in 1 hour"
+  - Security footer: "If you didn't request this change, please ignore this email"
+  - Automated message disclaimer
+- Template props interface:
+  - agencyName: string - Agency name from database
+  - userName: string - Full name of user
+  - verificationUrl: string - Complete URL with token ({APP_URL}/verify-email?token={token})
+- Updated API endpoint apps/agency/app/api/users/[id]/email/route.ts:
+  - Imported EmailVerificationEmail template (relative path from monorepo root)
+  - Updated database query to fetch agency name via join: .select('full_name, email, agencies(name)')
+  - Extracted agency name from join result with fallback: 'Your Agency'
+  - Replaced simple HTML email with React Email template
+  - Passes agencyName, userName, and verificationUrl props to template
+  - Uses resend.emails.send() with 'react' property instead of 'html'
+- All acceptance criteria (AC: 9) met:
+  - Professional, branded email template ✓
+  - Includes agency name, user name, verification link ✓
+  - Expiration notice (1 hour) ✓
+  - Security disclaimer footer ✓
+  - Integrated with email change API endpoint ✓
 **Task 15: Write tests for profile management** (Completed: 2025-11-13)
 - All subtasks completed successfully
 - Created comprehensive test suite for all profile management endpoints
@@ -1053,6 +1088,9 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - `packages/utils/src/password-strength.ts` - Password strength validator utility
 - `packages/utils/src/index.ts` - Updated with password-strength export
 
+**Task 11: Create email verification email template**
+- `emails/email-verification.tsx` - React Email template for email verification
+- `apps/agency/app/api/users/[id]/email/route.ts` - Updated to use React Email template and fetch agency name
 **Task 15: Write tests for profile management**
 - `apps/agency/app/api/users/me/profile/__tests__/route.test.ts` - Profile update API tests
 - `apps/agency/app/api/users/me/password/__tests__/route.test.ts` - Password change API tests
@@ -1066,4 +1104,5 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 - **2025-11-13:** Task 13 completed - Add navigation link to profile with user menu dropdown and active state highlighting
 - **2025-11-13:** Task 10 completed - Create email verification page with loading, success, and error states, automatic redirect, and user-friendly error messages
 - **2025-11-13:** Task 14 completed - Implement password strength validator utility with comprehensive checks and type exports
+- **2025-11-13:** Task 11 completed - Create email verification email template using React Email with professional branding, integrated with API endpoint
 - **2025-11-13:** Task 15 completed - Write comprehensive tests for profile management (38 test cases across 4 test files)

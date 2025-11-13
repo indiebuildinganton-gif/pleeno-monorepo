@@ -3,6 +3,7 @@ import { createServerClient } from '@pleeno/database'
 import { handleApiError, UnauthorizedError, ForbiddenError, ValidationError } from '@pleeno/utils'
 import { EmailUpdateSchema } from '@pleeno/validations'
 import { Resend } from 'resend'
+import { EmailVerificationEmail } from '../../../../../../../emails/email-verification'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -81,7 +82,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       })
       .eq('id', params.id)
       .eq('agency_id', currentUser.agency_id) // RLS double-check
-      .select('full_name, email')
+      .select('full_name, email, agencies(name)')
       .single()
 
     if (updateError) {
@@ -92,35 +93,21 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       throw new ValidationError('User not found or not in your agency')
     }
 
-    // Send verification email
+    // Extract agency name from the join result
+    const agencyName = (targetUser.agencies as { name: string })?.name || 'Your Agency'
+
+    // Send verification email using React Email template
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`
 
-    // NOTE: Using simple HTML email for now. Task 11 will implement proper React Email template.
     await resend.emails.send({
       from: 'noreply@pleeno.com',
       to: validatedData.email,
       subject: 'Verify your new email address',
-      html: `
-        <h1>Verify Your New Email Address</h1>
-        <p>Hi ${targetUser.full_name},</p>
-        <p>
-          Your administrator has requested to change your email address.
-          To complete this change, please verify your new email address by clicking the link below:
-        </p>
-        <p>
-          <a href="${verificationUrl}">Verify Email Address</a>
-        </p>
-        <p>
-          This link will expire in 1 hour.
-        </p>
-        <p>
-          If you did not request this change, please contact your administrator immediately.
-        </p>
-        <p>
-          Best regards,<br />
-          The Pleeno Team
-        </p>
-      `,
+      react: EmailVerificationEmail({
+        agencyName,
+        userName: targetUser.full_name,
+        verificationUrl,
+      }),
     })
 
     // Audit logging is handled automatically by the log_email_changes() trigger
