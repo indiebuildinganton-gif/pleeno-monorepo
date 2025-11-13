@@ -19,6 +19,7 @@
 import { useState } from 'react'
 import { ReportBuilder } from '../components/ReportBuilder'
 import { ReportResultsTable } from '../components/ReportResultsTable'
+import { ExportButtons } from '../components/ExportButtons'
 import { usePaymentPlansReport } from '../hooks/usePaymentPlansReport'
 import { useToast } from '@pleeno/ui'
 import type { ReportBuilderFormData } from '../validations/report-builder.schema'
@@ -234,14 +235,13 @@ export default function PaymentPlansReportPage() {
                 Preview mode - read-only table display
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" disabled>
-                Export to CSV
-              </Button>
-              <Button variant="outline" disabled>
-                Export to PDF
-              </Button>
-            </div>
+            {currentRequest && (
+              <ExportButtons
+                filters={currentRequest.filters}
+                columns={currentRequest.columns}
+                reportData={mutation.data.data}
+              />
+            )}
           </div>
 
           <ReportResultsTable
