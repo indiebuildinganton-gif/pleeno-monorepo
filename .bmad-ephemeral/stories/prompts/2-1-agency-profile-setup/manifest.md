@@ -25,10 +25,10 @@
 - Notes: Created comprehensive agency settings page at apps/agency/app/settings/page.tsx with React Hook Form, Zod validation, and full form functionality. Implemented all required features: data fetching with pre-fill, field-level validation, loading states, success/error messages, and API integration. Added necessary dependencies and fixed pre-existing syntax errors in middleware.ts and user.schema.ts files.
 
 ### Task 4: Display Agency Name in Application Header
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Created Header component (apps/shell/app/components/Header.tsx) that displays agency name in application header. Updated root layout (apps/shell/app/layout.tsx) to include Header component. Implemented loading state with skeleton loader and error handling with fallback to "Pleeno" default name. Uses createClient and getCurrentAgencyId from @pleeno/database package following established patterns.
 
 ### Task 5: Implement Timezone-Aware Date Formatting
 - Status: Not Started
