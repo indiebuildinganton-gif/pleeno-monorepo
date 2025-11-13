@@ -66,3 +66,30 @@ export const UserTaskAssignmentSchema = z.object({
  * Use this type for type-safe task assignment operations
  */
 export type UserTaskAssignment = z.infer<typeof UserTaskAssignmentSchema>
+
+/**
+ * Zod schema for invitation acceptance (signup)
+ *
+ * Used when an invited user accepts their invitation and creates their account.
+ * Validates the signup form fields.
+ */
+export const InvitationAcceptanceSchema = z.object({
+  token: z.string().uuid('Invalid invitation token format'),
+  full_name: z.string().min(1, 'Full name is required'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain uppercase letter')
+    .regex(/[a-z]/, 'Password must contain lowercase letter')
+    .regex(/[0-9]/, 'Password must contain number'),
+  password_confirmation: z.string(),
+}).refine((data) => data.password === data.password_confirmation, {
+  message: 'Passwords do not match',
+  path: ['password_confirmation'],
+})
+
+/**
+ * TypeScript type inferred from the InvitationAcceptanceSchema
+ * Use this type for type-safe invitation acceptance operations
+ */
+export type InvitationAcceptance = z.infer<typeof InvitationAcceptanceSchema>
