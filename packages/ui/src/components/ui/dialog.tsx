@@ -1,3 +1,23 @@
+'use client'
+
+import * as React from 'react'
+import { cn } from '../../lib/utils'
+
+interface DialogContextValue {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+const DialogContext = React.createContext<DialogContextValue | undefined>(undefined)
+
+function useDialog() {
+  const context = React.useContext(DialogContext)
+  if (!context) {
+    throw new Error('Dialog components must be used within Dialog')
+  }
+  return context
+}
+
 import * as React from 'react'
 import { cn } from '../../lib/utils'
 

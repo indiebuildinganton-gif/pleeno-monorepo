@@ -83,16 +83,16 @@ so that **my account information is accurate and I can change my password**.
   - [x] Log completed email change in audit trail
   - [x] Return success response with redirect to /profile
 
-- [ ] Create user profile page (AC: 1, 4, 5)
-  - [ ] Create apps/agency/app/profile/page.tsx
-  - [ ] Server Component fetches current user from Supabase Auth
-  - [ ] Display read-only fields: Email, Role, Agency Name
-  - [ ] Display editable field: Full Name (input field)
-  - [ ] Button: "Change Password" (opens ChangePasswordDialog)
-  - [ ] Button: "Request Email Change" (regular users only)
-  - [ ] Button: "Update Email" (admins only, opens UpdateEmailDialog)
-  - [ ] Button: "Save Changes" (saves full_name)
-  - [ ] Use TanStack Query for profile updates
+- [x] Create user profile page (AC: 1, 4, 5)
+  - [x] Create apps/agency/app/profile/page.tsx
+  - [x] Server Component fetches current user from Supabase Auth
+  - [x] Display read-only fields: Email, Role, Agency Name
+  - [x] Display editable field: Full Name (input field)
+  - [x] Button: "Change Password" (opens ChangePasswordDialog)
+  - [x] Button: "Request Email Change" (regular users only)
+  - [x] Button: "Update Email" (admins only, opens UpdateEmailDialog)
+  - [x] Button: "Save Changes" (saves full_name)
+  - [x] Use TanStack Query for profile updates
 
 - [ ] Create change password dialog (AC: 2, 3, 4)
   - [ ] Create apps/agency/app/profile/components/ChangePasswordDialog.tsx
