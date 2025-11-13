@@ -3,11 +3,13 @@
  *
  * Displays commission breakdown by college and branch with filtering capabilities.
  * Includes filter controls for time period, college, and branch.
+ * Provides drill-down links to college details and payment plans.
  *
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.3: Commission Breakdown by College
  * Task 2: Create CommissionBreakdownTable Component
  * Task 3: Implement Filter Controls
+ * Task 4: Implement Drill-Down to Payment Plans
  */
 
 'use client'
@@ -16,7 +18,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useDashboardStore } from '@pleeno/stores'
 import { formatCurrency, getDateRangeLabel } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
-import { RefreshCw, AlertTriangle, X, Filter } from 'lucide-react'
+import { RefreshCw, AlertTriangle, X, Filter, Eye } from 'lucide-react'
+import Link from 'next/link'
 
 /**
  * Commission breakdown data type
@@ -379,6 +382,7 @@ export function CommissionBreakdownTable() {
                 <th className="text-right py-3 px-4 font-semibold text-gray-700">Expected</th>
                 <th className="text-right py-3 px-4 font-semibold text-gray-700">Earned</th>
                 <th className="text-right py-3 px-4 font-semibold text-gray-700">Outstanding</th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -390,8 +394,13 @@ export function CommissionBreakdownTable() {
                   }`}
                 >
                   <td className="py-3 px-4">
-                    <div className="font-medium text-gray-900">
-                      {row.college_name}
+                    <div className="font-medium">
+                      <Link
+                        href={`/entities/colleges/${row.college_id}`}
+                        className="text-blue-600 hover:underline"
+                      >
+                        {row.college_name}
+                      </Link>
                       {index < 3 && (
                         <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
                           Top {index + 1}
@@ -400,7 +409,12 @@ export function CommissionBreakdownTable() {
                     </div>
                   </td>
                   <td className="py-3 px-4">
-                    <div className="text-gray-900">{row.branch_name}</div>
+                    <Link
+                      href={`/entities/colleges/${row.college_id}?branch=${row.branch_id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {row.branch_name}
+                    </Link>
                     {row.branch_city && (
                       <div className="text-xs text-gray-500">{row.branch_city}</div>
                     )}
@@ -426,6 +440,25 @@ export function CommissionBreakdownTable() {
                     }`}
                   >
                     {formatCurrency(row.outstanding_commission, currency)}
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center justify-center">
+                      <Link
+                        href={`/payments/plans?college=${row.college_id}&branch=${row.branch_id}`}
+                        title={`View ${row.payment_plan_count} payment plan${
+                          row.payment_plan_count !== 1 ? 's' : ''
+                        } for ${row.college_name} - ${row.branch_name}`}
+                      >
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          <span>View Plans</span>
+                          <span className="text-xs text-gray-500">({row.payment_plan_count})</span>
+                        </button>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
