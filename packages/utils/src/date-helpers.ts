@@ -1,4 +1,12 @@
-import { format, formatDistanceToNow } from 'date-fns'
+import {
+  format,
+  formatDistanceToNow,
+  addDays,
+  isAfter,
+  isBefore,
+  startOfDay,
+  isSameDay,
+} from 'date-fns'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
 
 /**
@@ -122,4 +130,60 @@ export function formatDateWithPreset(
   preset: keyof typeof DateFormatPresets
 ): string {
   return formatDateInAgencyTimezone(date, timezone, DateFormatPresets[preset])
+}
+
+/**
+ * Check if a date is "due soon" based on a threshold in days
+ * @param dueDate - The due date to check (UTC or string)
+ * @param thresholdDays - Number of days before due date to consider "due soon" (default: 4)
+ * @param timezone - IANA timezone for agency-aware calculations (default: 'UTC')
+ * @returns true if the due date is between today and today + thresholdDays (inclusive)
+ * @example
+ * ```ts
+ * // Today is 2024-01-01
+ * isDueSoon('2024-01-03T00:00:00Z', 4) // Returns: true (3 days away, within 4-day threshold)
+ * isDueSoon('2024-01-06T00:00:00Z', 4) // Returns: false (5 days away, outside 4-day threshold)
+ * isDueSoon('2024-01-04T23:59:59Z', 4) // Returns: true (3 days away)
+ * isDueSoon('2023-12-31T00:00:00Z', 4) // Returns: false (in the past)
+ *
+ * // With timezone awareness (Brisbane is UTC+10)
+ * // Current time in Brisbane: 2024-01-01 10:00 AM
+ * // Current time in UTC: 2024-01-01 00:00 AM
+ * isDueSoon('2024-01-04T00:00:00Z', 4, 'Australia/Brisbane') // Checks against Brisbane's current date
+ * ```
+ */
+export function isDueSoon(
+  dueDate: Date | string,
+  thresholdDays: number = 4,
+  timezone: string = 'UTC'
+): boolean {
+  if (!dueDate) {
+    return false
+  }
+
+  // Convert due date to Date object if string
+  const dueDateObj = typeof dueDate === 'string' ? new Date(dueDate) : dueDate
+
+  // Get current date in agency timezone (start of day)
+  const now = new Date()
+  const agencyNow = toZonedTime(now, timezone)
+  const agencyToday = startOfDay(agencyNow)
+
+  // Convert due date to agency timezone (start of day)
+  const agencyDueDate = toZonedTime(dueDateObj, timezone)
+  const agencyDueDateStartOfDay = startOfDay(agencyDueDate)
+
+  // Calculate threshold date (today + thresholdDays)
+  const thresholdDate = addDays(agencyToday, thresholdDays)
+
+  // Check if due date is:
+  // 1. On or after today (not in the past)
+  // 2. On or before threshold date (within threshold)
+  const isNotPast =
+    isAfter(agencyDueDateStartOfDay, agencyToday) || isSameDay(agencyDueDateStartOfDay, agencyToday)
+  const isWithinThreshold =
+    isBefore(agencyDueDateStartOfDay, thresholdDate) ||
+    isSameDay(agencyDueDateStartOfDay, thresholdDate)
+
+  return isNotPast && isWithinThreshold
 }

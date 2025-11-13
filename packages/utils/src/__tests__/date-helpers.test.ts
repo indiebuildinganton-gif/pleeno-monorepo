@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import {
   formatDateInAgencyTimezone,
   getRelativeTime,
   convertToUTC,
   DateFormatPresets,
   formatDateWithPreset,
+  isDueSoon,
 } from '../date-helpers'
 
 describe('Date Helpers', () => {
@@ -236,6 +237,124 @@ describe('Date Helpers', () => {
       const futureDate = new Date('2099-12-31T23:59:59Z')
       const result = formatDateInAgencyTimezone(futureDate, 'Australia/Brisbane', 'yyyy-MM-dd')
       expect(result).toMatch(/2100-01-01/)
+    })
+  })
+
+  describe('isDueSoon', () => {
+    beforeEach(() => {
+      // Mock current time to 2024-01-01T12:00:00Z for consistent tests
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-01T12:00:00Z'))
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('returns true for installment due in 3 days with default 4-day threshold', () => {
+      const dueDate = new Date('2024-01-04T00:00:00Z')
+      expect(isDueSoon(dueDate)).toBe(true)
+    })
+
+    it('returns false for installment due in 5 days with default 4-day threshold', () => {
+      const dueDate = new Date('2024-01-06T00:00:00Z')
+      expect(isDueSoon(dueDate)).toBe(false)
+    })
+
+    it('returns true for installment due today', () => {
+      const dueDate = new Date('2024-01-01T23:59:59Z')
+      expect(isDueSoon(dueDate)).toBe(true)
+    })
+
+    it('returns false for installment due in the past', () => {
+      const dueDate = new Date('2023-12-31T00:00:00Z')
+      expect(isDueSoon(dueDate)).toBe(false)
+    })
+
+    it('returns true for installment due exactly at threshold (4 days)', () => {
+      const dueDate = new Date('2024-01-05T00:00:00Z')
+      expect(isDueSoon(dueDate)).toBe(true)
+    })
+
+    it('handles different threshold values - 2 days', () => {
+      const dueDateWithin = new Date('2024-01-03T00:00:00Z') // 2 days away
+      const dueDateOutside = new Date('2024-01-04T00:00:00Z') // 3 days away
+
+      expect(isDueSoon(dueDateWithin, 2)).toBe(true)
+      expect(isDueSoon(dueDateOutside, 2)).toBe(false)
+    })
+
+    it('handles different threshold values - 7 days', () => {
+      const dueDateWithin = new Date('2024-01-07T00:00:00Z') // 6 days away
+      const dueDateOutside = new Date('2024-01-09T00:00:00Z') // 8 days away
+
+      expect(isDueSoon(dueDateWithin, 7)).toBe(true)
+      expect(isDueSoon(dueDateOutside, 7)).toBe(false)
+    })
+
+    it('handles string dates', () => {
+      expect(isDueSoon('2024-01-04T00:00:00Z', 4)).toBe(true)
+      expect(isDueSoon('2024-01-06T00:00:00Z', 4)).toBe(false)
+    })
+
+    it('returns false for null or undefined dates', () => {
+      expect(isDueSoon(null as any)).toBe(false)
+      expect(isDueSoon(undefined as any)).toBe(false)
+    })
+
+    it('handles timezone-aware calculations for Brisbane', () => {
+      // Current time: 2024-01-01T12:00:00Z
+      // Brisbane time: 2024-01-01 22:00 (UTC+10), so still Jan 1
+      // Due date: 2024-01-05T00:00:00Z
+      // Brisbane due date: 2024-01-05 10:00, so Jan 5
+      // Days between: 4 days
+      const dueDate = new Date('2024-01-05T00:00:00Z')
+      expect(isDueSoon(dueDate, 4, 'Australia/Brisbane')).toBe(true)
+    })
+
+    it('handles timezone-aware calculations for New York', () => {
+      // Current time: 2024-01-01T12:00:00Z
+      // New York time: 2024-01-01 07:00 (UTC-5), so Jan 1
+      // Due date: 2024-01-05T00:00:00Z
+      // New York due date: 2024-01-04 19:00, so Jan 4
+      // Days between: 3 days
+      const dueDate = new Date('2024-01-05T00:00:00Z')
+      expect(isDueSoon(dueDate, 4, 'America/New_York')).toBe(true)
+    })
+
+    it('handles end of day for due dates', () => {
+      // Due date at end of day should still be counted as that day
+      const dueDateEndOfDay = new Date('2024-01-04T23:59:59Z')
+      expect(isDueSoon(dueDateEndOfDay, 4)).toBe(true)
+    })
+
+    it('handles beginning of day for due dates', () => {
+      // Due date at beginning of day should be counted as that day
+      const dueDateStartOfDay = new Date('2024-01-04T00:00:00Z')
+      expect(isDueSoon(dueDateStartOfDay, 4)).toBe(true)
+    })
+
+    it('handles weekend dates within threshold', () => {
+      // Friday is today (2024-01-05 is a Friday based on our mock time)
+      vi.setSystemTime(new Date('2024-01-05T12:00:00Z'))
+
+      // Monday due date (4 days away including weekend)
+      const mondayDueDate = new Date('2024-01-08T00:00:00Z')
+      expect(isDueSoon(mondayDueDate, 4)).toBe(true)
+    })
+
+    it('edge case: threshold of 0 days only includes today', () => {
+      const today = new Date('2024-01-01T23:59:59Z')
+      const tomorrow = new Date('2024-01-02T00:00:00Z')
+
+      expect(isDueSoon(today, 0)).toBe(true)
+      expect(isDueSoon(tomorrow, 0)).toBe(false)
+    })
+
+    it('edge case: very large threshold includes far future dates', () => {
+      const farFuture = new Date('2024-02-01T00:00:00Z') // 31 days away
+      expect(isDueSoon(farFuture, 30)).toBe(false)
+      expect(isDueSoon(farFuture, 31)).toBe(true)
     })
   })
 })
