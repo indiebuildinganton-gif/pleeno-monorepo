@@ -276,10 +276,36 @@
     - Comprehensive test coverage for all AC6 requirements
 
 ### Task 11: Audit Logging
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Implemented POST /api/enrollments/[id]/offer-letter endpoint for offer letter uploads (was missing from Task 3)
+    - Added file validation using existing file-upload utilities
+    - Uploads to enrollment-documents bucket with unique filenames
+    - Deletes old offer letter when new one is uploaded
+    - Updates enrollment record with offer_letter_url and offer_letter_filename
+    - Includes comprehensive audit logging
+  - ✅ Refactored enrollment creation audit logging (apps/payments/app/api/enrollments/route.ts)
+    - Migrated from direct Supabase inserts to logAudit utility function
+    - Added audit logging for both new enrollment creation and enrollment reuse
+    - Uses old_values/new_values pattern with proper metadata
+  - ✅ Refactored enrollment status update audit logging (apps/entities/app/api/enrollments/[id]/route.ts)
+    - Migrated from direct Supabase inserts to logAudit utility function
+    - Captures old and new status values
+    - Includes operation metadata for status updates
+  - ✅ Created comprehensive audit query utilities (packages/utils/src/audit-logger.ts)
+    - Added getAuditLogs() - flexible audit log query function with filtering options
+    - Added getEnrollmentAuditHistory() - convenience function for enrollment-specific history
+    - Added getDocumentUploadHistory() - document upload audit trail
+    - All functions include proper filtering, pagination, and date range support
+  - Key Implementation Details:
+    - All audit logging uses centralized logAudit function from @pleeno/utils
+    - Consistent structure: userId, agencyId, entityType, entityId, action, old_values, new_values, metadata
+    - Entity types: 'enrollment' for enrollment CRUD, 'enrollment_document' for offer letter uploads
+    - Audit logs capture complete before/after state for updates
+    - Query utilities support multi-tenant filtering via agency_id
+    - All audit logging is non-blocking (failures logged but don't break operations)
 
 ### Task 12: Testing
 - Status: Not Started

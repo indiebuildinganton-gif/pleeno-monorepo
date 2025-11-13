@@ -16,6 +16,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { EnrollmentUpdateSchema } from '@pleeno/validations'
@@ -246,21 +247,21 @@ export async function PATCH(
     }
 
     // Log changes to audit trail with old and new values
-    const changes: Record<string, { old: any; new: any }> = {}
-    if (existingEnrollment.status !== updatedEnrollment.status) {
-      changes['status'] = {
-        old: existingEnrollment.status,
-        new: updatedEnrollment.status,
-      }
-    }
-
-    // Log to audit trail (always log status changes)
-    await supabase.from('audit_logs').insert({
-      entity_type: 'enrollment',
-      entity_id: id,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'enrollment',
+      entityId: id,
       action: 'update',
-      changes_json: changes,
+      oldValues: {
+        status: existingEnrollment.status,
+      },
+      newValues: {
+        status: updatedEnrollment.status,
+      },
+      metadata: {
+        operation: 'status_update',
+      },
     })
 
     return createSuccessResponse(updatedEnrollment)
