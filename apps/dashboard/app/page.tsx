@@ -1,18 +1,18 @@
 /**
  * Dashboard Page
  *
- * Main dashboard page for the application. Displays unauthorized error
- * messages when users attempt to access restricted areas.
+ * Main dashboard page displaying KPI metrics and business insights.
  *
- * Epic 2: Agency Configuration & User Management
- * Story 2-1: Agency Profile Setup
- * Task 6: Add Role-Based Access Control for Settings Page
+ * Epic 6: Dashboard & Reporting Zone
+ * Story 6.1: KPI Widgets with Trends and Market Breakdown
+ * Task 5: Create KPIWidget Component
  */
 
 'use client'
 
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { KPIWidget } from './components/KPIWidget'
 
 export default function Dashboard() {
   const searchParams = useSearchParams()
@@ -58,17 +58,11 @@ export default function Dashboard() {
 
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome to your agency dashboard</p>
+        <p className="text-muted-foreground mt-2">High-level KPIs and business health metrics</p>
       </div>
 
-      <div className="grid gap-6">
-        <div className="border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-2">Getting Started</h2>
-          <p className="text-muted-foreground">
-            This is your main dashboard. From here you can access various features and manage your
-            agency.
-          </p>
-        </div>
+      <div className="space-y-6">
+        <KPIWidget />
       </div>
     </div>
   )
