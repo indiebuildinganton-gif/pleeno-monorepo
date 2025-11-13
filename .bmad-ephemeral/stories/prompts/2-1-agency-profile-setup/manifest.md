@@ -37,10 +37,10 @@
 - Notes: Created timezone-aware date formatting utilities in packages/utils/src/date-helpers.ts using date-fns v4.1.0 and date-fns-tz v3.2.0. Implemented formatDateInAgencyTimezone(), getRelativeTime(), convertToUTC(), and formatDateWithPreset() functions with DateFormatPresets for common formats. Added comprehensive unit tests (28 tests, all passing) covering timezone conversions, DST transitions, edge cases, and preset formats. Exported utilities from packages/utils for use across all zones.
 
 ### Task 6: Add Role-Based Access Control
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Implemented comprehensive role-based access control for agency settings page. Created requireRoleForPage() utility for Server Components that redirects unauthorized users. Converted settings page to Server Component with role checking at entry point. Extracted form logic to AgencySettingsForm client component. Added "Admin Only" badge to settings page header. Enhanced Header component with role-based navigation - settings link only visible to agency admins with "Admin" badge. Updated dashboard to display user-friendly unauthorized error messages. All authorization checks are server-side enforced via requireRoleForPage() with automatic redirects.
 
 ### Task 7: Write Tests for Agency Settings Feature
 - Status: Not Started
