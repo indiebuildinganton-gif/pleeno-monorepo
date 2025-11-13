@@ -62,23 +62,39 @@ Copy the example environment file:
 cp .env.example .env.local
 ```
 
-Update `.env.local` with your Supabase credentials:
+Edit `.env.local` and fill in Supabase credentials (see step 4 below).
 
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+> 📚 For detailed environment variable documentation, see [docs/environment-variables.md](docs/environment-variables.md)
 
-Get these from your Supabase dashboard: https://app.supabase.com/project/_/settings/api
+### 4. Start local Supabase
 
-### 4. Start local Supabase (optional)
-
-If using local Supabase for development:
+Start the local Supabase instance:
 
 ```bash
 cd supabase
 npx supabase start
 ```
 
+Get your Supabase credentials:
+
+```bash
+npx supabase status
+```
+
+Copy the following values into your `.env.local`:
+- **API URL** → `NEXT_PUBLIC_SUPABASE_URL`
+- **Anon key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- **Service role key** → `SUPABASE_SERVICE_ROLE_KEY`
+
+Return to the project root:
+
+```bash
+cd ..
+```
+
 ### 5. Run development server
+
+Start all development servers:
 
 ```bash
 pnpm dev
@@ -86,12 +102,23 @@ pnpm dev
 
 This will start all zones:
 
-- Shell: http://localhost:3000
-- Dashboard: http://localhost:3001
-- Agency: http://localhost:3002
-- Entities: http://localhost:3003
-- Payments: http://localhost:3004
-- Reports: http://localhost:3005
+- **Shell:** http://localhost:3000
+- **Dashboard:** http://localhost:3001
+- **Agency:** http://localhost:3002
+- **Entities:** http://localhost:3003
+- **Payments:** http://localhost:3004
+- **Reports:** http://localhost:3005
+- **Supabase Studio:** http://localhost:54323
+
+### 6. Verify setup
+
+Check that environment variables are loaded correctly:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+Should return all Supabase values as "configured".
 
 ## Package Structure
 
@@ -146,6 +173,7 @@ npx supabase gen types typescript --local > packages/database/src/types/database
 - [Architecture Documentation](docs/architecture.md)
 - [Product Requirements Document](docs/PRD.md)
 - [Epic Breakdown](docs/epics.md)
+- [Environment Variables](docs/environment-variables.md)
 
 ## License
 
