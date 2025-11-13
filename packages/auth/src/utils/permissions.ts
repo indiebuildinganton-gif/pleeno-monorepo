@@ -15,6 +15,7 @@
 
 import { User } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { redirect } from 'next/navigation'
 import { createServerClient } from '@pleeno/database/server'
 
 /**
@@ -132,19 +133,13 @@ export async function requireRole(
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const userRole = user.app_metadata?.role as UserRole
 
   if (!userRole || !allowedRoles.includes(userRole)) {
-    return NextResponse.json(
-      { error: 'Forbidden - insufficient permissions' },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: 'Forbidden - insufficient permissions' }, { status: 403 })
   }
 
   return { user, role: userRole }
@@ -197,4 +192,55 @@ export function isAgencyAdmin(user: User | null): boolean {
 export function getUserRole(user: User | null): UserRole | null {
   if (!user) return null
   return (user.app_metadata?.role as UserRole) || null
+}
+
+/**
+ * Server Component utility to require specific role(s)
+ *
+ * ✅ SECURITY BOUNDARY: Use this in Server Components for authorization
+ *
+ * Features:
+ * - Redirects to /login if user is not authenticated
+ * - Redirects to /dashboard?error=unauthorized if user lacks required role
+ * - Returns user and role data on success
+ * - Reads role from JWT app_metadata
+ *
+ * @param allowedRoles - Array of roles that are allowed access
+ * @returns User and role data on success (never returns on failure - redirects instead)
+ *
+ * @example
+ * ```typescript
+ * import { requireRoleForPage } from '@pleeno/auth'
+ *
+ * export default async function SettingsPage() {
+ *   const { user, role } = await requireRoleForPage(['agency_admin'])
+ *
+ *   return <div>Settings for {role}</div>
+ * }
+ * ```
+ */
+export async function requireRoleForPage(
+  allowedRoles: UserRole[]
+): Promise<{ user: User; role: UserRole }> {
+  const supabase = await createServerClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+    // TypeScript doesn't know redirect throws, so this return is never reached
+    throw new Error('Redirecting to login')
+  }
+
+  const userRole = user.app_metadata?.role as UserRole
+
+  if (!userRole || !allowedRoles.includes(userRole)) {
+    redirect('/dashboard?error=unauthorized')
+    // TypeScript doesn't know redirect throws, so this return is never reached
+    throw new Error('Redirecting to dashboard')
+  }
+
+  return { user, role: userRole }
 }
