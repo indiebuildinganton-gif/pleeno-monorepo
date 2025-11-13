@@ -1,0 +1,483 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>5</storyId>
+    <title>Student Payment History Report</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/7-5-student-payment-history-report.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to view and export complete payment history for individual students</iWant>
+    <soThat>I can answer student inquiries and maintain records for dispute resolution</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <title>Add Payment History Section to Student Detail Page</title>
+        <subtasks>
+          - Add "Payment History" tab/section to /entities/students/[id]/page.tsx
+          - Create PaymentHistorySection component with date range filter, buttons, loading state
+          - Display message when no payment plans exist
+          - Test navigation to Payment History section
+        </subtasks>
+      </task>
+      <task id="2" ac="1-3,6">
+        <title>Implement Payment History API Route</title>
+        <subtasks>
+          - Create API route GET /api/students/[id]/payment-history
+          - Accept query params: date_from, date_to
+          - Query payment history with joins: installments → payment_plans → enrollments → branches → colleges
+          - Calculate summary totals: total_paid, total_outstanding
+          - Return JSON with payment_plans[], installments[], summary{}
+          - Apply RLS filtering by agency_id
+          - Test API returns correct payment history
+        </subtasks>
+      </task>
+      <task id="3" ac="2-3">
+        <title>Display Payment History Timeline</title>
+        <subtasks>
+          - Create PaymentHistoryTimeline component
+          - Display installments in chronological order (newest first)
+          - Show: due date, payment plan reference, college/branch, amount, status badge, paid date
+          - Group by payment plan with collapsible sections
+          - Add summary card showing: Total Paid, Total Outstanding, Percentage Paid
+          - Format currency and relative timestamps
+          - Test timeline display and grouping
+        </subtasks>
+      </task>
+      <task id="4" ac="4-5">
+        <title>Create Student Payment Statement PDF Template</title>
+        <subtasks>
+          - Create StudentPaymentStatementPDF.tsx using @react-pdf/renderer
+          - Include header: agency logo, document title, student info, period, generation date
+          - Create payment plans table with columns: Date, Description, College/Branch, Amount, Status, Paid Date
+          - Add summary section: Total Due, Total Paid, Outstanding Balance, Percentage Paid
+          - Format as professional statement with clean layout, page breaks, footer
+          - Test PDF rendering and formatting
+        </subtasks>
+      </task>
+      <task id="5" ac="4-5">
+        <title>Implement PDF Export API Route</title>
+        <subtasks>
+          - Create API route GET /api/students/[id]/payment-history/export?format=pdf
+          - Fetch payment history data (reuse logic from Task 2)
+          - Fetch student details and agency info for PDF header
+          - Render StudentPaymentStatementPDF component
+          - Generate PDF using @react-pdf/renderer
+          - Set response headers and filename: payment_statement_[student_name]_[date].pdf
+          - Test PDF download
+        </subtasks>
+      </task>
+      <task id="6" ac="6">
+        <title>Add Date Range Filtering</title>
+        <subtasks>
+          - Add date range filter UI: All Time, This Year, Custom presets
+          - Update API call with date_from and date_to params when filter changes
+          - Reload payment history data and update summary totals
+          - Display active filter
+          - Test filtering by different date ranges
+        </subtasks>
+      </task>
+      <task id="7" ac="4-5">
+        <title>Reuse Export Utilities from Story 7.2 and 7.4</title>
+        <subtasks>
+          - Import PDF utilities from packages/utils/src/pdf-generator.ts
+          - Import formatters from packages/utils/src/formatters.ts
+          - Reuse StudentPaymentStatementPDF component structure from CommissionReportPDF
+          - Test consistent formatting with other reports
+        </subtasks>
+      </task>
+      <task id="8" ac="1">
+        <title>Add Payment History Link from Student List</title>
+        <subtasks>
+          - Add "View Payment History" action to student list table
+          - Add quick-access link in student detail page header
+          - Add breadcrumb navigation
+          - Test navigation links
+        </subtasks>
+      </task>
+      <task id="9" ac="All">
+        <title>Testing and Validation</title>
+        <subtasks>
+          - Write API route tests: query accuracy, date filtering, summary calculations, RLS enforcement
+          - Write UI integration tests: timeline display, filtering, PDF export
+          - Test edge cases: no payment plans, all paid, cancelled plans, large histories
+          - Test PDF export: long histories, special characters, reader compatibility
+          - Test date range filtering and currency formatting
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>I am viewing a student's detail page</given>
+      <when>I request a payment history report</when>
+      <then>I see a chronological list of all payment plans and installments for that student</then>
+    </criterion>
+    <criterion id="2">
+      <description>Each entry shows: date, payment plan, college/branch, amount, payment status, paid date</description>
+    </criterion>
+    <criterion id="3">
+      <description>The report shows total paid to date and total outstanding</description>
+    </criterion>
+    <criterion id="4">
+      <description>The report is exportable to PDF for sharing with the student</description>
+    </criterion>
+    <criterion id="5">
+      <description>The PDF is formatted as a clear payment statement</description>
+    </criterion>
+    <criterion id="6">
+      <description>I can filter by date range (all time, this year, custom)</description>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Pleeno Epic Breakdown</title>
+        <section>Epic 7: Reporting &amp; Export</section>
+        <snippet>Enable agencies to generate ad-hoc reports and export data for accounting software integration and stakeholder communication. Story 7.5 focuses on student payment history reports exportable to PDF.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Pleeno Epic Breakdown</title>
+        <section>Story 7.5: Student Payment History Report</section>
+        <snippet>View and export complete payment history for individual students to answer inquiries and maintain records for dispute resolution. Report shows chronological list of payment plans/installments with totals.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Entities Zone (Students)</section>
+        <snippet>Student management in apps/entities/ zone with student detail pages, API routes, and components. Payment history section will be added to student detail page at apps/entities/app/students/[id]/page.tsx.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Multi-Tenant Isolation</section>
+        <snippet>PostgreSQL Row-Level Security (RLS) enforces data isolation at database level. All queries automatically filtered by agency_id. Payment history queries must respect RLS for student/payment data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Technology Stack - PDF Generation</section>
+        <snippet>@react-pdf/renderer (v4.3.1) for server-side PDF generation from React components. Used in Epic 7 for professional report exports with agency branding, headers, footers, and page breaks.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/7-4-commission-report-by-college.md</path>
+        <title>Story 7.4: Commission Report by College</title>
+        <section>PDF Export Patterns</section>
+        <snippet>Established patterns for professional PDF generation with agency logo, document title, date range, formatted tables, summary sections, and footer. Story 7.5 extends these patterns for student payment statements.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/7-4-commission-report-by-college.md</path>
+        <title>Story 7.4: Commission Report by College</title>
+        <section>Shared Utilities</section>
+        <snippet>Reusable utilities in packages/utils/src: pdf-generator.ts (generatePDF, fetchAgencyLogo), formatters.ts (formatCurrency, formatDate). Story 7.5 reuses these for consistent report formatting.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project at planning/documentation stage -->
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="15.x">Next.js framework with App Router for React Server Components</package>
+        <package name="react" version="19">React library with concurrent features</package>
+        <package name="typescript" version="5.x">TypeScript for type safety</package>
+        <package name="@supabase/supabase-js">Supabase client for PostgreSQL queries</package>
+        <package name="@supabase/ssr">Server-side Supabase utilities</package>
+        <package name="@react-pdf/renderer" version="4.3.1">PDF generation from React components</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management and caching</package>
+        <package name="zustand" version="5.0.8">Client-side state management</package>
+        <package name="react-hook-form" version="7.66.0">Form state management</package>
+        <package name="zod" version="4.x">Schema validation</package>
+        <package name="date-fns" version="4.1.0">Date manipulation and formatting</package>
+        <package name="date-fns-tz">Timezone support for date-fns</package>
+        <package name="lucide-react">Icon library (ChevronDown, ChevronRight for collapsible sections)</package>
+        <package name="tailwindcss" version="4.x">Utility-first CSS framework</package>
+      </node>
+      <database>
+        <package name="postgresql" version="15+">PostgreSQL database with RLS</package>
+      </database>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <description>Use Next.js 15 App Router with React Server Components for server-side data fetching</description>
+    </constraint>
+    <constraint type="architecture">
+      <description>Follow multi-zone microfrontend architecture: Student features belong in apps/entities/ zone</description>
+    </constraint>
+    <constraint type="architecture">
+      <description>Use TypeScript strict mode for all code with proper type definitions</description>
+    </constraint>
+    <constraint type="security">
+      <description>All database queries must respect Row-Level Security (RLS) with automatic agency_id filtering</description>
+    </constraint>
+    <constraint type="security">
+      <description>Use server-side Supabase client with user context for all data access</description>
+    </constraint>
+    <constraint type="security">
+      <description>Validate student_id is UUID and belongs to user's agency before returning payment history</description>
+    </constraint>
+    <constraint type="data">
+      <description>Use database function get_student_payment_history() to encapsulate complex query logic</description>
+    </constraint>
+    <constraint type="data">
+      <description>Date range filtering must be inclusive of start and end dates</description>
+    </constraint>
+    <constraint type="ui">
+      <description>Use Tailwind CSS for styling with consistent design system from Shadcn UI components</description>
+    </constraint>
+    <constraint type="ui">
+      <description>Payment status badges must use consistent color coding: green (paid), blue (pending), red (overdue), gray (cancelled)</description>
+    </constraint>
+    <constraint type="ui">
+      <description>Currency formatting must use agency's configured currency symbol (default: AUD)</description>
+    </constraint>
+    <constraint type="pdf">
+      <description>PDF must follow professional statement format suitable for sharing with students</description>
+    </constraint>
+    <constraint type="pdf">
+      <description>PDF must include: agency logo, student info, period, generation date, footer with disclaimer and contact info</description>
+    </constraint>
+    <constraint type="pdf">
+      <description>PDF filename format: payment_statement_[student_name]_[YYYY-MM-DD].pdf</description>
+    </constraint>
+    <constraint type="performance">
+      <description>Use database function to reduce round trips and improve query performance</description>
+    </constraint>
+    <constraint type="performance">
+      <description>Limit query results to 500 installments per request with pagination if needed</description>
+    </constraint>
+    <constraint type="performance">
+      <description>Cache payment history for 60 seconds; invalidate when payments are recorded</description>
+    </constraint>
+    <constraint type="testing">
+      <description>Write unit tests for API routes: query accuracy, date filtering, summary calculations, RLS enforcement</description>
+    </constraint>
+    <constraint type="testing">
+      <description>Write integration tests for UI: timeline display, filtering, PDF export</description>
+    </constraint>
+    <constraint type="testing">
+      <description>Test edge cases: no payment plans, all paid, cancelled plans, large histories (100+ installments)</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/students/[id]/payment-history</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Query Parameters:
+        - date_from?: string (YYYY-MM-DD, optional, defaults to '1970-01-01')
+        - date_to?: string (YYYY-MM-DD, optional, defaults to today)
+
+        Response: {
+          data: PaymentHistoryItem[],
+          summary: {
+            total_paid: number,
+            total_outstanding: number,
+            percentage_paid: number
+          }
+        }
+
+        PaymentHistoryItem: {
+          installment_id: UUID,
+          installment_number: number,
+          amount: number,
+          due_date: Date,
+          paid_at: Date | null,
+          paid_amount: number | null,
+          status: 'paid' | 'pending' | 'overdue' | 'cancelled',
+          payment_plan_id: UUID,
+          plan_total_amount: number,
+          plan_start_date: Date,
+          program_name: string,
+          branch_name: string,
+          branch_city: string,
+          college_name: string
+        }
+      </signature>
+      <path>apps/entities/app/api/students/[id]/payment-history/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/students/[id]/payment-history/export</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Query Parameters:
+        - format: 'pdf' (required)
+        - date_from?: string (YYYY-MM-DD, optional)
+        - date_to?: string (YYYY-MM-DD, optional)
+
+        Response: PDF file
+        Content-Type: application/pdf
+        Content-Disposition: attachment; filename="payment_statement_[student_name]_[date].pdf"
+      </signature>
+      <path>apps/entities/app/api/students/[id]/payment-history/export/route.ts</path>
+    </interface>
+    <interface>
+      <name>get_student_payment_history</name>
+      <kind>PostgreSQL function</kind>
+      <signature>
+        CREATE OR REPLACE FUNCTION get_student_payment_history(
+          p_student_id UUID,
+          p_agency_id UUID,
+          p_date_from DATE,
+          p_date_to DATE
+        )
+        RETURNS TABLE (
+          installment_id UUID,
+          installment_number INT,
+          amount NUMERIC,
+          due_date DATE,
+          paid_at TIMESTAMPTZ,
+          paid_amount NUMERIC,
+          status TEXT,
+          payment_plan_id UUID,
+          plan_total_amount NUMERIC,
+          plan_start_date DATE,
+          program_name TEXT,
+          branch_name TEXT,
+          branch_city TEXT,
+          college_name TEXT
+        )
+      </signature>
+      <path>supabase/migrations/XXX_create_student_payment_history_function.sql</path>
+    </interface>
+    <interface>
+      <name>StudentPaymentStatementPDF</name>
+      <kind>React component (PDF)</kind>
+      <signature>
+        interface StudentPaymentStatementPDFProps {
+          student: {
+            full_name: string
+            passport_number: string
+            email: string
+          }
+          paymentHistory: {
+            payment_plan_id: string
+            college_name: string
+            branch_name: string
+            program_name: string
+            installments: Installment[]
+          }[]
+          summary: {
+            total_paid: number
+            total_outstanding: number
+            percentage_paid: number
+          }
+          filters: {
+            date_from?: string
+            date_to?: string
+          }
+          agency: {
+            name: string
+            logo_url?: string
+            contact_email: string
+            contact_phone: string
+          }
+        }
+
+        export function StudentPaymentStatementPDF(props: StudentPaymentStatementPDFProps): JSX.Element
+      </signature>
+      <path>apps/entities/app/components/StudentPaymentStatementPDF.tsx</path>
+    </interface>
+    <interface>
+      <name>PaymentHistoryTimeline</name>
+      <kind>React component</kind>
+      <signature>
+        interface PaymentHistoryTimelineProps {
+          paymentHistory: PaymentHistoryData[]
+          summary: PaymentSummary
+        }
+
+        export function PaymentHistoryTimeline(props: PaymentHistoryTimelineProps): JSX.Element
+      </signature>
+      <path>apps/entities/app/students/[id]/components/PaymentHistoryTimeline.tsx</path>
+    </interface>
+    <interface>
+      <name>PaymentHistorySection</name>
+      <kind>React component</kind>
+      <signature>
+        interface PaymentHistorySectionProps {
+          studentId: string
+        }
+
+        export function PaymentHistorySection(props: PaymentHistorySectionProps): JSX.Element
+      </signature>
+      <path>apps/entities/app/students/[id]/components/PaymentHistorySection.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows Epic 7 report testing patterns. Use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. All API routes must have comprehensive tests covering query accuracy, filtering, RLS enforcement, and edge cases. PDF generation tests verify formatting, page breaks, and reader compatibility.
+    </standards>
+    <locations>
+      - Unit tests: apps/entities/app/api/students/[id]/payment-history/**/*.test.ts
+      - Component tests: apps/entities/app/students/[id]/components/**/*.test.tsx
+      - Integration tests: apps/entities/__tests__/integration/payment-history.test.ts
+      - E2E tests: __tests__/e2e/student-payment-history.spec.ts
+    </locations>
+    <ideas>
+      <test ac="1">
+        Test: Navigate to student detail page and verify Payment History section is visible
+        Assert: Section contains date range filter, buttons, and loads without error
+      </test>
+      <test ac="1">
+        Test: API route GET /api/students/[id]/payment-history returns payment history for student
+        Assert: Response includes all installments for student's payment plans, grouped by plan
+      </test>
+      <test ac="2">
+        Test: Payment history timeline displays installments with correct data
+        Assert: Each installment shows due date, amount, status badge, paid date (if paid)
+      </test>
+      <test ac="3">
+        Test: Summary calculations are accurate
+        Assert: total_paid equals sum of paid_amount WHERE paid_at IS NOT NULL
+        Assert: total_outstanding equals sum of amount WHERE paid_at IS NULL
+        Assert: percentage_paid equals total_paid / (total_paid + total_outstanding) * 100
+      </test>
+      <test ac="4">
+        Test: PDF export generates valid PDF file
+        Assert: Response has Content-Type: application/pdf
+        Assert: Filename follows format payment_statement_[name]_[date].pdf
+        Assert: PDF can be opened in Adobe Reader and Preview
+      </test>
+      <test ac="5">
+        Test: PDF statement includes required sections
+        Assert: Header has agency logo, title, student info, period, generation date
+        Assert: Payment plans table shows all installments with status
+        Assert: Summary shows total paid, outstanding, percentage
+        Assert: Footer has disclaimer and agency contact info
+      </test>
+      <test ac="6">
+        Test: Date range filtering works correctly
+        Assert: "This Year" preset filters to current year installments only
+        Assert: "Custom" range filters inclusively between date_from and date_to
+        Assert: Summary totals update based on filtered data
+      </test>
+      <test ac="All">
+        Test: RLS enforcement prevents cross-agency data access
+        Assert: User from Agency A cannot access payment history for students in Agency B
+        Assert: All queries filtered by agency_id automatically
+      </test>
+      <test ac="All">
+        Test: Edge case - student with no payment plans
+        Assert: API returns empty array with summary showing all zeros
+        Assert: UI displays "No payment history available" message
+      </test>
+      <test ac="All">
+        Test: Edge case - large payment history (100+ installments)
+        Assert: Query completes in under 2 seconds
+        Assert: UI renders without performance issues (pagination or scrolling)
+        Assert: PDF generates successfully with proper page breaks
+      </test>
+    </ideas>
+  </tests>
+</story-context>

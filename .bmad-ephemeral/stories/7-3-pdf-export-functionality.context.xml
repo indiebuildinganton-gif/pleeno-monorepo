@@ -1,0 +1,214 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>3</storyId>
+    <title>PDF Export Functionality</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/7-3-pdf-export-functionality.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to export reports to PDF format</iWant>
+    <soThat>I can share professional-looking reports with stakeholders or college partners</soThat>
+    <tasks>
+      - Task 1: Create PDF Export API Route (AC: #1, 6)
+      - Task 2: Create PDF Template with React Components (AC: #2-4)
+      - Task 3: Add Agency Logo/Branding (AC: #2)
+      - Task 4: Include Report Metadata and Filters (AC: #2)
+      - Task 5: Format Data Table with Pagination (AC: #3, 5)
+      - Task 6: Add Summary Totals Section (AC: #4)
+      - Task 7: Add Export Button to Report UI (AC: #1)
+      - Task 8: Add Export Tracking (AC: #1)
+      - Task 9: Testing (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given I have generated a report, When I click "Export to PDF", Then a PDF file is downloaded with formatted report data
+    2. And the PDF includes: agency logo/name, report title, generation date, filters applied
+    3. And the PDF includes a formatted table with the report data
+    4. And the PDF includes summary totals
+    5. And the PDF has proper page breaks for large reports
+    6. And the filename includes the report type and timestamp
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Story 7.3</title>
+        <section>Epic 7: Reporting & Export</section>
+        <snippet>Enable agencies to export reports to PDF format for professional stakeholder communication. Use @react-pdf/renderer or puppeteer for PDF generation. Include agency logo, report metadata, formatted tables, and summary totals. Implement proper pagination for large reports.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Reporting Zone</title>
+        <section>Epic to Architecture Mapping - Epic 7</section>
+        <snippet>Epic 7 maps to apps/reports/ microfrontend zone. Report builder with PDF exports using @react-pdf/renderer. API routes at apps/reports/app/api/reports/payment-plans/export/. Shared PDF templates in packages/ui/src/pdf/.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/7-2-csv-export-functionality.md</path>
+        <title>Story 7.2: CSV Export Functionality</title>
+        <section>Previous Story - Patterns to Reuse</section>
+        <snippet>CSV export establishes base patterns: API route /api/reports/payment-plans/export with format parameter, filter application logic, query builder, RLS policies, export tracking. Story 7.3 extends this with PDF formatting.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Project Structure - Monorepo Architecture</title>
+        <section>Turborepo Multi-Zones</section>
+        <snippet>Pleeno uses Turborepo monorepo with independent Next.js zones. Reports zone at apps/reports/ handles export functionality. Shared packages: ui (components), database (Supabase client), utils (business logic).</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements</title>
+        <section>FR-7.3: PDF Export for Professional Reporting</section>
+        <snippet>Agency Admins must be able to export reports to PDF format for sharing with college partners and stakeholders. PDFs must include agency branding (logo), report title, generation date, applied filters, formatted data table, and summary totals.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/reports/app/api/reports/payment-plans/export/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET handler for CSV/PDF export</symbol>
+        <lines></lines>
+        <reason>Existing API route structure for CSV export. Story 7.3 extends this route to handle format=pdf parameter alongside format=csv.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/ui/src/pdf/PDFReportHeader.tsx</path>
+        <kind>component</kind>
+        <symbol>PDFReportHeader</symbol>
+        <lines></lines>
+        <reason>New React-PDF component for report header with agency logo/name, report title, generation date, and applied filters display.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/ui/src/pdf/PDFReportTable.tsx</path>
+        <kind>component</kind>
+        <symbol>PDFReportTable</symbol>
+        <lines></lines>
+        <reason>New React-PDF component for formatted data table with pagination, column headers, alternating row colors, and proper formatting for currency/dates.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/ui/src/pdf/PDFReportFooter.tsx</path>
+        <kind>component</kind>
+        <symbol>PDFReportFooter</symbol>
+        <lines></lines>
+        <reason>New React-PDF component for summary totals section with calculated metrics (total amount, expected commission, earned commission, outstanding commission).</reason>
+      </artifact>
+      <artifact>
+        <path>packages/ui/src/pdf/pdf-styles.ts</path>
+        <kind>stylesheet</kind>
+        <symbol>PDF StyleSheet</symbol>
+        <lines></lines>
+        <reason>StyleSheet for React-PDF components using @react-pdf/renderer StyleSheet API. Defines styles for headers, tables, footers, pagination.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/pdf-exporter.ts</path>
+        <kind>utility</kind>
+        <symbol>exportAsPDF</symbol>
+        <lines></lines>
+        <reason>Core PDF export utility function that queries data, loads agency info, calculates summary, splits data into pages, renders React-PDF components, and streams PDF response.</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/002_entities_domain/001_colleges_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>agencies table extension</symbol>
+        <lines></lines>
+        <reason>Add logo_url field (TEXT nullable) to agencies table for storing Supabase Storage public URL of uploaded agency logo.</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/settings/page.tsx</path>
+        <kind>page</kind>
+        <symbol>Agency Settings - Logo Upload</symbol>
+        <lines></lines>
+        <reason>Agency settings page needs logo upload functionality: file input with preview, validation (PNG/JPG/SVG, max 2MB), upload to Supabase Storage bucket agency-logos/{agency_id}/logo.{ext}, store public URL in agencies.logo_url.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@react-pdf/renderer" version="^4.3.1" description="React components to PDF generation library (server-compatible)" />
+        <package name="@supabase/supabase-js" version="latest" description="Supabase client for database queries and Storage operations" />
+        <package name="@supabase/ssr" version="latest" description="Supabase Server-Side Rendering utilities for Next.js" />
+        <package name="date-fns" version="^4.1.0" description="Date formatting for report metadata timestamps" />
+        <package name="date-fns-tz" version="latest" description="Timezone support for Brisbane time display" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Multi-Tenant Security: All queries MUST filter by agency_id via RLS. Never expose data from other agencies.
+    - API Route Reuse: Extend existing /api/reports/payment-plans/export route with format=pdf parameter (format=csv already exists from Story 7.2)
+    - File Size Limits: Logo uploads max 2MB, validate file types (PNG, JPG, SVG only)
+    - Pagination: Max 30 rows per page for PDF reports, automatic page breaks
+    - Storage Security: Supabase Storage RLS policy - agencies can only upload to their own folder (agency-logos/{agency_id}/)
+    - Professional Styling: Use consistent branding, proper typography, shaded backgrounds for summaries, green for earned amounts, red for outstanding
+    - Performance: Consider caching PDF generation for 5 minutes (same filters), monitor memory usage for large reports
+    - Error Handling: Logo load failure must fallback to text agency name, empty reports show headers only
+    - Landscape Orientation: Use for wide tables with many columns
+    - Export Tracking: Log all PDF exports to activity_log table with row count, page count, and filters applied
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/reports/payment-plans/export</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/reports/payment-plans/export?format=pdf&date_from={date}&date_to={date}&college_id={uuid}&branch_id={uuid}&student_id={uuid}&status[]={string}&contract_expiration_from={date}&contract_expiration_to={date}&columns[]={string}</signature>
+      <path>apps/reports/app/api/reports/payment-plans/export/route.ts</path>
+      <description>Existing CSV export endpoint. Extend to handle format=pdf. Returns PDF file with Content-Type: application/pdf and Content-Disposition: attachment header.</description>
+    </interface>
+    <interface>
+      <name>Supabase Storage - agency-logos bucket</name>
+      <kind>Cloud Storage</kind>
+      <signature>bucket: agency-logos, path: {agency_id}/logo.{ext}, public: true</signature>
+      <path>Supabase Storage (created via Dashboard or SQL)</path>
+      <description>Public storage bucket for agency logos. Path structure: agency-logos/{agency_id}/logo.{png|jpg|svg}. Returns public URL for use in PDF header.</description>
+    </interface>
+    <interface>
+      <name>agencies.logo_url</name>
+      <kind>Database field</kind>
+      <signature>ALTER TABLE agencies ADD COLUMN logo_url TEXT;</signature>
+      <path>supabase/migrations/002_entities_domain/001_colleges_schema.sql</path>
+      <description>Nullable TEXT field storing Supabase Storage public URL of uploaded agency logo. Used in PDF header component.</description>
+    </interface>
+    <interface>
+      <name>React-PDF StyleSheet API</name>
+      <kind>Styling library</kind>
+      <signature>import { StyleSheet } from '@react-pdf/renderer'; const styles = StyleSheet.create({ ... })</signature>
+      <path>packages/ui/src/pdf/pdf-styles.ts</path>
+      <description>StyleSheet.create() for defining PDF styles. Supports subset of CSS properties (flexbox, margins, padding, colors, fonts, borders).</description>
+    </interface>
+    <interface>
+      <name>renderToStream</name>
+      <kind>Function</kind>
+      <signature>async function renderToStream(element: ReactElement): Promise&lt;NodeJS.ReadableStream&gt;</signature>
+      <path>@react-pdf/renderer</path>
+      <description>Renders React-PDF Document component to Node.js stream for HTTP response. Used in API route to stream PDF directly to client.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests, React Testing Library for component tests, Playwright for E2E tests. Test files co-located with source in __tests__/ subdirectories. API route tests in apps/reports/app/api/reports/payment-plans/export/__tests__/route.test.ts. Component tests for PDF components in packages/ui/src/pdf/__tests__/. Integration tests verify: PDF generation with filters, logo upload and display, pagination with 100+ rows, summary calculations. E2E tests: full user flow from report generation to PDF download. Mock Supabase client for unit tests. Use test database for integration tests.
+    </standards>
+    <locations>
+      - apps/reports/app/api/**/__tests__/*.test.ts
+      - packages/ui/src/pdf/__tests__/*.test.tsx
+      - packages/utils/src/__tests__/pdf-exporter.test.ts
+      - __tests__/e2e/pdf-export.spec.ts
+    </locations>
+    <ideas>
+      - AC #1: Test PDF export API route returns correct Content-Type and filename
+      - AC #2: Test PDF includes agency logo (with upload), report metadata, and filters display
+      - AC #3: Test PDF table formatting (headers, alternating rows, currency/date formatting)
+      - AC #4: Test PDF summary totals calculations match report data
+      - AC #5: Test pagination with 100+ rows, verify page breaks and headers repeat
+      - AC #6: Test filename includes timestamp in correct format
+      - Edge cases: Empty report, missing logo (fallback to text), invalid filters, large datasets (>1000 rows)
+      - Security: Test RLS filtering by agency_id, test logo upload permissions
+      - Performance: Test PDF generation time for 100 rows vs 1000 rows
+      - Error handling: Test database errors, logo load failures, invalid format parameter
+    </ideas>
+  </tests>
+</story-context>

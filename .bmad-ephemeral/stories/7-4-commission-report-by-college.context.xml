@@ -1,0 +1,209 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>7</epicId>
+    <storyId>7.4</storyId>
+    <title>Commission Report by College</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/7-4-commission-report-by-college.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to generate commission reports grouped by college/branch with location details</iWant>
+    <soThat>I can track what commissions are owed to me, distinguish between multiple branches, and use for claim submissions</soThat>
+    <tasks>
+- Task 1: Create Commissions Report Page (AC: #1, 4)
+- Task 2: Implement Commission Report API Route (AC: #1-4, 7)
+- Task 3: Display Commission Report Results (AC: #2-3, 7)
+- Task 4: Add CSV Export for Commissions Report (AC: #5)
+- Task 5: Create Professional PDF Template for Commissions (AC: #6)
+- Task 6: Implement PDF Export API Route (AC: #5-6)
+- Task 7: Add City Grouping/Filtering (AC: #8)
+- Task 8: Testing and Validation (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Generate commission report with breakdown by college and branch for selected time period
+2. Display columns: college, branch, city, total paid by students, commission rate, earned commission, outstanding commission
+3. City field distinguishes between multiple branches of same school
+4. Report includes date range filter
+5. Report exportable to CSV and PDF
+6. PDF version formatted professionally for submission to college partners
+7. Report shows supporting details: list of students and payment plans contributing to commission
+8. Report can be grouped/filtered by city
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 7.4: Commission Report by College</section>
+        <snippet>Generate commission reports grouped by college/branch with location details. Each row shows college, branch, city, total paid, commission rate, earned/outstanding commission. Exportable to CSV/PDF with professional formatting for college partner submission.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Reporting Zone - Reports Application</section>
+        <snippet>Reports zone uses Next.js with API routes for commission reports. Database functions handle aggregations. PDF generation via @react-pdf/renderer, CSV export with streaming support.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/7-2-csv-export-functionality.md</path>
+        <title>Story 7.2: CSV Export Functionality</title>
+        <section>CSV Export Patterns and Utilities</section>
+        <snippet>Established CSV export infrastructure with csv-stringify library, UTF-8 BOM for Excel compatibility, streaming for large datasets. Utilities: formatCurrencyForCSV(), formatDateISO(), addUTF8BOM(). Located in packages/utils/src/csv-formatter.ts</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Database Schema - Payments Domain</section>
+        <snippet>Colleges, branches, enrollments, payment_plans, installments tables. Commission calculation: SUM(amount * rate/100) with FILTER clauses. RLS enforced on all tables via agency_id.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>packages/utils/src/csv-formatter.ts</path>
+        <kind>utility</kind>
+        <symbol>formatCurrencyForCSV, addUTF8BOM, formatDateISO</symbol>
+        <lines>N/A</lines>
+        <reason>Reusable CSV formatting utilities from Story 7.2 - format currency without symbols, add UTF-8 BOM for Excel, ISO date formatting</reason>
+      </artifact>
+      <artifact>
+        <path>apps/reports/app/api/reports/payment-plans/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>POST handler</symbol>
+        <lines>N/A</lines>
+        <reason>Payment plans report API - pattern to follow for commission report API with filter params and RLS enforcement</reason>
+      </artifact>
+      <artifact>
+        <path>apps/reports/app/api/reports/payment-plans/export/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET handler</symbol>
+        <lines>N/A</lines>
+        <reason>Export API route pattern - handles CSV/PDF export with format parameter, reusable for commission export</reason>
+      </artifact>
+      <artifact>
+        <path>apps/reports/app/components/CommissionReportPDF.tsx</path>
+        <kind>component</kind>
+        <symbol>CommissionReportPDF</symbol>
+        <lines>N/A</lines>
+        <reason>PDF template component to create - uses @react-pdf/renderer with professional formatting for college partner submission</reason>
+      </artifact>
+      <artifact>
+        <path>apps/reports/app/components/CommissionReportTable.tsx</path>
+        <kind>component</kind>
+        <symbol>CommissionReportTable</symbol>
+        <lines>N/A</lines>
+        <reason>Table component to create - displays commission data grouped by college/branch with expandable drill-down for student payment plans</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/XXX_create_commission_report_function.sql</path>
+        <kind>database-function</kind>
+        <symbol>get_commission_report</symbol>
+        <lines>N/A</lines>
+        <reason>PostgreSQL function to create - aggregates commission data by college/branch/city with FILTER clauses for paid vs outstanding installments</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@react-pdf/renderer</package>
+        <version>^4.3.1</version>
+        <reason>PDF generation from React components for professional commission reports</reason>
+      </node>
+      <node>
+        <package>csv-stringify</package>
+        <version>latest</version>
+        <reason>Stream-based CSV generation for commission data export</reason>
+      </node>
+      <node>
+        <package>@tanstack/react-table</package>
+        <version>^8.21.3</version>
+        <reason>Table component with sorting, grouping, drill-down for commission display</reason>
+      </node>
+      <node>
+        <package>recharts</package>
+        <version>^3.3.0</version>
+        <reason>Optional: charting if commission visualizations needed</reason>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>^4.1.0</version>
+        <reason>Date formatting and manipulation for report filters</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-Tenant Security: All queries MUST filter by agency_id. RLS enforced on colleges, branches, enrollments, payment_plans, installments tables.</constraint>
+    <constraint>Reporting Zone Architecture: Commission report page at apps/reports/app/reports/commissions/page.tsx, API routes at apps/reports/app/api/reports/commissions/</constraint>
+    <constraint>Reuse CSV Export Utilities: Use established formatCurrencyForCSV(), formatDateISO(), addUTF8BOM() from packages/utils/src/csv-formatter.ts (Story 7.2)</constraint>
+    <constraint>Commission Calculation Formula: earned_commission = SUM(amount * (rate / 100)) WHERE paid_at IS NOT NULL; outstanding_commission = SUM(amount * (rate / 100)) WHERE paid_at IS NULL AND due_date &lt; NOW()</constraint>
+    <constraint>Professional PDF Formatting: Use @react-pdf/renderer with agency logo, clean typography, proper page breaks. PDF must be submission-quality for college partners.</constraint>
+    <constraint>Database Functions: Use PostgreSQL stored function (get_commission_report) to reduce round trips and centralize aggregation logic</constraint>
+    <constraint>File Naming Convention: commissions_report_YYYY-MM-DD.csv and commissions_report_YYYY-MM-DD.pdf with timestamp</constraint>
+    <constraint>Performance: Use database indexes on installments.due_date and branches.city. Consider materialized view for frequently run reports. Limit to 1000 colleges/branches per export.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Commission Report API</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/reports/commissions - Body: { date_from, date_to, city? } - Returns: { data: CommissionRow[], summary: { total_paid, total_earned, total_outstanding } }</signature>
+      <path>apps/reports/app/api/reports/commissions/route.ts</path>
+    </interface>
+    <interface>
+      <name>Commission Export API</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/reports/commissions/export?format=csv|pdf&amp;date_from=YYYY-MM-DD&amp;date_to=YYYY-MM-DD&amp;city=optional - Returns: File download (CSV or PDF)</signature>
+      <path>apps/reports/app/api/reports/commissions/export/route.ts</path>
+    </interface>
+    <interface>
+      <name>get_commission_report Database Function</name>
+      <kind>PostgreSQL function</kind>
+      <signature>get_commission_report(p_agency_id UUID, p_date_from DATE, p_date_to DATE, p_city TEXT) RETURNS TABLE (college_id, college_name, branch_id, branch_name, city, commission_rate_percent, total_payment_plans, total_students, total_paid, earned_commission, outstanding_commission, payment_plans JSONB)</signature>
+      <path>supabase/migrations/XXX_create_commission_report_function.sql</path>
+    </interface>
+    <interface>
+      <name>formatCurrencyForCSV</name>
+      <kind>Utility function</kind>
+      <signature>formatCurrencyForCSV(amount: number | null): string - Returns decimal format "1234.56" without symbols</signature>
+      <path>packages/utils/src/csv-formatter.ts</path>
+    </interface>
+    <interface>
+      <name>formatDateISO</name>
+      <kind>Utility function</kind>
+      <signature>formatDateISO(date: string | Date | null): string - Returns ISO format "YYYY-MM-DD"</signature>
+      <path>packages/utils/src/csv-formatter.ts</path>
+    </interface>
+    <interface>
+      <name>addUTF8BOM</name>
+      <kind>Utility function</kind>
+      <signature>addUTF8BOM(content: string): string - Prepends UTF-8 BOM (\uFEFF) for Excel compatibility</signature>
+      <path>packages/utils/src/csv-formatter.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests, React Testing Library for component tests, Playwright for E2E tests. Test commission calculation accuracy (paid vs outstanding). Test RLS enforcement (agency_id isolation). Test CSV/PDF export formatting and Excel compatibility. Test edge cases: 0% commission rate, negative amounts (credits), multiple branches in same city, empty date ranges.
+    </standards>
+    <locations>
+      apps/reports/app/api/reports/commissions/__tests__/
+      apps/reports/app/components/__tests__/
+      packages/utils/src/__tests__/csv-formatter.test.ts
+      supabase/tests/commission-report-function.test.sql
+      e2e/reports/commission-report.spec.ts
+    </locations>
+    <ideas>
+      <idea ac="1,2,3,4,7">Test commission report API with date range and city filters - verify grouped aggregation by college/branch, verify drill-down data includes student payment plans, verify RLS filters by agency_id</idea>
+      <idea ac="2,3">Test commission calculation accuracy - verify earned = SUM(paid * rate/100), verify outstanding = SUM(unpaid overdue * rate/100), test edge cases: 0% rate, negative amounts</idea>
+      <idea ac="5">Test CSV export - verify UTF-8 BOM, verify column headers, verify currency formatting (decimal, no symbols), verify dates in ISO format, open in Excel to verify readability</idea>
+      <idea ac="6">Test PDF export - verify professional formatting with agency logo, verify clean typography, verify page breaks for long reports, verify submission quality when printed</idea>
+      <idea ac="8">Test city grouping/filtering - verify GROUP BY city changes primary grouping, verify city filter narrows results correctly</idea>
+      <idea ac="All">Test UI integration - generate report with filters, expand branch drill-down to see students, export CSV/PDF and verify downloads, verify loading states and error handling</idea>
+    </ideas>
+  </tests>
+</story-context>
