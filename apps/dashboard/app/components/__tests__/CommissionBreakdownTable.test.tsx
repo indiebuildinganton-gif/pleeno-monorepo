@@ -5,6 +5,7 @@
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.3: Commission Breakdown by College
  * Task 3: Implement Filter Controls
+ * Task 4: Implement Drill-Down to Payment Plans
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -564,6 +565,241 @@ describe('CommissionBreakdownTable', () => {
           const parsed = JSON.parse(stored)
           expect(parsed.state.commissionFilters.period).toBe('year')
         }
+      })
+    })
+  })
+
+  describe('Drill-Down Links - Task 4', () => {
+    it('should render college name as a clickable link', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const collegeLink = screen.getByText('University of Sydney').closest('a')
+        expect(collegeLink).toBeInTheDocument()
+        expect(collegeLink).toHaveAttribute('href', '/entities/colleges/1')
+      })
+    })
+
+    it('should render all college names as clickable links with correct hrefs', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const sydneyLink = screen.getByText('University of Sydney').closest('a')
+        const melbourneLink = screen.getByText('University of Melbourne').closest('a')
+
+        expect(sydneyLink).toHaveAttribute('href', '/entities/colleges/1')
+        expect(melbourneLink).toHaveAttribute('href', '/entities/colleges/2')
+      })
+    })
+
+    it('should render branch name as a clickable link', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const branchLink = screen.getByText('Sydney Campus').closest('a')
+        expect(branchLink).toBeInTheDocument()
+        expect(branchLink).toHaveAttribute('href', '/entities/colleges/1?branch=b1')
+      })
+    })
+
+    it('should render all branch names as clickable links with correct hrefs', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const sydneyBranchLink = screen.getByText('Sydney Campus').closest('a')
+        const melbourneBranchLink = screen.getByText('Melbourne Campus').closest('a')
+
+        expect(sydneyBranchLink).toHaveAttribute('href', '/entities/colleges/1?branch=b1')
+        expect(melbourneBranchLink).toHaveAttribute('href', '/entities/colleges/2?branch=b2')
+      })
+    })
+
+    it('should render Actions column header', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Actions')).toBeInTheDocument()
+      })
+    })
+
+    it('should render View Plans button for each row', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const viewPlansButtons = screen.getAllByText('View Plans')
+        expect(viewPlansButtons).toHaveLength(2) // Two rows of data
+      })
+    })
+
+    it('should render View Plans button with correct href for payment plans', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const viewPlansLinks = screen.getAllByText('View Plans')
+        const firstLink = viewPlansLinks[0].closest('a')
+
+        expect(firstLink).toHaveAttribute('href', '/payments/plans?college=1&branch=b1')
+      })
+    })
+
+    it('should display payment plan count in View Plans button', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // Should show "(12)" for University of Sydney
+        expect(screen.getByText('(12)')).toBeInTheDocument()
+        // Should show "(10)" for University of Melbourne
+        expect(screen.getByText('(10)')).toBeInTheDocument()
+      })
+    })
+
+    it('should have descriptive title attribute on View Plans button', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const viewPlansLinks = screen.getAllByText('View Plans')
+        const firstLink = viewPlansLinks[0].closest('a')
+
+        expect(firstLink).toHaveAttribute(
+          'title',
+          'View 12 payment plans for University of Sydney - Sydney Campus'
+        )
+      })
+    })
+
+    it('should use singular "plan" when payment_plan_count is 1', async () => {
+      const singlePlanData = {
+        success: true,
+        data: [
+          {
+            college_id: '1',
+            college_name: 'Test College',
+            branch_id: 'b1',
+            branch_name: 'Test Campus',
+            branch_city: 'Test City',
+            total_commissions: 1000,
+            total_gst: 100,
+            total_with_gst: 1100,
+            total_expected_commission: 1500,
+            total_earned_commission: 1000,
+            outstanding_commission: 500,
+            payment_plan_count: 1,
+          },
+        ],
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => singlePlanData,
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const viewPlansLink = screen.getByText('View Plans').closest('a')
+        expect(viewPlansLink).toHaveAttribute(
+          'title',
+          'View 1 payment plan for Test College - Test Campus'
+        )
+      })
+    })
+
+    it('should apply blue link styling to college names', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const collegeLink = screen.getByText('University of Sydney').closest('a')
+        expect(collegeLink).toHaveClass('text-blue-600', 'hover:underline')
+      })
+    })
+
+    it('should apply blue link styling to branch names', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const branchLink = screen.getByText('Sydney Campus').closest('a')
+        expect(branchLink).toHaveClass('text-blue-600', 'hover:underline')
+      })
+    })
+
+    it('should have proper keyboard accessibility for all links', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const collegeLink = screen.getByText('University of Sydney').closest('a')
+        const branchLink = screen.getByText('Sydney Campus').closest('a')
+        const viewPlansButton = screen.getAllByText('View Plans')[0].closest('button')
+
+        // Links should be focusable
+        expect(collegeLink).not.toHaveAttribute('tabindex', '-1')
+        expect(branchLink).not.toHaveAttribute('tabindex', '-1')
+        expect(viewPlansButton).toHaveAttribute('type', 'button')
+      })
+    })
+
+    it('should render View Plans button with Eye icon', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const viewPlansButtons = screen.getAllByText('View Plans')
+        // Check that the button has an svg icon (Eye icon from lucide-react renders as svg)
+        const firstButton = viewPlansButtons[0].closest('button')
+        const svg = firstButton?.querySelector('svg')
+        expect(svg).toBeInTheDocument()
+      })
+    })
+
+    it('should maintain all drill-down links after filtering', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Wait for initial render
+      await waitFor(() => {
+        expect(screen.getByText('University of Sydney')).toBeInTheDocument()
+      })
+
+      // Apply a filter
+      const periodDropdown = screen.getByLabelText('Time Period') as HTMLSelectElement
+      fireEvent.change(periodDropdown, { target: { value: 'year' } })
+
+      // Links should still be present after filtering
+      await waitFor(() => {
+        const collegeLink = screen.getByText('University of Sydney').closest('a')
+        const branchLink = screen.getByText('Sydney Campus').closest('a')
+        const viewPlansButtons = screen.getAllByText('View Plans')
+
+        expect(collegeLink).toHaveAttribute('href', '/entities/colleges/1')
+        expect(branchLink).toHaveAttribute('href', '/entities/colleges/1?branch=b1')
+        expect(viewPlansButtons.length).toBeGreaterThan(0)
       })
     })
   })
