@@ -17,6 +17,40 @@ export const ProfileUpdateSchema = z.object({
  * Use this type for type-safe profile update operations
  */
 export type ProfileUpdate = z.infer<typeof ProfileUpdateSchema>
+
+/**
+ * Zod schema for password changes
+ * Enforces password security requirements:
+ * - Minimum 8 characters
+ * - At least one uppercase letter
+ * - At least one lowercase letter
+ * - At least one number
+ * - At least one special character
+ */
+export const PasswordChangeSchema = z.object({
+  current_password: z
+    .string()
+    .min(1, 'Current password is required'),
+  new_password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+  confirm_password: z
+    .string()
+    .min(1, 'Password confirmation is required'),
+}).refine((data) => data.new_password === data.confirm_password, {
+  message: 'Passwords do not match',
+  path: ['confirm_password'],
+})
+
+/**
+ * TypeScript type inferred from the PasswordChangeSchema
+ * Use this type for type-safe password change operations
+ */
+export type PasswordChange = z.infer<typeof PasswordChangeSchema>
  * Schema for updating user role
  */
 export const UserRoleUpdateSchema = z.object({
