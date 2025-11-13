@@ -45,15 +45,15 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Create trigger function to log task assignment changes automatically
   - [x] Add indexes on audit_log (entity_type, entity_id, created_at, user_id)
 
-- [ ] Seed master tasks list with common agency tasks (AC: 5)
-  - [ ] Create seed migration with initial tasks:
+- [x] Seed master tasks list with common agency tasks (AC: 5)
+  - [x] Create seed migration with initial tasks:
     - Data entry (code: DATA_ENTRY)
     - Document verification (code: DOC_VERIFY)
     - Payment processing (code: PAYMENT_PROC)
     - Student communication (code: STUDENT_COMM)
     - College liaison (code: COLLEGE_LIAISON)
     - Reporting (code: REPORTING)
-  - [ ] Each task includes name, code, and description
+  - [x] Each task includes name, code, and description
 
 - [ ] Implement user invitation API route (AC: 1, 2, 3, 4)
   - [ ] Create apps/agency/app/api/invitations/route.ts
@@ -811,14 +811,46 @@ N/A - No debugging required
 - Verify audit logs capture all required information
 - Consider adding API endpoint to query audit logs for admin dashboard
 
+**Task 03: Seed master tasks list with common agency tasks - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created migration file: `supabase/migrations/001_agency_domain/008_seed_master_tasks.sql`
+- Seeded 6 common agency tasks into master_tasks table:
+  1. **Data Entry** (DATA_ENTRY) - Enter student and payment plan information into the system
+  2. **Document Verification** (DOC_VERIFY) - Verify student documents and offer letters for accuracy and completeness
+  3. **Payment Processing** (PAYMENT_PROC) - Record and track payment installments, update payment status
+  4. **Student Communication** (STUDENT_COMM) - Communicate with students about payments, deadlines, and status updates
+  5. **College Liaison** (COLLEGE_LIAISON) - Coordinate with college partners on student placements and documentation
+  6. **Reporting** (REPORTING) - Generate and export reports for agency management and analysis
+- Each task includes: task_name, task_code (unique identifier), and description
+- Used ON CONFLICT (task_code) DO NOTHING for idempotent migration (safe to run multiple times)
+- Added verification step to ensure all 6 tasks were inserted successfully
+
+📝 **Implementation notes:**
+- Migration follows sequential numbering: 008_seed_master_tasks.sql
+- Tasks represent typical responsibilities in education agencies managing international students
+- Task codes use uppercase with underscores for consistency (DATA_ENTRY, DOC_VERIFY, etc.)
+- Descriptions are detailed enough to help admins understand what each task entails when assigning to users
+- Idempotent design allows migration to be re-run without duplicating data
+
+⚠️ **Deviations from story:**
+- None - implementation matches specification exactly
+
+🔄 **Follow-up tasks:**
+- Test migration when Supabase instance is available
+- Verify all 6 tasks appear in database with correct codes and descriptions
+- Tasks will be used by invitation system (upcoming tasks) for checkbox selection
+
 ### File List
 
 **Created:**
 - `supabase/migrations/001_agency_domain/006_invitations_schema.sql` - Database schema migration for invitations, tasks, and audit logging
 - `supabase/migrations/001_agency_domain/007_audit_triggers.sql` - Audit logging trigger functions for user profiles and task assignments
+- `supabase/migrations/001_agency_domain/008_seed_master_tasks.sql` - Seed data migration for master tasks list with common agency tasks
 
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
 - **2025-11-13:** Task 01 completed - Created database schema migration (006_invitations_schema.sql) with invitations, master_tasks, user_task_assignments, and audit_log tables including RLS policies and indexes
 - **2025-11-13:** Task 02 completed - Created audit logging triggers (007_audit_triggers.sql) for automatic logging of user profile changes and task assignment changes
+- **2025-11-13:** Task 03 completed - Created seed data migration (008_seed_master_tasks.sql) with 6 common agency tasks for the master tasks list
