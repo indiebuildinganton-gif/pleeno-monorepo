@@ -368,11 +368,63 @@
   - **Production Ready**: All components ready for deployment with environment variable configuration
 
 ### Task 9: Migration File Creation
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/004_notifications_domain/001_jobs_infrastructure.sql
+  - supabase/migrations/004_notifications_domain/001_jobs_infrastructure.down.sql
+  - supabase/migrations/004_notifications_domain/verify.sql
 - Notes:
+  - **Main Migration File**: Consolidated all database changes from Tasks 1-8 into single cohesive migration
+  - **Section 1 (Extensions)**: pg_cron and http extensions with IF NOT EXISTS for idempotency
+  - **Section 2 (Jobs Log Table)**: Complete jobs_log table with indexes, RLS, and policies (Task 2)
+  - **Section 3 (Agency Fields)**: Added timezone, overdue_cutoff_time, due_soon_threshold_days columns with check constraints (Task 6)
+  - **Section 4 (Status Function)**: update_installment_statuses() function with timezone-aware logic (Task 1)
+  - **Section 5 (Alert Trigger)**: notify_job_failure() function and trigger for pg_notify alerts (Task 8)
+  - **Section 6 (API Key Config)**: Database setting for app.supabase_function_key (commented for manual configuration)
+  - **Section 7 (pg_cron Schedule)**: Daily job at 7:00 AM UTC (commented for project-ref replacement)
+  - **Idempotency Features**: All DDL uses IF NOT EXISTS, DROP IF EXISTS, DO blocks for safe re-runs
+  - **RLS Policies**: Wrapped in DO blocks to check existence before creation (prevents errors on re-run)
+  - **Constraints**: Drop existing constraints before adding to ensure idempotency
+  - **Rollback Migration**: Complete rollback script (001_jobs_infrastructure.down.sql) that reverses all changes
+    - Unschedules cron job
+    - Drops triggers and functions
+    - Removes agency columns and constraints
+    - Drops jobs_log table
+    - Optionally drops extensions (commented for safety)
+  - **Verification Script**: Comprehensive verification queries (verify.sql) with 9 sections:
+    1. Extensions verification (2 expected)
+    2. jobs_log table structure (9 columns, 3 indexes, RLS enabled, 3 policies)
+    3. Agency configuration fields (3 columns, 3 constraints)
+    4. Status update function verification
+    5. Alert trigger verification
+    6. pg_cron schedule verification
+    7. API key configuration check
+    8. Optional integration test
+    9. Summary report (all components pass/fail)
+  - **Deployment Considerations**:
+    - Placeholders for project-ref and API key must be replaced before production
+    - API key configuration and pg_cron schedule commented out to prevent deployment errors
+    - Sections 6 and 7 require manual configuration during deployment
+  - **Migration Naming**: Follows convention: 004_notifications_domain/001_jobs_infrastructure.sql
+  - **Comments**: Extensive inline documentation explaining each section's purpose and Epic/Story references
+  - **All Acceptance Criteria Covered**:
+    - AC 1: Status detection function + agency timezone fields
+    - AC 2: pg_cron schedule configuration
+    - AC 3: jobs_log table + monitoring queries
+    - AC 4: Error handling in function + retry logic in Edge Function
+    - AC 5: RLS policies + API key authentication
+  - **Pre-Deployment Checklist**:
+    - [ ] Replace <project-ref> with Supabase project reference
+    - [ ] Replace your-api-key-here with actual generated API key
+    - [ ] Uncomment API key configuration (Section 6)
+    - [ ] Uncomment pg_cron schedule (Section 7)
+    - [ ] Verify Edge Function deployed
+    - [ ] Test on local Supabase instance first
+  - **Verification**: verify.sql provides automated health checks with expected values and pass/fail indicators
+  - **Migration Structure**: Clear sections with separator comments for maintainability
+  - **Production Ready**: Migration is idempotent and safe for multiple runs once placeholders are replaced
 
 ### Task 10: Documentation
 - Status: Not Started
@@ -424,4 +476,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Tasks 1-8 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-9 completed)
