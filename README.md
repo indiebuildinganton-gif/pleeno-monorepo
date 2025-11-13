@@ -1,5 +1,8 @@
 # Pleeno - Student Payment Plan Management System
 
+[![CI](https://github.com/rajkrajpj/pleeno/workflows/CI/badge.svg)](https://github.com/rajkrajpj/pleeno/actions/workflows/ci.yml)
+[![Deploy](https://github.com/rajkrajpj/pleeno/workflows/Deploy/badge.svg)](https://github.com/rajkrajpj/pleeno/actions/workflows/deploy.yml)
+
 A modern multi-tenant B2B SaaS platform for education agencies to manage student payment plans, commissions, and college relationships.
 
 ## Tech Stack
