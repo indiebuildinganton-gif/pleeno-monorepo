@@ -14,6 +14,7 @@ export * from './components/ui/badge'
 export * from './components/ui/table'
 export * from './components/ui/dialog'
 export * from './components/ui/checkbox'
+export * from './components/ui/dropdown-menu'
 
 // Auth Components
 export * from './components/auth'
