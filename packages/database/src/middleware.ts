@@ -12,6 +12,8 @@
  */
 
 import { SupabaseClient } from '@supabase/supabase-js'
+import { NextRequest } from 'next/server'
+import { createServerClient } from './server'
 
 /**
  * Sets the agency context for RLS policies
@@ -40,19 +42,21 @@ import { SupabaseClient } from '@supabase/supabase-js'
  * const { data } = await supabase.from('entities').select('*')
  * ```
  */
-export async function setAgencyContext(
-  supabase: SupabaseClient
-): Promise<void> {
+export async function setAgencyContext(supabase: SupabaseClient): Promise<void> {
   try {
     // Call the database function to set RLS context
     // This function extracts agency_id from JWT and sets session variable
- * Middleware utilities for agency context management
- * Epic 1: Foundation & Multi-Tenant Security
- * Story 1.2: Multi-Tenant Database Schema with RLS
- */
+    const { error } = await supabase.rpc('set_agency_context')
 
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from './server'
+    if (error) {
+      console.error('Failed to set agency context:', error)
+      throw new Error(`Failed to set agency context: ${error.message}`)
+    }
+  } catch (err) {
+    console.error('Error setting agency context:', err)
+    throw err
+  }
+}
 
 /**
  * Middleware to set agency context for API routes
@@ -79,22 +83,20 @@ import { createServerClient } from './server'
  * })
  * ```
  */
-export function withAgencyContext(
-  handler: (request: NextRequest) => Promise<Response>
-) {
+export function withAgencyContext(handler: (request: NextRequest) => Promise<Response>) {
   return async function (request: NextRequest): Promise<Response> {
-    const supabase = await createServerClient()
+    try {
+      const supabase = await createServerClient()
 
-    // Set agency context from JWT
-    const { error } = await supabase.rpc('set_agency_context')
+      // Set agency context from JWT
+      await setAgencyContext(supabase)
 
-    if (error) {
-      console.error('Failed to set agency context:', error)
-      throw new Error(`Failed to set agency context: ${error.message}`)
+      // Call the actual handler
+      return handler(request)
+    } catch (err) {
+      console.error('Error in withAgencyContext:', err)
+      throw err
     }
-  } catch (err) {
-    console.error('Error setting agency context:', err)
-    throw err
   }
 }
 
@@ -113,9 +115,7 @@ export function withAgencyContext(
  * console.log('User belongs to agency:', agencyId)
  * ```
  */
-export async function getCurrentAgencyId(
-  supabase: SupabaseClient
-): Promise<string | null> {
+export async function getCurrentAgencyId(supabase: SupabaseClient): Promise<string | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -153,9 +153,7 @@ export async function getCurrentAgencyId(
  * // These should match!
  * ```
  */
-export async function getAgencyContextValue(
-  supabase: SupabaseClient
-): Promise<string | null> {
+export async function getAgencyContextValue(supabase: SupabaseClient): Promise<string | null> {
   try {
     const { data, error } = await supabase.rpc('get_current_agency_id')
 
@@ -168,15 +166,6 @@ export async function getAgencyContextValue(
   } catch (err) {
     console.error('Error getting agency context:', err)
     return null
-  }
-      return NextResponse.json(
-        { error: 'Failed to initialize agency context' },
-        { status: 500 }
-      )
-    }
-
-    // Call the actual handler
-    return handler(request)
   }
 }
 

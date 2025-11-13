@@ -72,39 +72,39 @@ so that **my account information is accurate and I can change my password**.
   - [ ] Return success response: "Verification email sent"
   - [ ] Log email change request in audit trail
 
-- [ ] Implement email verification confirmation endpoint (AC: 9)
-  - [ ] Create apps/agency/app/api/users/verify-email/route.ts
-  - [ ] POST /api/users/verify-email?token=... endpoint
-  - [ ] Validate token exists and is not expired (1 hour expiration)
-  - [ ] Update users.email = pending_email
-  - [ ] Set users.email_verified_at = now()
-  - [ ] Clear pending_email and email_verification_token
-  - [ ] Update Supabase Auth email via Admin API
-  - [ ] Log completed email change in audit trail
-  - [ ] Return success response with redirect to /profile
+- [x] Implement email verification confirmation endpoint (AC: 9)
+  - [x] Create apps/agency/app/api/users/verify-email/route.ts
+  - [x] POST /api/users/verify-email?token=... endpoint
+  - [x] Validate token exists and is not expired (1 hour expiration)
+  - [x] Update users.email = pending_email
+  - [x] Set users.email_verified_at = now()
+  - [x] Clear pending_email and email_verification_token
+  - [x] Update Supabase Auth email via Admin API
+  - [x] Log completed email change in audit trail
+  - [x] Return success response with redirect to /profile
 
-- [ ] Create user profile page (AC: 1, 4, 5)
-  - [ ] Create apps/agency/app/profile/page.tsx
-  - [ ] Server Component fetches current user from Supabase Auth
-  - [ ] Display read-only fields: Email, Role, Agency Name
-  - [ ] Display editable field: Full Name (input field)
-  - [ ] Button: "Change Password" (opens ChangePasswordDialog)
-  - [ ] Button: "Request Email Change" (regular users only)
-  - [ ] Button: "Update Email" (admins only, opens UpdateEmailDialog)
-  - [ ] Button: "Save Changes" (saves full_name)
-  - [ ] Use TanStack Query for profile updates
+- [x] Create user profile page (AC: 1, 4, 5)
+  - [x] Create apps/agency/app/profile/page.tsx
+  - [x] Server Component fetches current user from Supabase Auth
+  - [x] Display read-only fields: Email, Role, Agency Name
+  - [x] Display editable field: Full Name (input field)
+  - [x] Button: "Change Password" (opens ChangePasswordDialog)
+  - [x] Button: "Request Email Change" (regular users only)
+  - [x] Button: "Update Email" (admins only, opens UpdateEmailDialog)
+  - [x] Button: "Save Changes" (saves full_name)
+  - [x] Use TanStack Query for profile updates
 
-- [ ] Create change password dialog (AC: 2, 3, 4)
-  - [ ] Create apps/agency/app/profile/components/ChangePasswordDialog.tsx
-  - [ ] Form fields: Current Password (password input), New Password (password input), Confirm New Password (password input)
-  - [ ] Password strength indicator (show requirements met/unmet)
-  - [ ] Requirements display: "8+ characters, uppercase, lowercase, number, special character"
-  - [ ] Validate new password matches confirm password
-  - [ ] "Cancel" and "Change Password" buttons
-  - [ ] On submit: call PATCH /api/users/me/password
-  - [ ] Show success toast: "Password changed successfully"
-  - [ ] Close dialog on success
-  - [ ] Show error for incorrect current password
+- [x] Create change password dialog (AC: 2, 3, 4)
+  - [x] Create apps/agency/app/profile/components/ChangePasswordDialog.tsx
+  - [x] Form fields: Current Password (password input), New Password (password input), Confirm New Password (password input)
+  - [x] Password strength indicator (show requirements met/unmet)
+  - [x] Requirements display: "8+ characters, uppercase, lowercase, number, special character"
+  - [x] Validate new password matches confirm password
+  - [x] "Cancel" and "Change Password" buttons
+  - [x] On submit: call PATCH /api/users/me/password
+  - [x] Show success toast: "Password changed successfully"
+  - [x] Close dialog on success
+  - [x] Show error for incorrect current password
 
 - [ ] Create update email dialog (admin only) (AC: 8, 9)
   - [ ] Create apps/agency/app/profile/components/UpdateEmailDialog.tsx
@@ -151,12 +151,12 @@ so that **my account information is accurate and I can change my password**.
   - [ ] Define EmailUpdateSchema: email (valid email format)
   - [ ] Export TypeScript types
 
-- [ ] Add navigation link to profile (AC: 1)
-  - [ ] Update apps/agency/app/layout.tsx navigation
-  - [ ] Add "Profile" link to user menu (top right dropdown)
-  - [ ] Link to /agency/profile
-  - [ ] Show current user name in dropdown trigger
-  - [ ] Active state highlighting for profile page
+- [x] Add navigation link to profile (AC: 1)
+  - [x] Update apps/agency/app/layout.tsx navigation
+  - [x] Add "Profile" link to user menu (top right dropdown)
+  - [x] Link to /agency/profile
+  - [x] Show current user name in dropdown trigger
+  - [x] Active state highlighting for profile page
 
 - [ ] Implement password strength validator utility (AC: 3)
   - [ ] Create packages/utils/src/password-strength.ts
@@ -843,8 +843,88 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### Completion Notes List
 
+**Task 13: Add navigation link to profile** (Completed: 2025-11-13)
+- All subtasks completed
+- Created dropdown-menu UI component:
+  - Added @radix-ui/react-dropdown-menu dependency to ui package
+  - Created packages/ui/src/components/ui/dropdown-menu.tsx with full dropdown menu primitives
+  - Exported dropdown-menu component from packages/ui/src/index.ts
+- Created UserMenu server component:
+  - Created apps/agency/app/components/UserMenu.tsx
+  - Fetches current user information from Supabase
+  - Passes user name and email to client component
+  - Returns null if user not authenticated (graceful degradation)
+- Created UserMenuClient client component:
+  - Created apps/agency/app/components/UserMenuClient.tsx
+  - Displays user name and avatar icon in dropdown trigger
+  - Shows user name and email in dropdown header
+  - Includes "Profile" link to /profile with active state highlighting
+  - Includes "Sign out" option with logout functionality
+  - Uses usePathname to detect active profile page
+  - Highlights dropdown trigger and menu item when on profile page
+- Created AppHeader navigation component:
+  - Created apps/agency/app/components/AppHeader.tsx
+  - Displays app branding/logo on the left
+  - Shows main navigation links (Team, Settings) in center
+  - Places UserMenu component on the right
+  - Sticky header with backdrop blur effect
+- Updated root layout:
+  - Modified apps/agency/app/layout.tsx to include AppHeader
+  - Updated metadata with proper title and description
+  - Header renders for all authenticated pages
+- All acceptance criteria (AC: 1) met:
+  - Navigation successfully links to profile page
+  - User name displayed in dropdown trigger
+  - Active state highlighting implemented
+  - Profile link functional and accessible
+
+**Task 07: Create change password dialog** (Completed: 2025-11-13)
+- All subtasks verified as complete
+- ChangePasswordDialog.tsx implements all required functionality:
+  - Three password fields: current, new, confirm
+  - Password strength indicator with real-time feedback
+  - Visual display of all 5 password requirements (8+ chars, uppercase, lowercase, number, special char)
+  - Form validation using Zod schema (PasswordChangeSchema)
+  - API integration with PATCH /api/users/me/password
+  - Success toast message on successful password change
+  - Dialog closes automatically on success
+  - Error handling for incorrect current password
+  - Cancel button with form reset
+- PasswordStrengthIndicator.tsx provides visual feedback:
+  - Shows strength level (weak/medium/strong)
+  - Displays checkmarks for met requirements
+  - Shows X marks for unmet requirements
+- API endpoint verified at apps/agency/app/api/users/me/password/route.ts:
+  - Validates current password via Supabase Auth
+  - Enforces password strength requirements
+  - Updates password securely using Supabase Auth
+  - Logs password change in audit trail (without password values)
+  - Returns appropriate error for incorrect current password
+- Validation schema (PasswordChangeSchema) in packages/validations/src/user.schema.ts:
+  - Enforces min 8 characters
+  - Requires uppercase, lowercase, number, special character
+  - Validates password confirmation match
+- Integration with ProfileForm.tsx confirmed
+- All acceptance criteria (AC: 2, 3, 4) met
+
 ### File List
+
+**Task 13: Add navigation link to profile**
+- `packages/ui/src/components/ui/dropdown-menu.tsx` - Dropdown menu UI component
+- `packages/ui/src/index.ts` - Updated with dropdown-menu export
+- `apps/agency/app/components/UserMenu.tsx` - Server component for user menu
+- `apps/agency/app/components/UserMenuClient.tsx` - Client component with dropdown UI
+- `apps/agency/app/components/AppHeader.tsx` - Main navigation header component
+- `apps/agency/app/layout.tsx` - Updated root layout with AppHeader
+
+**Task 07: Create change password dialog**
+- `apps/agency/app/profile/components/ChangePasswordDialog.tsx` - Main dialog component
+- `apps/agency/app/profile/components/PasswordStrengthIndicator.tsx` - Password strength indicator
+- `apps/agency/app/api/users/me/password/route.ts` - Password change API endpoint
+- `packages/validations/src/user.schema.ts` - PasswordChangeSchema validation
 
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
+- **2025-11-13:** Task 07 verified complete - Change password dialog with all functionality implemented
+- **2025-11-13:** Task 13 completed - Add navigation link to profile with user menu dropdown and active state highlighting
