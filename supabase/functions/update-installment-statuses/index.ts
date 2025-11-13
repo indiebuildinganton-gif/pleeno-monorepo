@@ -34,11 +34,28 @@ interface AgencyResult {
   };
 }
 
+interface NewlyOverdueInstallment {
+  id: string;
+  amount: number;
+  student_due_date: string;
+  payment_plan: {
+    id: string;
+    agency_id: string;
+    student: {
+      id: string;
+      first_name: string;
+      last_name: string;
+    };
+  };
+}
+
 interface UpdateResponse {
   success: boolean;
   recordsUpdated: number;
+  notificationsCreated: number;
   agencies: AgencyResult[];
   error?: string;
+  notificationErrors?: string[];
 }
 
 /**
@@ -99,6 +116,142 @@ function isTransientError(error: any): boolean {
   return transientPatterns.some((pattern) =>
     errorMessage.includes(pattern.toLowerCase())
   );
+}
+
+/**
+ * Generates notifications for newly overdue installments.
+ *
+ * This function:
+ * 1. Queries for installments marked overdue in the last 2 minutes (to catch current run)
+ * 2. Checks for existing notifications using metadata.installment_id (deduplication)
+ * 3. Creates notification records with student name, amount, and due date
+ * 4. Returns count of notifications created and any errors encountered
+ *
+ * @param supabase - Supabase client with service role permissions
+ * @returns Object with notificationsCreated count and errors array
+ */
+async function generateOverdueNotifications(supabase: any): Promise<{
+  notificationsCreated: number;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+  let notificationsCreated = 0;
+
+  try {
+    // Query for newly overdue installments (status changed in last 2 minutes)
+    // Using 2 minutes to be safe with job execution time
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+
+    const { data: newlyOverdueInstallments, error: queryError } = await supabase
+      .from("installments")
+      .select(`
+        id,
+        amount,
+        student_due_date,
+        payment_plan:payment_plans (
+          id,
+          agency_id,
+          student:enrollments (
+            student:students (
+              id,
+              first_name,
+              last_name
+            )
+          )
+        )
+      `)
+      .eq("status", "overdue")
+      .gte("updated_at", twoMinutesAgo);
+
+    if (queryError) {
+      errors.push(`Failed to query newly overdue installments: ${queryError.message}`);
+      return { notificationsCreated: 0, errors };
+    }
+
+    if (!newlyOverdueInstallments || newlyOverdueInstallments.length === 0) {
+      console.log("No newly overdue installments found");
+      return { notificationsCreated: 0, errors };
+    }
+
+    console.log(`Found ${newlyOverdueInstallments.length} newly overdue installments`);
+
+    // Process each newly overdue installment
+    for (const installment of newlyOverdueInstallments) {
+      try {
+        // Extract student info from nested structure
+        const student = installment.payment_plan?.student?.student;
+        if (!student) {
+          errors.push(`Installment ${installment.id}: Missing student data`);
+          continue;
+        }
+
+        const studentName = `${student.first_name} ${student.last_name}`;
+        const agencyId = installment.payment_plan?.agency_id;
+
+        if (!agencyId) {
+          errors.push(`Installment ${installment.id}: Missing agency_id`);
+          continue;
+        }
+
+        // Check for existing notification (deduplication)
+        const { data: existingNotification } = await supabase
+          .from("notifications")
+          .select("id")
+          .eq("type", "overdue_payment")
+          .eq("agency_id", agencyId)
+          .contains("metadata", { installment_id: installment.id })
+          .maybeSingle();
+
+        if (existingNotification) {
+          console.log(`Notification already exists for installment ${installment.id}`);
+          continue;
+        }
+
+        // Format due date
+        const dueDate = new Date(installment.student_due_date);
+        const formattedDate = dueDate.toLocaleDateString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        });
+
+        // Create notification
+        const { error: notificationError } = await supabase
+          .from("notifications")
+          .insert({
+            agency_id: agencyId,
+            user_id: null, // Agency-wide notification
+            type: "overdue_payment",
+            message: `Payment overdue: ${studentName} - $${installment.amount.toFixed(2)} due ${formattedDate}`,
+            link: "/payments/plans?status=overdue",
+            is_read: false,
+            metadata: {
+              installment_id: installment.id,
+              payment_plan_id: installment.payment_plan.id,
+              student_id: student.id,
+              amount: installment.amount,
+              due_date: installment.student_due_date,
+            },
+          });
+
+        if (notificationError) {
+          errors.push(`Failed to create notification for installment ${installment.id}: ${notificationError.message}`);
+        } else {
+          notificationsCreated++;
+          console.log(`Created notification for installment ${installment.id}`);
+        }
+      } catch (error) {
+        errors.push(`Error processing installment ${installment.id}: ${error.message}`);
+        console.error(`Error processing installment ${installment.id}:`, error);
+      }
+    }
+
+    return { notificationsCreated, errors };
+  } catch (error) {
+    errors.push(`Failed to generate overdue notifications: ${error.message}`);
+    console.error("Failed to generate overdue notifications:", error);
+    return { notificationsCreated: 0, errors };
+  }
 }
 
 serve(async (req) => {
@@ -162,6 +315,19 @@ serve(async (req) => {
     // Calculate total installments updated across all agencies
     const totalUpdated = results.reduce((sum, r) => sum + r.updated_count, 0);
 
+    // Generate notifications for newly overdue installments
+    // This runs after status updates to catch all newly overdue installments
+    // Errors in notification generation don't fail the overall job
+    console.log("Generating overdue notifications...");
+    const { notificationsCreated, errors: notificationErrors } =
+      await generateOverdueNotifications(supabase);
+
+    if (notificationErrors.length > 0) {
+      console.error("Notification generation errors:", notificationErrors);
+    }
+
+    console.log(`Created ${notificationsCreated} notifications`);
+
     // Update jobs_log with success status and detailed results
     // Metadata includes per-agency breakdown for monitoring and debugging
     await supabase
@@ -173,6 +339,8 @@ serve(async (req) => {
         metadata: {
           agencies: results,
           total_agencies_processed: results.length,
+          notifications_created: notificationsCreated,
+          notification_errors: notificationErrors.length > 0 ? notificationErrors : undefined,
         },
       })
       .eq("id", jobLog.id);
@@ -181,7 +349,9 @@ serve(async (req) => {
     const response: UpdateResponse = {
       success: true,
       recordsUpdated: totalUpdated,
+      notificationsCreated,
       agencies: results,
+      notificationErrors: notificationErrors.length > 0 ? notificationErrors : undefined,
     };
 
     return new Response(JSON.stringify(response), {
@@ -210,6 +380,7 @@ serve(async (req) => {
       JSON.stringify({
         success: false,
         recordsUpdated: 0,
+        notificationsCreated: 0,
         agencies: [],
         error: error.message,
       }),
