@@ -1,0 +1,46 @@
+name: RLS Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'packages/database/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'packages/database/**'
+
+jobs:
+  test-rls:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local instance
+        run: npx supabase start
+
+      - name: Run RLS comprehensive test suite
+        run: ./supabase/scripts/run-all-tests.sh
+
+      - name: Stop Supabase
+        if: always()
+        run: npx supabase stop
