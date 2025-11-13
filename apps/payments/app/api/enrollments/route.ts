@@ -15,6 +15,7 @@ import {
   createSuccessResponse,
   ValidationError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database'
@@ -212,12 +213,16 @@ export async function POST(request: NextRequest) {
       console.log('Reusing existing active enrollment:', existingEnrollment.id)
 
       // Log the reuse action to audit trail
-      await supabase.from('audit_logs').insert({
-        entity_type: 'enrollment',
-        entity_id: existingEnrollment.id,
-        user_id: user.id,
-        action: 'reuse',
-        changes_json: {
+      await logAudit(supabase, {
+        userId: user.id,
+        agencyId: userAgencyId,
+        entityType: 'enrollment',
+        entityId: existingEnrollment.id,
+        action: 'update',
+        oldValues: null,
+        newValues: null,
+        metadata: {
+          operation: 'reuse',
           student_id: validatedData.student_id,
           branch_id: validatedData.branch_id,
           program_name: validatedData.program_name,
@@ -273,12 +278,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Log enrollment creation to audit trail
-    await supabase.from('audit_logs').insert({
-      entity_type: 'enrollment',
-      entity_id: enrollment.id,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'enrollment',
+      entityId: enrollment.id,
       action: 'create',
-      changes_json: {
+      oldValues: null,
+      newValues: {
         student_id: enrollment.student_id,
         branch_id: enrollment.branch_id,
         program_name: enrollment.program_name,

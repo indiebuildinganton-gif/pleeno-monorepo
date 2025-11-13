@@ -137,3 +137,210 @@ export async function logAudit(
 export function canLogAudit(client: SupabaseClient): boolean {
   return client !== null && client !== undefined
 }
+
+/**
+ * Audit log entry returned from queries
+ */
+export interface AuditLogEntry {
+  id: string
+  user_id: string
+  agency_id: string
+  entity_type: string
+  entity_id: string
+  action: 'create' | 'update' | 'delete'
+  old_values: Record<string, any> | null
+  new_values: Record<string, any> | null
+  metadata: Record<string, any> | null
+  ip_address: string | null
+  user_agent: string | null
+  timestamp: string
+}
+
+/**
+ * Query options for fetching audit logs
+ */
+export interface AuditLogQueryOptions {
+  /** Filter by entity type (e.g., 'enrollment', 'enrollment_document') */
+  entityType?: string
+  /** Filter by specific entity ID */
+  entityId?: string
+  /** Filter by action type */
+  action?: 'create' | 'update' | 'delete'
+  /** Filter by user ID who performed the action */
+  userId?: string
+  /** Maximum number of records to return (default: 50) */
+  limit?: number
+  /** Offset for pagination (default: 0) */
+  offset?: number
+  /** Filter by date range (start) */
+  startDate?: Date
+  /** Filter by date range (end) */
+  endDate?: Date
+}
+
+/**
+ * Fetches audit logs with optional filtering
+ *
+ * This function queries the audit_logs table with various filter options
+ * for reporting and compliance purposes.
+ *
+ * @param client - Authenticated Supabase client
+ * @param agencyId - Agency ID to filter logs (required for multi-tenant isolation)
+ * @param options - Query options for filtering
+ * @returns Promise resolving to array of audit log entries
+ *
+ * @example
+ * ```typescript
+ * // Get all enrollment-related audit logs
+ * const logs = await getAuditLogs(supabase, agencyId, {
+ *   entityType: 'enrollment',
+ *   limit: 100
+ * })
+ *
+ * // Get audit history for a specific enrollment
+ * const enrollmentHistory = await getAuditLogs(supabase, agencyId, {
+ *   entityType: 'enrollment',
+ *   entityId: 'enrollment-uuid'
+ * })
+ * ```
+ */
+export async function getAuditLogs(
+  client: SupabaseClient,
+  agencyId: string,
+  options: AuditLogQueryOptions = {}
+): Promise<AuditLogEntry[]> {
+  try {
+    let query = client
+      .from('audit_logs')
+      .select('*')
+      .eq('agency_id', agencyId)
+      .order('timestamp', { ascending: false })
+
+    // Apply filters
+    if (options.entityType) {
+      query = query.eq('entity_type', options.entityType)
+    }
+
+    if (options.entityId) {
+      query = query.eq('entity_id', options.entityId)
+    }
+
+    if (options.action) {
+      query = query.eq('action', options.action)
+    }
+
+    if (options.userId) {
+      query = query.eq('user_id', options.userId)
+    }
+
+    if (options.startDate) {
+      query = query.gte('timestamp', options.startDate.toISOString())
+    }
+
+    if (options.endDate) {
+      query = query.lte('timestamp', options.endDate.toISOString())
+    }
+
+    // Apply pagination
+    const limit = options.limit || 50
+    const offset = options.offset || 0
+    query = query.range(offset, offset + limit - 1)
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Failed to fetch audit logs:', error)
+      throw new Error(`Failed to fetch audit logs: ${error.message}`)
+    }
+
+    return (data || []) as AuditLogEntry[]
+  } catch (error) {
+    console.error('Unexpected error fetching audit logs:', error)
+    throw error
+  }
+}
+
+/**
+ * Gets complete audit history for a specific enrollment
+ *
+ * This convenience function fetches all audit logs related to an enrollment,
+ * including enrollment creation, status updates, and document uploads.
+ *
+ * @param client - Authenticated Supabase client
+ * @param agencyId - Agency ID for filtering
+ * @param enrollmentId - UUID of the enrollment
+ * @returns Promise resolving to array of audit log entries
+ *
+ * @example
+ * ```typescript
+ * const history = await getEnrollmentAuditHistory(
+ *   supabase,
+ *   agencyId,
+ *   'enrollment-uuid'
+ * )
+ *
+ * history.forEach(entry => {
+ *   console.log(`${entry.action} by ${entry.user_id} at ${entry.timestamp}`)
+ *   console.log('Old values:', entry.old_values)
+ *   console.log('New values:', entry.new_values)
+ * })
+ * ```
+ */
+export async function getEnrollmentAuditHistory(
+  client: SupabaseClient,
+  agencyId: string,
+  enrollmentId: string
+): Promise<AuditLogEntry[]> {
+  try {
+    // Fetch both 'enrollment' and 'enrollment_document' logs for the enrollment
+    const { data, error } = await client
+      .from('audit_logs')
+      .select('*')
+      .eq('agency_id', agencyId)
+      .eq('entity_id', enrollmentId)
+      .in('entity_type', ['enrollment', 'enrollment_document'])
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      console.error('Failed to fetch enrollment audit history:', error)
+      throw new Error(`Failed to fetch enrollment audit history: ${error.message}`)
+    }
+
+    return (data || []) as AuditLogEntry[]
+  } catch (error) {
+    console.error('Unexpected error fetching enrollment audit history:', error)
+    throw error
+  }
+}
+
+/**
+ * Gets document upload history for enrollments
+ *
+ * This function fetches all offer letter upload audit logs.
+ *
+ * @param client - Authenticated Supabase client
+ * @param agencyId - Agency ID for filtering
+ * @param limit - Maximum number of records (default: 50)
+ * @returns Promise resolving to array of document upload audit logs
+ *
+ * @example
+ * ```typescript
+ * const uploads = await getDocumentUploadHistory(supabase, agencyId, 20)
+ *
+ * uploads.forEach(entry => {
+ *   console.log(`Document uploaded for ${entry.entity_id}`)
+ *   console.log('File:', entry.new_values?.offer_letter_filename)
+ * })
+ * ```
+ */
+export async function getDocumentUploadHistory(
+  client: SupabaseClient,
+  agencyId: string,
+  limit: number = 50
+): Promise<AuditLogEntry[]> {
+  return getAuditLogs(client, agencyId, {
+    entityType: 'enrollment_document',
+    action: 'create',
+    limit,
+  })
+}
