@@ -260,6 +260,24 @@ importers:
 
   apps/payments:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^3.3.0
+        version: 3.10.0(react-hook-form@7.66.0(react@19.1.0))
+      '@pleeno/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@pleeno/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@pleeno/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@pleeno/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@pleeno/validations':
+        specifier: workspace:*
+        version: link:../../packages/validations
       next:
         specifier: 15.5.6
         version: 15.5.6(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -269,6 +287,12 @@ importers:
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      react-hook-form:
+        specifier: 7.66.0
+        version: 7.66.0(react@19.1.0)
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -13431,7 +13455,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1)):
+  eslint-module-utils@2.12.1(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1)):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -13453,7 +13477,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 9.39.1(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0)(eslint@9.39.1(jiti@2.6.1)))(eslint@9.39.1(jiti@2.6.1))
+      eslint-module-utils: 2.12.1(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1(jiti@2.6.1))
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
@@ -13510,8 +13534,8 @@ snapshots:
       '@babel/parser': 7.28.5
       eslint: 9.39.1(jiti@2.6.1)
       hermes-parser: 0.25.1
-      zod: 4.1.12
-      zod-validation-error: 4.0.2(zod@4.1.12)
+      zod: 3.25.76
+      zod-validation-error: 4.0.2(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
 
@@ -16318,9 +16342,9 @@ snapshots:
 
   yoga-layout@3.2.1: {}
 
-  zod-validation-error@4.0.2(zod@4.1.12):
+  zod-validation-error@4.0.2(zod@3.25.76):
     dependencies:
-      zod: 4.1.12
+      zod: 3.25.76
 
   zod@3.25.76: {}
 
