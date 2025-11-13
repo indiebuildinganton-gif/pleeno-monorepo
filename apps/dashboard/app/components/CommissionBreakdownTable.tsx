@@ -4,12 +4,14 @@
  * Displays commission breakdown by college and branch with filtering capabilities.
  * Includes filter controls for time period, college, and branch.
  * Provides drill-down links to college details and payment plans.
+ * Shows summary metrics cards with aggregate commission, GST, and outstanding amounts.
  *
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.3: Commission Breakdown by College
  * Task 2: Create CommissionBreakdownTable Component
  * Task 3: Implement Filter Controls
  * Task 4: Implement Drill-Down to Payment Plans
+ * Task 5: Add Summary Metrics Cards
  */
 
 'use client'
@@ -18,8 +20,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useDashboardStore } from '@pleeno/stores'
 import { formatCurrency, getDateRangeLabel } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
-import { RefreshCw, AlertTriangle, X, Filter, Eye } from 'lucide-react'
+import { RefreshCw, AlertTriangle, X, Filter, Eye, DollarSign, Receipt, Calculator, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { useMemo } from 'react'
 
 /**
  * Commission breakdown data type
@@ -113,6 +116,43 @@ async function fetchBranches(collegeId: string | null): Promise<Branch[]> {
 
   const result: ApiResponse<Branch[]> = await response.json()
   return result.data
+}
+
+/**
+ * Summary Card Props
+ */
+interface SummaryCardProps {
+  title: string
+  value: string
+  subtitle?: string
+  icon: React.ReactNode
+  color: 'green' | 'blue' | 'gray' | 'red'
+  percentage?: string
+}
+
+/**
+ * SummaryCard Component
+ * Displays a summary metric card with title, value, and optional percentage
+ */
+function SummaryCard({ title, value, subtitle, icon, color, percentage }: SummaryCardProps) {
+  const colorClasses = {
+    green: 'bg-green-50 text-green-700 border-green-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    gray: 'bg-gray-50 text-gray-700 border-gray-200',
+    red: 'bg-red-50 text-red-700 border-red-200',
+  }
+
+  return (
+    <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium text-gray-600">{title}</h3>
+        <div className="text-gray-400">{icon}</div>
+      </div>
+      <div className="text-2xl font-bold">{value}</div>
+      {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
+      {percentage && <div className="text-xs font-medium mt-2">{percentage}</div>}
+    </div>
+  )
 }
 
 /**
@@ -289,6 +329,43 @@ export function CommissionBreakdownTable() {
   // Determine currency (default to AUD for now)
   const currency = 'AUD'
 
+  // Calculate summary metrics
+  const summaryMetrics = useMemo(() => {
+    if (!commissionData || commissionData.length === 0) {
+      return {
+        totalCommissions: 0,
+        totalGST: 0,
+        totalAmount: 0,
+        outstandingCommission: 0,
+        commissionPercentage: 0,
+        gstPercentage: 0,
+      }
+    }
+
+    const totalCommissions = commissionData.reduce(
+      (sum, row) => sum + row.total_earned_commission,
+      0
+    )
+    const totalGST = commissionData.reduce((sum, row) => sum + row.total_gst, 0)
+    const totalAmount = totalCommissions + totalGST
+    const outstandingCommission = commissionData.reduce(
+      (sum, row) => sum + row.outstanding_commission,
+      0
+    )
+
+    const commissionPercentage = totalAmount > 0 ? (totalCommissions / totalAmount) * 100 : 0
+    const gstPercentage = totalAmount > 0 ? (totalGST / totalAmount) * 100 : 0
+
+    return {
+      totalCommissions,
+      totalGST,
+      totalAmount,
+      outstandingCommission,
+      commissionPercentage,
+      gstPercentage,
+    }
+  }, [commissionData])
+
   // Handle loading state
   if (isLoading) {
     return (
@@ -297,6 +374,13 @@ export function CommissionBreakdownTable() {
           <CardTitle>Commission Breakdown by College</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Summary Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+            ))}
+          </div>
+
           <FilterControls />
           <div className="mt-6 space-y-3">
             {[1, 2, 3].map((i) => (
@@ -316,6 +400,38 @@ export function CommissionBreakdownTable() {
           <CardTitle>Commission Breakdown by College</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Summary Cards with Zero Values */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <SummaryCard
+              title="Total Commissions Earned"
+              value={formatCurrency(0, currency)}
+              color="green"
+              icon={<DollarSign className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Total GST"
+              value={formatCurrency(0, currency)}
+              color="blue"
+              icon={<Receipt className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Total Amount (Commission + GST)"
+              value={formatCurrency(0, currency)}
+              color="gray"
+              icon={<Calculator className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Outstanding Commission"
+              value={formatCurrency(0, currency)}
+              color="red"
+              icon={<Clock className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+          </div>
+
           <FilterControls />
           <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
             <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
@@ -343,6 +459,38 @@ export function CommissionBreakdownTable() {
           <CardTitle>Commission Breakdown by College</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Summary Cards with Zero Values */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <SummaryCard
+              title="Total Commissions Earned"
+              value={formatCurrency(0, currency)}
+              color="green"
+              icon={<DollarSign className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Total GST"
+              value={formatCurrency(0, currency)}
+              color="blue"
+              icon={<Receipt className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Total Amount (Commission + GST)"
+              value={formatCurrency(0, currency)}
+              color="gray"
+              icon={<Calculator className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+            <SummaryCard
+              title="Outstanding Commission"
+              value={formatCurrency(0, currency)}
+              color="red"
+              icon={<Clock className="h-5 w-5" />}
+              subtitle="No data available"
+            />
+          </div>
+
           <FilterControls />
           <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -367,6 +515,38 @@ export function CommissionBreakdownTable() {
         </Button>
       </CardHeader>
       <CardContent>
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <SummaryCard
+            title="Total Commissions Earned"
+            value={formatCurrency(summaryMetrics.totalCommissions, currency)}
+            color="green"
+            percentage={`${summaryMetrics.commissionPercentage.toFixed(1)}% of total`}
+            icon={<DollarSign className="h-5 w-5" />}
+          />
+          <SummaryCard
+            title="Total GST"
+            value={formatCurrency(summaryMetrics.totalGST, currency)}
+            color="blue"
+            percentage={`${summaryMetrics.gstPercentage.toFixed(1)}% of total`}
+            icon={<Receipt className="h-5 w-5" />}
+          />
+          <SummaryCard
+            title="Total Amount (Commission + GST)"
+            value={formatCurrency(summaryMetrics.totalAmount, currency)}
+            color="gray"
+            subtitle={`${summaryMetrics.commissionPercentage.toFixed(0)}% + ${summaryMetrics.gstPercentage.toFixed(0)}%`}
+            icon={<Calculator className="h-5 w-5" />}
+          />
+          <SummaryCard
+            title="Outstanding Commission"
+            value={formatCurrency(summaryMetrics.outstandingCommission, currency)}
+            color="red"
+            subtitle="Not yet received"
+            icon={<Clock className="h-5 w-5" />}
+          />
+        </div>
+
         <FilterControls />
 
         {/* Table */}
