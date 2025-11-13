@@ -1,20 +1,11 @@
 /**
- * Database Package - Supabase Client and Types
- *
- * Epic 1: Foundation & Multi-Tenant Security
- * Story 1.2: Multi-Tenant Database Schema with RLS
- */
-
-export * from './types/database.types'
-
-// Client utilities will be added in future stories
-// export { createClient } from './client'
-// export { createServerClient } from './server'
-// export { middleware } from './middleware'
  * Pleeno Database Package
  *
  * Provides Supabase client setup for both server-side and client-side usage
  * with built-in authentication via HTTP-only cookies.
+ *
+ * Epic 1: Foundation & Multi-Tenant Security
+ * Story 1.3: Authentication & Authorization Framework
  *
  * @example Server-side usage
  * ```typescript
@@ -32,6 +23,16 @@ export * from './types/database.types'
  * const { data } = await supabase.from('users').select('*')
  * ```
  *
+ * @example Agency context (server-side only)
+ * ```typescript
+ * import { createServerClient } from '@pleeno/database/server'
+ * import { setAgencyContext } from '@pleeno/database'
+ *
+ * const supabase = createServerClient()
+ * await setAgencyContext(supabase)  // Enable RLS filtering by agency
+ * const { data } = await supabase.from('entities').select('*')
+ * ```
+ *
  * @packageDocumentation
  */
 
@@ -39,5 +40,7 @@ export * from './types/database.types'
 // Server-side: import from '@pleeno/database/server'
 // Client-side: import from '@pleeno/database/client'
 
+export * from './types/database.types'
 export * from './server'
 export * from './client'
+export * from './middleware'
