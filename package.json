@@ -10,18 +10,31 @@
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint -- --fix",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "type-check": "turbo run type-check",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "dev:shell": "cd apps/shell && npm run dev -- --port 3000",
     "dev:dashboard": "cd apps/dashboard && npm run dev -- --port 3001",
     "dev:agency": "cd apps/agency && npm run dev -- --port 3002",
     "dev:entities": "cd apps/entities && npm run dev -- --port 3003",
     "dev:payments": "cd apps/payments && npm run dev -- --port 3004",
-    "dev:reports": "cd apps/reports && npm run dev -- --port 3005"
+    "dev:reports": "cd apps/reports && npm run dev -- --port 3005",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@turbo/gen": "^2.3.3",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^16.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
     "prettier": "^3.4.2",
     "turbo": "^2.6.1",
     "typescript": "^5.7.2"
@@ -29,5 +42,19 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@10.0.0",
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "apps/**/*.{js,jsx,ts,tsx}": [
+      "bash -c 'ESLINT_USE_FLAT_CONFIG=false eslint --fix \"$@\"' --"
+    ],
+    "packages/**/*.{ts,tsx}": [
+      "bash -c 'ESLINT_USE_FLAT_CONFIG=false eslint --fix \"$@\"' --"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
 }

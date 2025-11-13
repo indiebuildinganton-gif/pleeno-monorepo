@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+build
+*.config.js
+*.config.ts
+package-lock.json
+.bmad-ephemeral
+.bmad
+.claude
+docs
+discovery-docs
