@@ -7,6 +7,9 @@
  * Epic 1: Foundation & Multi-Tenant Security
  * Story 1.2: Multi-Tenant Database Schema with RLS
  *
+ * Epic 1: Foundation & Multi-Tenant Security
+ * Story 1.3: Authentication & Authorization Framework
+ *
  * @example Server-side usage
  * ```typescript
  * import { createServerClient, setAgencyContext } from '@pleeno/database/server'
@@ -25,6 +28,14 @@
  * const { data } = await supabase.from('users').select('*')
  * ```
  *
+ * @example Agency context (server-side only)
+ * ```typescript
+ * import { createServerClient } from '@pleeno/database/server'
+ * import { setAgencyContext } from '@pleeno/database'
+ *
+ * const supabase = createServerClient()
+ * await setAgencyContext(supabase)  // Enable RLS filtering by agency
+ * const { data } = await supabase.from('entities').select('*')
  * @example Middleware usage
  * ```typescript
  * import { withAgencyContext } from '@pleeno/database/middleware'
@@ -45,6 +56,7 @@
 // Client-side: import from '@pleeno/database/client'
 // Middleware: import from '@pleeno/database/middleware'
 
+export * from './types/database.types'
 export * from './server'
 export * from './client'
 export * from './middleware'
