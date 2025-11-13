@@ -29,15 +29,28 @@ CREATE EXTENSION IF NOT EXISTS http;
 -- IMPORTANT: Replace 'your-api-key-here' with actual key value in production
 -- The actual key will be set in Task 5 (Implement API Key Authentication)
 
+-- ⚠️  IMPORTANT: Before running this migration in production:
+--    1. Follow the API Key Setup Guide: supabase/migrations/drafts/api_key_setup_guide.md
+--    2. Generate a secure API key using: openssl rand -hex 32
+--    3. Store the key in Supabase secrets vault: supabase secrets set SUPABASE_FUNCTION_KEY="<key>"
+--    4. Update the ALTER DATABASE command below with your actual API key
+--    5. Never commit the actual API key to version control!
+
 -- Note: This uses ALTER DATABASE which sets a default for all sessions
 -- In production, you would run:
 -- ALTER DATABASE postgres SET app.supabase_function_key = '<actual-key>';
 
 -- For local development/testing, we set a placeholder:
+-- Replace this placeholder with your actual API key before deploying to production!
 ALTER DATABASE postgres SET app.supabase_function_key = 'placeholder-api-key-to-be-configured-in-task-5';
 
 -- To reload the configuration without restarting:
 -- SELECT pg_reload_conf();
+
+-- For complete setup instructions, see:
+-- - API Key Setup Guide: supabase/migrations/drafts/api_key_setup_guide.md
+-- - API Key Rotation Guide: supabase/migrations/drafts/api_key_rotation_guide.md
+-- - Authentication Tests: supabase/migrations/drafts/test_api_key_authentication.sql
 
 -- =====================================================
 -- SECTION 3: Schedule the Cron Job
@@ -146,6 +159,10 @@ WHERE jobname = 'update-installment-statuses-daily';
 -- Update the API key (after Task 5):
 -- ALTER DATABASE postgres SET app.supabase_function_key = '<new-api-key>';
 -- SELECT pg_reload_conf();
+--
+-- For complete API key setup and rotation procedures:
+-- See: supabase/migrations/drafts/api_key_setup_guide.md
+-- See: supabase/migrations/drafts/api_key_rotation_guide.md
 
 -- Check current API key setting (without revealing the value):
 -- SELECT current_setting('app.supabase_function_key', true) IS NOT NULL as key_configured;
