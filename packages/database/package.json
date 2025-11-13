@@ -1,0 +1,20 @@
+{
+  "name": "@pleeno/database",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "next": "^16.0.2",
+    "typescript": "^5.7.2"
+  }
+}
