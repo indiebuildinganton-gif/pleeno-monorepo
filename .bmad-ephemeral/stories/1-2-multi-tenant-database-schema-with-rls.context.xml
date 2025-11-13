@@ -1,0 +1,260 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Multi-Tenant Database Schema with RLS</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/1-2-multi-tenant-database-schema-with-rls.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect</asA>
+    <iWant>a database schema with Row-Level Security policies enforcing data isolation</iWant>
+    <soThat>each agency's data is automatically isolated at the database level without application-layer checks</soThat>
+    <tasks>
+      - Design multi-tenant database schema with agency_id isolation
+        - Create agencies table with id (UUID), name, contact details, settings
+        - Create users table with id (UUID), agency_id (FK), email, role, auth metadata
+        - Define foreign key relationships ensuring referential integrity
+        - Document schema design decisions
+      - Set up Supabase database migrations infrastructure
+        - Initialize Supabase CLI and migration system
+        - Create migration file structure following domain-driven organization
+        - Configure migration naming convention (timestamp + description)
+        - Test migration rollback capability
+      - Implement Row-Level Security policies on agencies table
+        - Enable RLS on agencies table
+        - Create policy for agency isolation
+        - Test policy with different agency contexts
+        - Verify policy cannot be bypassed
+      - Implement Row-Level Security policies on users table
+        - Enable RLS on users table
+        - Create policy for user agency isolation
+        - Create policy for user self-access
+        - Test policies with multiple user contexts
+      - Implement agency_id context setting mechanism
+        - Create database function to set current agency context from JWT claims
+        - Implement middleware to extract agency_id from Supabase JWT token
+        - Set PostgreSQL session variable
+        - Verify context is set correctly on each request
+      - Create comprehensive RLS test suite
+        - Test cross-agency data leakage prevention
+        - Test direct SQL query RLS enforcement
+        - Test policy completeness across all tables
+        - Test query performance with RLS
+        - Document test results and RLS validation
+      - Write database migration scripts
+        - Migration 001: Create agencies table with constraints
+        - Migration 002: Create users table with agency_id FK
+        - Migration 003: Enable RLS and create policies for agencies
+        - Migration 004: Enable RLS and create policies for users
+        - Migration 005: Create helper functions for context setting
+      - Document multi-tenant architecture patterns
+        - Document RLS policy patterns for future tables
+        - Create migration template for new tenant-scoped tables
+        - Document agency_id context setting process
+        - Add security testing guidelines for new features
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      Given the project infrastructure is initialized, When I implement the multi-tenant database schema, Then the database has a clear tenant isolation model using agency_id as the tenant key
+    </criterion>
+    <criterion id="AC2">
+      And RLS policies are enabled on all tables containing tenant data
+    </criterion>
+    <criterion id="AC3">
+      And RLS policies automatically filter queries to the current user's agency_id
+    </criterion>
+    <criterion id="AC4">
+      And no application code can bypass RLS protections
+    </criterion>
+    <criterion id="AC5">
+      And database migrations are version-controlled and repeatable
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Multi-Tenant Isolation (Row-Level Security)</section>
+        <snippet>RLS Policy Pattern: CREATE POLICY "tenant_isolation" ON {table_name} FOR ALL USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid())). JWT Claims automatically set auth.uid() from JWT, making it impossible to query other agencies' data (enforced at DB level).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Database Schema - Agency Domain</section>
+        <snippet>Users table: CREATE TABLE users (id UUID PRIMARY KEY, agency_id UUID REFERENCES agencies(id) ON DELETE CASCADE, email TEXT UNIQUE NOT NULL, role TEXT CHECK (role IN ('agency_admin', 'agency_user')) NOT NULL). RLS policies enabled on agencies and users tables with agency_id filtering.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Project Initialization</section>
+        <snippet>Initialize Supabase: cd ../supabase; npx supabase init; npx supabase start. Install shared dependencies in packages/database: @supabase/supabase-js @supabase/ssr. Turborepo monorepo structure with domain-driven migration organization.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>ADR-002: Supabase with PostgreSQL RLS for Multi-Tenancy</section>
+        <snippet>Decision: Use Supabase PostgreSQL with Row-Level Security (RLS) policies enforcing tenant isolation at the database layer. Database-enforced isolation (impossible to bypass in application code), automatic filtering via JWT claims, Supabase provides auth, storage, edge functions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>ADR-003: Domain-Driven Migration Organization</section>
+        <snippet>Migrations grouped by domain: supabase/migrations/001_agency_domain/, 002_entities_domain/, etc. Clear domain boundaries, easier to navigate, migrations grouped by feature area. Still a single database with multi-tenancy via RLS.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Success Criteria - Product Performance Metrics</section>
+        <snippet>Multi-tenant isolation requirement: Zero data leakage between agencies. System uptime: 99.9%. Data accuracy: Zero calculation errors in commission logic.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics Document</title>
+        <section>Epic 1: Foundation & Multi-Tenant Security</section>
+        <snippet>Goal: Establish technical foundation and enterprise-grade multi-tenant architecture with Row-Level Security (RLS) that enables secure data isolation for all subsequent features. Story 1.2 implements database schema with RLS policies enforcing data isolation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Database to Frontend</section>
+        <snippet>Server Components: Direct Supabase queries with RLS auto-applied. API Routes: Next.js API routes for mutations. TanStack Query: Client-side caching and optimistic updates. Database client in packages/database/src/ with createClient(), createServerClient(), middleware.ts for auth.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Performance & Scaling - Indexes</section>
+        <snippet>Critical for RLS performance: CREATE INDEX idx_agencies ON {table}(agency_id). Status queries: CREATE INDEX idx_installments_status ON installments(agency_id, status). Dashboard queries: CREATE INDEX idx_payment_plans_status ON payment_plans(agency_id, status).</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/1-1-project-infrastructure-initialization.md</path>
+        <title>Story 1.1 - Project Infrastructure Initialization</title>
+        <section>Prerequisite Story</section>
+        <snippet>Story 1.1 establishes foundation: Turborepo monorepo initialized with 6 Next.js 15 zones, Supabase database instance running locally via Docker, environment variables set up, project folder structure (apps/, packages/, supabase/), development environment on ports 3000-3005, shared packages structure.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project. Story 1.1 (project initialization) must be completed first. Expected outputs from Story 1.1: Turborepo monorepo, Supabase local instance, packages/database/ structure, supabase/migrations/ directory -->
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="@supabase/supabase-js" version="latest" scope="packages/database"/>
+        <package name="@supabase/ssr" version="latest" scope="packages/database"/>
+        <package name="typescript" version="5.x" scope="all"/>
+        <package name="zod" version="4.x" scope="packages/validations"/>
+      </ecosystem>
+      <ecosystem name="database">
+        <package name="PostgreSQL" version="15+" scope="supabase"/>
+        <package name="Supabase CLI" version="latest" scope="development"/>
+      </ecosystem>
+      <ecosystem name="monorepo">
+        <package name="turborepo" version="latest" scope="root"/>
+        <package name="npm workspaces" version="built-in" scope="root"/>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="C1" source="architecture.md">
+      All database tables containing tenant data MUST include agency_id column with foreign key reference to agencies(id) ON DELETE CASCADE
+    </constraint>
+    <constraint id="C2" source="architecture.md">
+      All tenant-scoped tables MUST have RLS enabled with policies filtering by agency_id
+    </constraint>
+    <constraint id="C3" source="architecture.md">
+      RLS policies MUST use the pattern: USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid()))
+    </constraint>
+    <constraint id="C4" source="architecture.md">
+      Database migrations MUST be organized in domain-driven folders: supabase/migrations/001_agency_domain/
+    </constraint>
+    <constraint id="C5" source="architecture.md">
+      Migration files MUST follow naming convention: {number}_{description}.sql (e.g., 001_agencies_schema.sql)
+    </constraint>
+    <constraint id="C6" source="story Dev Notes">
+      JWT claims integration: agency_id stored in app_metadata and extracted via Supabase Auth
+    </constraint>
+    <constraint id="C7" source="architecture.md">
+      Database client utilities MUST be created in packages/database/src/ (NOT /lib)
+    </constraint>
+    <constraint id="C8" source="story Dev Notes">
+      RLS policies MUST use SECURITY DEFINER functions where needed to prevent privilege escalation
+    </constraint>
+    <constraint id="C9" source="story Dev Notes">
+      Session variables MUST be scoped to transaction (true in set_config) to prevent leakage
+    </constraint>
+    <constraint id="C10" source="architecture.md">
+      Performance indexes REQUIRED: CREATE INDEX idx_agencies ON {table}(agency_id) for all tenant-scoped tables
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>agencies table schema</name>
+      <kind>database-table</kind>
+      <signature>CREATE TABLE agencies (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, contact_email TEXT, contact_phone TEXT, currency TEXT DEFAULT 'AUD', timezone TEXT DEFAULT 'Australia/Brisbane', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())</signature>
+      <path>supabase/migrations/001_agency_domain/001_agencies_schema.sql</path>
+    </interface>
+    <interface>
+      <name>users table schema</name>
+      <kind>database-table</kind>
+      <signature>CREATE TABLE users (id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, agency_id UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE, email TEXT NOT NULL UNIQUE, full_name TEXT, role TEXT NOT NULL CHECK (role IN ('agency_admin', 'agency_user')), status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')), created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())</signature>
+      <path>supabase/migrations/001_agency_domain/002_users_schema.sql</path>
+    </interface>
+    <interface>
+      <name>RLS policy pattern</name>
+      <kind>database-policy</kind>
+      <signature>CREATE POLICY {table_name}_agency_isolation ON {table_name} USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid()))</signature>
+      <path>Template for all tenant-scoped tables</path>
+    </interface>
+    <interface>
+      <name>set_agency_context database function</name>
+      <kind>database-function</kind>
+      <signature>CREATE OR REPLACE FUNCTION set_agency_context() RETURNS VOID AS $$ BEGIN PERFORM set_config('app.current_agency_id', COALESCE(current_setting('request.jwt.claims', true)::json-&gt;&gt;'agency_id', ''), true); END; $$ LANGUAGE plpgsql SECURITY DEFINER</signature>
+      <path>supabase/migrations/001_agency_domain/005_context_functions.sql</path>
+    </interface>
+    <interface>
+      <name>Supabase client utilities</name>
+      <kind>typescript-module</kind>
+      <signature>export functions: createClient(), createServerClient(), setAgencyContext(request)</signature>
+      <path>packages/database/src/client.ts, packages/database/src/server.ts, packages/database/src/middleware.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows Vitest + React Testing Library + Playwright pattern per architecture.md. Database RLS tests MUST validate cross-agency data isolation, bypass prevention, and policy completeness. Performance tests MUST verify RLS overhead is &lt;5%. All tests run in CI/CD pipeline with Supabase local instance.
+    </standards>
+    <locations>
+      - Database migration tests: supabase/migrations/001_agency_domain/tests/
+      - RLS policy tests: packages/database/src/__tests__/rls.test.ts
+      - Integration tests: apps/shell/__tests__/auth-rls.test.ts
+    </locations>
+    <ideas>
+      <test-idea criterion="AC1, AC2, AC3">
+        Cross-Agency Data Leakage Test: Create Agency A with User A, create Agency B with User B, authenticate as User A, attempt to query Agency B data via Supabase client. Expected: Zero rows returned, RLS blocks access at database level.
+      </test-idea>
+      <test-idea criterion="AC4">
+        Direct SQL Bypass Prevention Test: Execute raw SQL query attempting to read cross-agency data: SELECT * FROM users WHERE agency_id != current_setting('app.current_agency_id'). Expected: Empty result set, RLS enforced even for raw queries.
+      </test-idea>
+      <test-idea criterion="AC2">
+        Policy Completeness Validation: Query pg_catalog to verify all tables with agency_id column have RLS enabled (rls_enabled = true). Expected: No tenant-scoped tables without RLS.
+      </test-idea>
+      <test-idea criterion="AC3">
+        JWT Context Setting Test: Mock Supabase JWT with agency_id in app_metadata, call setAgencyContext middleware, verify PostgreSQL session variable app.current_agency_id is set correctly. Expected: Context set from JWT claims.
+      </test-idea>
+      <test-idea criterion="AC5">
+        Migration Rollback Test: Apply migrations 001-005, rollback to migration 002, verify schema state matches expected. Expected: Rollback succeeds, database returns to correct state.
+      </test-idea>
+      <test-idea criterion="AC4">
+        Performance Impact Test: Measure query execution time with RLS enabled vs baseline. Expected: RLS overhead &lt;5% with proper agency_id indexes.
+      </test-idea>
+    </ideas>
+  </tests>
+</story-context>
