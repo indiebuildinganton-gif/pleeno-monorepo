@@ -1,0 +1,24 @@
+{
+  "name": "pleeno-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "dev:shell": "cd apps/shell && npm run dev -- --port 3000",
+    "dev:dashboard": "cd apps/dashboard && npm run dev -- --port 3001",
+    "dev:agency": "cd apps/agency && npm run dev -- --port 3002",
+    "dev:entities": "cd apps/entities && npm run dev -- --port 3003",
+    "dev:payments": "cd apps/payments && npm run dev -- --port 3004",
+    "dev:reports": "cd apps/reports && npm run dev -- --port 3005"
+  },
+  "devDependencies": {
+    "turbo": "^2.6.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "npm@10.0.0"
+}
