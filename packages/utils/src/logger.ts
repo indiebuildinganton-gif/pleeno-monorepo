@@ -1,4 +1,5 @@
 import { sanitizeError } from './errors'
+import { captureException, captureMessage } from './sentry'
 
 // Log levels
 export type LogLevel = 'info' | 'warn' | 'error' | 'debug'
@@ -9,7 +10,7 @@ export interface LogContext {
   agency_id?: string
   request_id?: string
   action?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
 // Log entry structure
@@ -28,12 +29,7 @@ interface LogEntry {
 /**
  * Core logging function with structured output
  */
-export function log(
-  level: LogLevel,
-  message: string,
-  context?: LogContext,
-  error?: Error
-): void {
+export function log(level: LogLevel, message: string, context?: LogContext, error?: Error): void {
   const timestamp = new Date().toISOString()
 
   // Build log entry
@@ -135,6 +131,11 @@ export function logInfo(message: string, context?: LogContext): void {
  */
 export function logWarn(message: string, context?: LogContext): void {
   log('warn', message, context)
+
+  // Send warnings to Sentry in production
+  if (process.env.NODE_ENV === 'production') {
+    captureMessage(message, 'warning', context)
+  }
 }
 
 /**
@@ -142,6 +143,13 @@ export function logWarn(message: string, context?: LogContext): void {
  */
 export function logError(message: string, context?: LogContext, error?: Error): void {
   log('error', message, context, error)
+
+  // Send to Sentry if available
+  if (error) {
+    captureException(error, context)
+  } else {
+    captureMessage(message, 'error', context)
+  }
 }
 
 /**
@@ -177,5 +185,7 @@ export function createLogger(baseContext: LogContext) {
  * Extract request ID from headers or generate one
  */
 export function getRequestId(headers: Headers): string {
-  return headers.get('x-request-id') || `req_${Date.now()}_${Math.random().toString(36).substring(7)}`
+  return (
+    headers.get('x-request-id') || `req_${Date.now()}_${Math.random().toString(36).substring(7)}`
+  )
 }

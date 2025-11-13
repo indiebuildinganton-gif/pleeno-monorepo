@@ -85,3 +85,37 @@ export async function createServerClient() {
  * Use this when you need to type a Supabase client instance
  */
 export type ServerClient = Awaited<ReturnType<typeof createServerClient>>
+
+/**
+ * Set agency context in database session
+ * Call this before executing RLS-protected queries to ensure proper filtering
+ *
+ * This function calls the database function `set_agency_context()` which:
+ * - Extracts the current user's agency_id from the users table
+ * - Sets a PostgreSQL session variable `app.current_agency_id`
+ * - Makes the agency_id available to RLS policies
+ *
+ * @param client - The Supabase server client instance
+ *
+ * @example
+ * ```typescript
+ * const supabase = await createServerClient()
+ * await setAgencyContext(supabase)
+ * // Now RLS policies can use the agency context
+ * const { data } = await supabase.from('users').select('*')
+ * ```
+ */
+export async function setAgencyContext(
+  client: ServerClient
+): Promise<void> {
+  try {
+    // Call database function to set session variable
+    const { error } = await client.rpc('set_agency_context')
+
+    if (error) {
+      console.error('Failed to set agency context:', error)
+    }
+  } catch (err) {
+    console.error('Error setting agency context:', err)
+  }
+}
