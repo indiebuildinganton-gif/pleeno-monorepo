@@ -63,6 +63,14 @@ export default function Dashboard() {
 
       <div className="space-y-6">
         <KPIWidget />
+
+        {/* Payment Status Widget - Task 3: Create PaymentStatusWidget Component */}
+        <div className="rounded-lg border bg-card p-6">
+          <h2 className="text-xl font-semibold mb-4">Payment Status Overview</h2>
+          <p className="text-sm text-muted-foreground">
+            Payment status widget will be integrated here in Task 3
+          </p>
+        </div>
       </div>
     </div>
   )
