@@ -32,6 +32,9 @@ importers:
       '@playwright/test':
         specifier: ^1.56.1
         version: 1.56.1
+      '@supabase/supabase-js':
+        specifier: ^2.47.10
+        version: 2.81.1
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -587,6 +590,9 @@ importers:
       date-fns-tz:
         specifier: ^3.1.0
         version: 3.2.0(date-fns@4.1.0)
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
