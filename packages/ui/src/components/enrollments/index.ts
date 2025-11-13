@@ -6,3 +6,4 @@
  */
 
 export * from './EnrollmentStatusBadge'
+export * from './DocumentViewer'

@@ -14,7 +14,8 @@
 
 'use client'
 
-import { EnrollmentStatusBadge } from '@pleeno/ui'
+import { useState } from 'react'
+import { EnrollmentStatusBadge, DocumentViewer } from '@pleeno/ui'
 import {
   Table,
   TableBody,
@@ -22,9 +23,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Button,
 } from '@pleeno/ui'
 import { useStudentEnrollments } from '../../../../hooks/useStudentEnrollments'
-import { FileText, Download } from 'lucide-react'
+import { FileText, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export interface EnrollmentsSectionProps {
@@ -47,6 +49,10 @@ export interface EnrollmentsSectionProps {
 export function EnrollmentsSection({ studentId }: EnrollmentsSectionProps) {
   const { data, isLoading, error } = useStudentEnrollments(studentId)
   const enrollments = data?.data || []
+  const [viewingDocument, setViewingDocument] = useState<{
+    url: string
+    filename: string
+  } | null>(null)
 
   if (isLoading) {
     return (
@@ -129,15 +135,22 @@ export function EnrollmentsSection({ studentId }: EnrollmentsSectionProps) {
                 </TableCell>
                 <TableCell>
                   {enrollment.offer_letter_url ? (
-                    <a
-                      href={`/api/enrollments/${enrollment.id}/offer-letter`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm text-primary hover:underline"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setViewingDocument({
+                          url: `/api/enrollments/${enrollment.id}/offer-letter`,
+                          filename:
+                            enrollment.offer_letter_filename ||
+                            'offer-letter.pdf',
+                        })
+                      }
+                      className="h-8"
                     >
-                      <Download className="h-4 w-4 mr-1" />
+                      <Eye className="h-4 w-4 mr-1" />
                       View Offer Letter
-                    </a>
+                    </Button>
                   ) : (
                     <span className="text-sm text-muted-foreground">
                       No offer letter
@@ -161,6 +174,16 @@ export function EnrollmentsSection({ studentId }: EnrollmentsSectionProps) {
           </TableBody>
         </Table>
       </div>
+
+      {/* Document Viewer */}
+      {viewingDocument && (
+        <DocumentViewer
+          documentUrl={viewingDocument.url}
+          filename={viewingDocument.filename}
+          isOpen={true}
+          onClose={() => setViewingDocument(null)}
+        />
+      )}
     </div>
   )
 }
