@@ -151,12 +151,12 @@ so that **my account information is accurate and I can change my password**.
   - [ ] Define EmailUpdateSchema: email (valid email format)
   - [ ] Export TypeScript types
 
-- [ ] Add navigation link to profile (AC: 1)
-  - [ ] Update apps/agency/app/layout.tsx navigation
-  - [ ] Add "Profile" link to user menu (top right dropdown)
-  - [ ] Link to /agency/profile
-  - [ ] Show current user name in dropdown trigger
-  - [ ] Active state highlighting for profile page
+- [x] Add navigation link to profile (AC: 1)
+  - [x] Update apps/agency/app/layout.tsx navigation
+  - [x] Add "Profile" link to user menu (top right dropdown)
+  - [x] Link to /agency/profile
+  - [x] Show current user name in dropdown trigger
+  - [x] Active state highlighting for profile page
 
 - [ ] Implement password strength validator utility (AC: 3)
   - [ ] Create packages/utils/src/password-strength.ts
@@ -843,6 +843,41 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### Completion Notes List
 
+**Task 13: Add navigation link to profile** (Completed: 2025-11-13)
+- All subtasks completed
+- Created dropdown-menu UI component:
+  - Added @radix-ui/react-dropdown-menu dependency to ui package
+  - Created packages/ui/src/components/ui/dropdown-menu.tsx with full dropdown menu primitives
+  - Exported dropdown-menu component from packages/ui/src/index.ts
+- Created UserMenu server component:
+  - Created apps/agency/app/components/UserMenu.tsx
+  - Fetches current user information from Supabase
+  - Passes user name and email to client component
+  - Returns null if user not authenticated (graceful degradation)
+- Created UserMenuClient client component:
+  - Created apps/agency/app/components/UserMenuClient.tsx
+  - Displays user name and avatar icon in dropdown trigger
+  - Shows user name and email in dropdown header
+  - Includes "Profile" link to /profile with active state highlighting
+  - Includes "Sign out" option with logout functionality
+  - Uses usePathname to detect active profile page
+  - Highlights dropdown trigger and menu item when on profile page
+- Created AppHeader navigation component:
+  - Created apps/agency/app/components/AppHeader.tsx
+  - Displays app branding/logo on the left
+  - Shows main navigation links (Team, Settings) in center
+  - Places UserMenu component on the right
+  - Sticky header with backdrop blur effect
+- Updated root layout:
+  - Modified apps/agency/app/layout.tsx to include AppHeader
+  - Updated metadata with proper title and description
+  - Header renders for all authenticated pages
+- All acceptance criteria (AC: 1) met:
+  - Navigation successfully links to profile page
+  - User name displayed in dropdown trigger
+  - Active state highlighting implemented
+  - Profile link functional and accessible
+
 **Task 07: Create change password dialog** (Completed: 2025-11-13)
 - All subtasks verified as complete
 - ChangePasswordDialog.tsx implements all required functionality:
@@ -874,6 +909,14 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### File List
 
+**Task 13: Add navigation link to profile**
+- `packages/ui/src/components/ui/dropdown-menu.tsx` - Dropdown menu UI component
+- `packages/ui/src/index.ts` - Updated with dropdown-menu export
+- `apps/agency/app/components/UserMenu.tsx` - Server component for user menu
+- `apps/agency/app/components/UserMenuClient.tsx` - Client component with dropdown UI
+- `apps/agency/app/components/AppHeader.tsx` - Main navigation header component
+- `apps/agency/app/layout.tsx` - Updated root layout with AppHeader
+
 **Task 07: Create change password dialog**
 - `apps/agency/app/profile/components/ChangePasswordDialog.tsx` - Main dialog component
 - `apps/agency/app/profile/components/PasswordStrengthIndicator.tsx` - Password strength indicator
@@ -884,3 +927,4 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
 - **2025-11-13:** Task 07 verified complete - Change password dialog with all functionality implemented
+- **2025-11-13:** Task 13 completed - Add navigation link to profile with user menu dropdown and active state highlighting
