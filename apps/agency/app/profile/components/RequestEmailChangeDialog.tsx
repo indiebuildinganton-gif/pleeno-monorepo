@@ -3,16 +3,20 @@
  *
  * Dialog for regular users who cannot change their own email:
  * - Informational message about admin approval requirement
- * - Instructions to contact Agency Admin
- * - For MVP: Simple notification, no actual request submission
+ * - Form fields for requested email and optional reason
+ * - For MVP: Shows toast message to contact admin
+ * - Future: Will submit request to notification system
  *
- * Acceptance Criteria: 6, 7
+ * Acceptance Criteria: AC6, AC7
  */
 
 'use client'
 
+import { useState } from 'react'
 import {
   Button,
+  Input,
+  Label,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -21,6 +25,7 @@ import {
   DialogTitle,
   useToast,
 } from '@pleeno/ui'
+import { AlertCircle } from 'lucide-react'
 
 interface RequestEmailChangeDialogProps {
   open: boolean
@@ -28,88 +33,116 @@ interface RequestEmailChangeDialogProps {
 }
 
 export function RequestEmailChangeDialog({ open, onOpenChange }: RequestEmailChangeDialogProps) {
+  const [requestedEmail, setRequestedEmail] = useState('')
+  const [reason, setReason] = useState('')
   const { addToast } = useToast()
 
-  const handleClose = () => {
+  const resetForm = () => {
+    setRequestedEmail('')
+    setReason('')
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // For MVP: Just show toast message to contact admin
+    // Future: Create in-app notification or email to admins
+    addToast({
+      title: 'Email Change Request',
+      description: 'Please contact your Agency Admin to change your email address. They will initiate the change and verification process for you.',
+      variant: 'default',
+      duration: 8000,
+    })
+
+    resetForm()
     onOpenChange(false)
   }
 
-  const handleRequestChange = () => {
-    addToast({
-      title: 'Contact Your Agency Admin',
-      description:
-        'Please contact your Agency Admin to request an email address change. Email changes require administrator approval for security reasons.',
-      variant: 'default',
-      duration: 7000,
-    })
+  const handleCancel = () => {
+    resetForm()
     onOpenChange(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Email Change Request</DialogTitle>
+          <DialogTitle>Request Email Change</DialogTitle>
           <DialogDescription>
-            Email changes must be approved by an Agency Admin for security reasons.
+            Email changes require approval from an Agency Administrator.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          {/* Informational Message */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <div className="flex items-start gap-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <div className="text-sm text-blue-800">
-                <p className="font-medium mb-2">Why is admin approval required?</p>
-                <ul className="list-disc list-inside space-y-1">
-                  <li>Ensures email changes comply with company policies</li>
-                  <li>Prevents unauthorized account modifications</li>
-                  <li>Maintains audit trail for security</li>
-                </ul>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Informational Alert */}
+          <div className="flex gap-3 p-3 border border-yellow-200 bg-yellow-50 rounded-md">
+            <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium">Email changes must be approved by an Agency Admin</p>
+              <p className="mt-1">
+                Only Agency Admins can change email addresses to ensure company policy compliance.
+                Please contact your admin with your request.
+              </p>
             </div>
           </div>
 
-          {/* Instructions */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">How to request an email change:</p>
-            <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-              <li>Contact your Agency Admin directly</li>
-              <li>Provide your current email and the new email address</li>
-              <li>Explain the reason for the change</li>
-              <li>Your admin will process the request and send you a verification email</li>
-            </ol>
-          </div>
-
-          {/* Contact Info (placeholder) */}
-          <div className="p-3 bg-muted rounded-md">
-            <p className="text-sm">
-              <span className="font-medium">Need help?</span> If you&apos;re unsure who your Agency
-              Admin is, please contact your organization&apos;s IT support.
+          {/* Requested Email Field */}
+          <div>
+            <Label htmlFor="requestedEmail">Requested Email Address</Label>
+            <Input
+              id="requestedEmail"
+              type="email"
+              value={requestedEmail}
+              onChange={(e) => setRequestedEmail(e.target.value)}
+              placeholder="your.new.email@example.com"
+              required
+              autoComplete="email"
+              className="mt-1"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              The email address you would like to change to
             </p>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleRequestChange}>
-            I Understand
-          </Button>
-        </DialogFooter>
+          {/* Reason Field (Optional) */}
+          <div>
+            <Label htmlFor="reason">Reason for Change (Optional)</Label>
+            <textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Why do you need to change your email?"
+              rows={3}
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              This information will help your admin process the request
+            </p>
+          </div>
+
+          {/* MVP Note */}
+          <div className="flex gap-3 p-3 border border-blue-200 bg-blue-50 rounded-md">
+            <div className="text-sm text-blue-800">
+              <p>
+                <strong>MVP Note:</strong> For now, please contact your Agency Admin directly.
+                A future update will allow you to submit requests through the app.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              Acknowledge
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
