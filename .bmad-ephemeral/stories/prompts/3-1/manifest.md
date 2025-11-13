@@ -13,10 +13,10 @@
 - Notes: Successfully created colleges table with all required fields, constraints, indexes, and RLS policies. Migration file: supabase/migrations/002_entities_domain/001_colleges_schema.sql
 
 ### Task 2: Create branches schema
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Successfully created branches table with auto-commission inheritance, admin-only RLS policies, and cascade delete. Migration file: supabase/migrations/002_entities_domain/002_branches_schema.sql
 
 ### Task 3: Create college contacts schema
 - Status: Not Started
@@ -144,3 +144,15 @@
 - All policies properly check user's agency_id and role from users table
 - Follows project conventions with BEGIN/COMMIT transaction wrapper
 - Added comprehensive comments for table, columns, and policies
+
+### Task 2 - Branches Schema (2025-11-13)
+- Updated migration file: `supabase/migrations/002_entities_domain/002_branches_schema.sql`
+- Implemented branches table with all required fields (id, college_id, agency_id, name, city, commission_rate_percent, timestamps)
+- Added automatic commission rate inheritance via `set_branch_default_commission()` trigger function
+- Trigger copies commission rate from parent college if not explicitly provided
+- Can still override commission rate by providing explicit value during INSERT
+- Foreign keys with CASCADE delete: college_id → colleges(id), agency_id → agencies(id)
+- Four performance indexes: agency_id (RLS), college_id, city, and name
+- Full RLS policies: SELECT (all users), INSERT/UPDATE/DELETE (admin-only)
+- Updated_at trigger for automatic timestamp management
+- Comprehensive documentation comments for table, columns, policies, and trigger behavior
