@@ -16,6 +16,7 @@ import {
   createSuccessResponse,
   ValidationError,
   ForbiddenError,
+  sendInvitationEmail,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole } from '@pleeno/auth'
@@ -52,7 +53,10 @@ import { InvitationCreateSchema } from '@pleeno/validations'
  * - RLS policies provide database-level isolation (agency_id filtering)
  * - Request body validated with Zod schema
  *
- * TODO (Task 05): Add email sending with sendInvitationEmail()
+ * Email Integration (Task 05):
+ * - Sends invitation email via Resend API
+ * - Email includes agency name, inviter name, and assigned tasks
+ * - Link includes token and task IDs as URL parameters
  *
  * @param request - Next.js request object
  * @returns Invitation data with token or error response
@@ -159,16 +163,60 @@ export async function POST(request: NextRequest) {
       throw new Error('Invitation not found after creation')
     }
 
-    // TODO (Task 05): Implement email sending
-    // If task_ids were provided, we'll need to:
-    // 1. Query master_tasks to get task details
-    // 2. Call sendInvitationEmail() with agency name, inviter name, and task list
-    //
-    // For now, we're just creating the invitation record.
-    // Email sending will be implemented in Task 05: "Implement email sending for invitations"
+    // Get agency name for email
+    const { data: agency, error: agencyError } = await supabase
+      .from('agencies')
+      .select('name')
+      .eq('id', userAgencyId)
+      .single()
+
+    if (agencyError) {
+      console.error('Failed to fetch agency data:', agencyError)
+      throw new Error('Failed to fetch agency data')
+    }
+
+    // Get task details if tasks were assigned
+    let assignedTasks: Array<{ task_name: string; description: string }> = []
+    if (validatedData.task_ids && validatedData.task_ids.length > 0) {
+      const { data: tasks, error: tasksDetailError } = await supabase
+        .from('master_tasks')
+        .select('task_name, description')
+        .in('id', validatedData.task_ids)
+
+      if (tasksDetailError) {
+        console.error('Failed to fetch task details:', tasksDetailError)
+        // Don't fail the invitation, just log the error
+        // We'll send the email without task details
+      } else {
+        assignedTasks = tasks || []
+      }
+    }
+
+    // Send invitation email
+    try {
+      await sendInvitationEmail({
+        to: validatedData.email,
+        token: invitation.token,
+        agencyName: agency?.name || 'Unknown Agency',
+        inviterName: userData.full_name || 'Your colleague',
+        assignedTasks,
+        taskIds: validatedData.task_ids || [],
+      })
+    } catch (emailError) {
+      // Log email error but don't fail the invitation
+      // The invitation is already created in the database
+      console.error('Failed to send invitation email:', emailError)
+      console.warn(
+        `Invitation created for ${validatedData.email} but email failed to send. Token: ${invitation.token}`
+      )
+      // In production, you might want to:
+      // 1. Queue the email for retry
+      // 2. Alert administrators
+      // 3. Return a warning message to the user
+    }
 
     // Return standardized success response
-    // Including the token so it can be used for testing and email generation
+    // Including the token so it can be used for testing
     return createSuccessResponse({
       id: invitation.id,
       email: invitation.email,
