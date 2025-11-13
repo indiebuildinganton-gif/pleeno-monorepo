@@ -1,1 +1,2 @@
-// Placeholder - Zustand stores will be added in future stories
+// Zustand stores for global state management
+export * from './dashboard-store'
