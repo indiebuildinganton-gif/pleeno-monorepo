@@ -1,6 +1,7 @@
 'use client'
 
 import { Component, ReactNode } from 'react'
+import * as Sentry from '@sentry/nextjs'
 
 interface Props {
   children: ReactNode
@@ -48,16 +49,14 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     })
 
-    // Send to monitoring service (will be implemented in Task 5)
-    if (typeof window !== 'undefined' && (window as any).Sentry) {
-      ;(window as any).Sentry.captureException(error, {
-        contexts: {
-          react: {
-            componentStack: errorInfo.componentStack,
-          },
+    // Send to Sentry
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
         },
-      })
-    }
+      },
+    })
   }
 
   handleReset = () => {
@@ -138,10 +137,7 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="mt-4 text-center">
-              <a
-                href="/"
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-              >
+              <a href="/" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
                 Return to home page
               </a>
             </div>
