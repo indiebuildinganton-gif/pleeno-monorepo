@@ -41,11 +41,23 @@
   - System-wide logs (no agency_id filtering) - operational data for monitoring
 
 ### Task 3: Create Supabase Edge Function
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/functions/update-installment-statuses/index.ts
+  - supabase/functions/update-installment-statuses/deno.json
 - Notes:
+  - Deno-based Edge Function created with API key authentication via X-API-Key header
+  - Implements retry logic with exponential backoff (max 3 retries, 1s/2s/4s delays)
+  - Distinguishes transient errors (network, timeout) from permanent errors (auth, validation)
+  - Logs job execution to jobs_log table with 'running', 'success', or 'failed' statuses
+  - Calls update_installment_statuses() database function with service role credentials
+  - Collects and aggregates results from all agencies
+  - Returns JSON response with success status, total records updated, and per-agency details
+  - Implements CORS headers for preflight OPTIONS requests
+  - Environment variables: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_FUNCTION_KEY
+  - Service role key used to bypass RLS for system-level operations
 
 ### Task 4: Configure pg_cron Schedule
 - Status: Not Started
@@ -139,4 +151,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Tasks 1-2 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-3 completed)
