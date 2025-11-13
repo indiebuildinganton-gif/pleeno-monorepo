@@ -55,16 +55,16 @@ so that **I can build my team and flexibly delegate work based on individual nee
     - Reporting (code: REPORTING)
   - [x] Each task includes name, code, and description
 
-- [ ] Implement user invitation API route (AC: 1, 2, 3, 4)
-  - [ ] Create apps/agency/app/api/invitations/route.ts
-  - [ ] POST /api/invitations endpoint
-  - [ ] Validate request: email (required), role (agency_admin | agency_user), task_ids (optional array)
-  - [ ] Check user role = 'agency_admin' before allowing invitations
-  - [ ] Generate secure invitation token (UUID v4)
-  - [ ] Calculate expiration: 7 days from now
-  - [ ] Insert invitation record with RLS enforcement
-  - [ ] Return invitation ID and token
-  - [ ] Add error handling with handleApiError()
+- [x] Implement user invitation API route (AC: 1, 2, 3, 4)
+  - [x] Create apps/agency/app/api/invitations/route.ts
+  - [x] POST /api/invitations endpoint
+  - [x] Validate request: email (required), role (agency_admin | agency_user), task_ids (optional array)
+  - [x] Check user role = 'agency_admin' before allowing invitations
+  - [x] Generate secure invitation token (UUID v4)
+  - [x] Calculate expiration: 7 days from now
+  - [x] Insert invitation record with RLS enforcement
+  - [x] Return invitation ID and token
+  - [x] Add error handling with handleApiError()
 
 - [ ] Implement email sending for invitations (AC: 1, 6)
   - [ ] Create emails/invitation.tsx React Email template
@@ -841,12 +841,57 @@ N/A - No debugging required
 - Verify all 6 tasks appear in database with correct codes and descriptions
 - Tasks will be used by invitation system (upcoming tasks) for checkbox selection
 
+**Task 04: Implement user invitation API route - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created validation schema: `packages/validations/src/invitation.schema.ts`
+  - **InvitationCreateSchema** - Validates email (required, email format), role (enum: agency_admin | agency_user), task_ids (optional UUID array)
+  - **UserTaskAssignmentSchema** - Validates task_ids array for task assignment updates
+  - Exported types: InvitationCreate, UserTaskAssignment
+- Updated `packages/validations/src/index.ts` to export invitation schemas
+- Created API route: `apps/agency/app/api/invitations/route.ts`
+  - **POST /api/invitations** - Creates new user invitation
+  - Enforces agency_admin role using requireRole() middleware
+  - Validates request body with InvitationCreateSchema
+  - Validates task_ids against master_tasks table (if provided)
+  - Generates secure token using crypto.randomUUID() (Node.js built-in)
+  - Calculates 7-day expiration timestamp
+  - Inserts invitation record with RLS enforcement
+  - Returns invitation ID, email, token, and expiration
+  - Comprehensive error handling with handleApiError()
+  - Handles duplicate email constraint violations
+
+📝 **Implementation notes:**
+- Used crypto.randomUUID() instead of uuid package (Node.js 14.17.0+ built-in)
+- Token is cryptographically secure UUID v4
+- Added task_ids validation to ensure all provided task IDs exist in master_tasks table
+- Email normalization: email is converted to lowercase in validation schema
+- Default empty array for task_ids if not provided
+- User's full_name queried for future email sending (Task 05)
+- Clear TODO comments indicate email sending will be added in Task 05
+
+⚠️ **Deviations from story:**
+- Email sending NOT implemented in this task (will be Task 05 as per story breakdown)
+- Task assignments NOT created at invitation time (will be created during acceptance flow in Task 06)
+- Token returned in response for testing purposes (may be removed in production)
+
+🔄 **Follow-up tasks:**
+- Task 05: Implement email sending with sendInvitationEmail()
+- Task 06: Create invitation acceptance page that validates token and creates user with task assignments
+- Add integration tests for invitation creation API
+- Consider rate limiting for invitation creation to prevent spam
+
 ### File List
 
 **Created:**
 - `supabase/migrations/001_agency_domain/006_invitations_schema.sql` - Database schema migration for invitations, tasks, and audit logging
 - `supabase/migrations/001_agency_domain/007_audit_triggers.sql` - Audit logging trigger functions for user profiles and task assignments
 - `supabase/migrations/001_agency_domain/008_seed_master_tasks.sql` - Seed data migration for master tasks list with common agency tasks
+- `packages/validations/src/invitation.schema.ts` - Zod validation schemas for invitation creation and task assignment
+- `apps/agency/app/api/invitations/route.ts` - API route for creating user invitations (POST /api/invitations)
+
+**Modified:**
+- `packages/validations/src/index.ts` - Added export for invitation schemas
 
 ## Change Log
 
@@ -854,3 +899,4 @@ N/A - No debugging required
 - **2025-11-13:** Task 01 completed - Created database schema migration (006_invitations_schema.sql) with invitations, master_tasks, user_task_assignments, and audit_log tables including RLS policies and indexes
 - **2025-11-13:** Task 02 completed - Created audit logging triggers (007_audit_triggers.sql) for automatic logging of user profile changes and task assignment changes
 - **2025-11-13:** Task 03 completed - Created seed data migration (008_seed_master_tasks.sql) with 6 common agency tasks for the master tasks list
+- **2025-11-13:** Task 04 completed - Implemented user invitation API route (POST /api/invitations) with validation schemas (InvitationCreateSchema, UserTaskAssignmentSchema), role enforcement, secure token generation, and comprehensive error handling
