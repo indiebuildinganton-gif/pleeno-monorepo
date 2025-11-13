@@ -16,10 +16,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 2. Implement profile update API endpoint
-- [ ] Prompt: `02-implement-profile-update-api-endpoint.md`
-- [ ] Implementation complete
+- [x] Prompt: `02-implement-profile-update-api-endpoint.md`
+- [x] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 3. Implement password change API endpoint
 - [ ] Prompt: `03-implement-password-change-api-endpoint.md`
@@ -102,9 +103,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 1
+- Completed: 2
 - In progress: 0
-- Remaining: 14
+- Remaining: 13
 
 ## Notes
 
@@ -117,6 +118,17 @@ Add notes here as you work through the tasks:
   - Implemented log_email_changes() function with automatic audit logging for email change requests and completions
   - Created trigger to automatically log all email changes to audit trail
   - All changes follow architecture.md specifications and RLS patterns
+- **Task 2 (2025-11-13):** Implemented profile update API endpoint
+  - Created ProfileUpdateSchema in packages/validations/src/user.schema.ts with validation for full_name field
+  - Exported schema from validations package index
+  - Created PATCH /api/users/me/profile endpoint at apps/agency/app/api/users/me/profile/route.ts
+  - Implemented authentication check using Supabase Auth
+  - Added request body validation using ProfileUpdateSchema (Zod)
+  - Updates users.full_name with automatic updated_at timestamp
+  - Returns updated user profile on success
+  - Proper error handling with handleApiError() utility
+  - RLS policies ensure users can only update their own profile
+  - Follows architecture.md API route patterns and security guidelines
 
 ## Issues / Blockers
 
