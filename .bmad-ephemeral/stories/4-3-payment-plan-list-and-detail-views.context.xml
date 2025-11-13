@@ -1,0 +1,250 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.3</storyId>
+    <title>Payment Plan List and Detail Views</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-3-payment-plan-list-and-detail-views.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to view all payment plans and drill into individual plan details</iWant>
+    <soThat>I can quickly find plans and see their payment status</soThat>
+    <tasks>
+- Task 1: Payment Plans List API (AC: 1, 2, 3, 5)
+  - Implement GET /api/payment-plans with comprehensive query params (status, student_id, college_id, branch_id, amount range, installments range, due date range, search, pagination, sorting)
+  - Join payment_plans with enrollments, students, branches, colleges
+  - Calculate next_due_date from installments
+  - Apply RLS filtering by agency_id
+
+- Task 2: Payment Plan Detail API (AC: 4, 5)
+  - Implement GET /api/payment-plans/[id]
+  - Return payment plan with nested relationships (enrollment, student, branch, college, all installments)
+  - Calculate plan progress metrics (total_paid, installments_paid_count)
+
+- Task 3: Payment Plans List Page (AC: 1, 2, 3)
+  - Create /payments/plans/page.tsx with PaymentPlansList component
+  - Display plans in table/card layout with student, college, amount, installments, next due date, status
+  - Implement default sort by next_due_date ASC
+
+- Task 4: Filter Panel Component (AC: 2)
+  - Create PaymentPlansFilterPanel with multi-select filters
+  - Status, student, college/branch, amount range, installments range, due date range filters
+  - Display active filters as removable chips
+  - Update URL query params
+
+- Task 5: Search Bar Component (AC: 3)
+  - Create PaymentPlansSearchBar with debounced search
+  - Search by student name or reference number
+
+- Task 6: Payment Plan Detail Page (AC: 4)
+  - Create /payments/plans/[id]/page.tsx with PaymentPlanDetail component
+  - Display sections: Plan Overview, Student Information, Enrollment Details, Commission Breakdown, Payment Progress
+
+- Task 7: Installments List Component (AC: 4)
+  - Create InstallmentsList component with table format
+  - Display installment details with status badges
+  - Highlight overdue and next pending installments
+
+- Task 8: Payment Plan Status Calculation (AC: 1, 4)
+  - Calculate overall plan status (active/completed/cancelled)
+  - Calculate next_due_date from pending installments
+
+- Task 9: Pagination / Infinite Scroll (AC: 1)
+  - Implement pagination using TanStack Query
+  - Default page size: 20 plans
+
+- Task 10: TanStack Query Integration (AC: All)
+  - Create usePaymentPlans and usePaymentPlanDetail query hooks
+  - Configure stale times and optimistic updates
+
+- Task 11: Testing (AC: All)
+  - Integration tests for API endpoints with various filters
+  - E2E tests for list to detail navigation
+  - Test RLS policies and empty states
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Payment Plans List View
+   - Display all payment plans for authenticated user's agency
+   - Show: student name, college/branch, total amount, installments count, next due date, status
+   - Support pagination or infinite scroll
+   - Default sort by next due date (ascending)
+   - Enable clicking to navigate to detail view
+
+2. Comprehensive Filtering
+   - Filter by status (multi-select), student, college/branch, amount range, installments range, due date range
+   - Support multiple simultaneous filters
+   - Display active filters as visual chips/tags
+   - Provide "Clear all filters" button
+
+3. Search Functionality
+   - Text search by student name (partial match)
+   - Text search by reference number (exact/partial match)
+   - Real-time search with debouncing
+
+4. Payment Plan Detail Page
+   - Display complete plan info: student details, enrollment details, payment plan metadata, commission breakdown, overall status
+   - Display all installments in chronological order
+   - Show installment details with visual status indicators
+   - Calculate and display plan progress (X of Y installments paid)
+
+5. Data Isolation
+   - All queries filtered by agency_id via RLS
+   - Users only see payment plans belonging to their agency
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 4: Payment Plan Engine</title>
+        <section>Story 4.3: Payment Plan List and Detail Views</section>
+        <snippet>User story defining list view with comprehensive filtering (status, student, college, amount, installments, due dates), search by student name or reference number, and detail page showing plan info, student/enrollment details, commission calculation, and all installments with statuses. Prerequisites: Story 4.2.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Multi-Zone Structure</title>
+        <section>Payment Plans Zone</section>
+        <snippet>Payment plans zone (apps/payments/) contains plans/ directory with page.tsx (list view), [id]/page.tsx (detail view), and new/ (creation wizard). Components include PaymentPlanWizard and InstallmentTable.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - API Endpoints</title>
+        <section>Payment Plans Endpoints</section>
+        <snippet>GET /api/payment-plans with query params (status, student_id, college_id, page, per_page) returns paginated list with meta. GET /api/payment-plans/:id returns plan with nested installments array. Response includes success flag and data object.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Database Schema</title>
+        <section>Payments Domain (Epic 4, 5)</section>
+        <snippet>payment_plans table: id, enrollment_id (FK), agency_id (FK), total_amount, currency, start_date, commission_rate_percent, expected_commission, status ENUM, notes, reference_number, timestamps. installments table: id, payment_plan_id (FK), agency_id (FK), installment_number, amount, student_due_date, college_due_date, is_initial_payment, generates_commission, status ENUM, paid_date, paid_amount, timestamps. Indexes on (agency_id, status) and (agency_id, student_due_date).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - State Management</title>
+        <section>TanStack Query for Server State</section>
+        <snippet>Use TanStack Query 5.90.7 for server state caching, mutations, and optimistic updates. Configure 5-minute stale time for KPIs, 2-minute for detail views. Example: useQuery with queryKey ['payment-plans', filters] and queryFn using Supabase client. RLS automatically filters by user's agency_id.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture - Performance Patterns</title>
+        <section>Payment Plans List Performance</section>
+        <snippet>Server Component initial render with 20 rows, TanStack Table handles pagination/sorting client-side, infinite scroll for large lists using TanStack Query infinite queries, debounced search with 300ms delay, TanStack Query cache with appropriate stale times.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- Greenfield project - no existing code artifacts yet -->
+      <!-- This story will create new components and API routes -->
+    </code>
+    <dependencies>
+      <node>
+        <package name="@supabase/supabase-js" version="latest" reason="Supabase client for database queries"/>
+        <package name="@supabase/ssr" version="latest" reason="Supabase SSR helpers for Server Components"/>
+        <package name="@tanstack/react-query" version="5.90.7" reason="Server state management, caching, mutations"/>
+        <package name="@tanstack/react-table" version="latest" reason="Table component with pagination/sorting"/>
+        <package name="react-hook-form" version="7.66.0" reason="Form state management for filters"/>
+        <package name="@hookform/resolvers" version="latest" reason="Zod resolver for React Hook Form"/>
+        <package name="zod" version="4.x" reason="Schema validation for filter inputs"/>
+        <package name="date-fns" version="latest" reason="Date formatting and manipulation"/>
+        <package name="date-fns-tz" version="latest" reason="Timezone-aware date handling"/>
+        <package name="zustand" version="5.0.8" reason="Client-side state (filter panel UI state)"/>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-Zone Architecture: Payment plans live in apps/payments/ zone with basePath: /payments</constraint>
+    <constraint>Server Components: Use Next.js 15 Server Components for initial page loads (page.tsx files)</constraint>
+    <constraint>Client Components: Use 'use client' for interactive components (filters, search, TanStack Query hooks)</constraint>
+    <constraint>RLS Security: All database queries must filter by agency_id automatically via Row-Level Security</constraint>
+    <constraint>API Routes: All API routes must validate authentication and apply agency_id filtering</constraint>
+    <constraint>TanStack Query: Use query keys ['payment-plans', { filters }] with 5-minute stale time for list, 2-minute for detail</constraint>
+    <constraint>URL State: Persist filter state in URL query params for shareable URLs</constraint>
+    <constraint>Debounced Search: Implement 300ms debounce for text search to reduce API calls</constraint>
+    <constraint>Pagination: Default page size of 20 plans, support for infinite scroll or classic pagination</constraint>
+    <constraint>Responsive Design: List view must work on mobile (card layout) and desktop (table layout)</constraint>
+    <constraint>Path Convention: Use project-relative paths only (strip project-root prefix)</constraint>
+    <constraint>Testing: Integration tests for API endpoints, E2E tests for user flows, RLS policy tests</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>GET /api/payment-plans</name>
+      <kind>REST endpoint</kind>
+      <signature>Query params: status?: string[], student_id?: string, college_id?: string, branch_id?: string, amount_min?: number, amount_max?: number, installments_min?: number, installments_max?: number, due_date_from?: string, due_date_to?: string, search?: string, page?: number, limit?: number, sort_by?: string, sort_order?: 'asc'|'desc'. Response: { success: boolean, data: PaymentPlan[], meta: { total, page, per_page, total_pages } }</signature>
+      <path>To be created in apps/payments/app/api/payment-plans/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/payment-plans/[id]</name>
+      <kind>REST endpoint</kind>
+      <signature>Path param: id (UUID). Response: { success: boolean, data: PaymentPlan &amp; { enrollment, student, branch, college, installments: Installment[], progress: { total_paid, installments_paid_count } } }</signature>
+      <path>To be created in apps/payments/app/api/payment-plans/[id]/route.ts</path>
+    </interface>
+    <interface>
+      <name>usePaymentPlans</name>
+      <kind>React Hook (TanStack Query)</kind>
+      <signature>usePaymentPlans(filters: PaymentPlanFilters) =&gt; UseQueryResult&lt;PaymentPlansResponse&gt;</signature>
+      <path>To be created in apps/payments/app/plans/hooks/usePaymentPlans.ts</path>
+    </interface>
+    <interface>
+      <name>usePaymentPlanDetail</name>
+      <kind>React Hook (TanStack Query)</kind>
+      <signature>usePaymentPlanDetail(planId: string) =&gt; UseQueryResult&lt;PaymentPlanDetail&gt;</signature>
+      <path>To be created in apps/payments/app/plans/hooks/usePaymentPlanDetail.ts</path>
+    </interface>
+    <interface>
+      <name>PaymentPlan (Type)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface PaymentPlan { id: string; enrollment_id: string; agency_id: string; total_amount: number; currency: string; start_date: string; commission_rate_percent: number; expected_commission: number; status: 'active'|'completed'|'cancelled'; notes?: string; reference_number?: string; created_at: string; updated_at: string }</signature>
+      <path>To be created in packages/database/src/types/payment-plan.ts</path>
+    </interface>
+    <interface>
+      <name>Installment (Type)</name>
+      <kind>TypeScript Interface</kind>
+      <signature>interface Installment { id: string; payment_plan_id: string; agency_id: string; installment_number: number; amount: number; student_due_date: string; college_due_date: string; is_initial_payment: boolean; generates_commission: boolean; status: 'pending'|'paid'|'overdue'|'cancelled'|'draft'; paid_date?: string; paid_amount?: number; created_at: string; updated_at: string }</signature>
+      <path>To be created in packages/database/src/types/installment.ts</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+Testing framework: Jest for unit/integration tests, Playwright or Cypress for E2E tests. Follow Next.js testing conventions with tests colocated near components (__tests__ directories) or in dedicated tests/ directory. API routes tested via integration tests using Supabase test client. RLS policies tested by impersonating different agency users. Use React Testing Library for component tests. Mock TanStack Query with mock providers for component testing.
+    </standards>
+    <locations>
+      <location>apps/payments/app/api/payment-plans/__tests__/route.test.ts</location>
+      <location>apps/payments/app/plans/__tests__/PaymentPlansList.test.tsx</location>
+      <location>apps/payments/app/plans/__tests__/PaymentPlanDetail.test.tsx</location>
+      <location>apps/payments/app/plans/components/__tests__/</location>
+      <location>tests/e2e/payment-plans/</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test GET /api/payment-plans returns all plans for authenticated user's agency only (RLS validation)</idea>
+      <idea ac="1">Test pagination: verify page 1 returns 20 results, page 2 returns next 20, total count is accurate</idea>
+      <idea ac="1">Test default sort by next_due_date ascending</idea>
+      <idea ac="2">Test status filter: filter by 'active' returns only active plans</idea>
+      <idea ac="2">Test multi-select filters: filter by multiple statuses simultaneously</idea>
+      <idea ac="2">Test amount range filter: amount_min=1000, amount_max=5000 returns only plans in range</idea>
+      <idea ac="2">Test due date range filter: verify filtering by date range works correctly</idea>
+      <idea ac="2">Test filter combinations: status + student + amount range applied together</idea>
+      <idea ac="2">Test "Clear all filters" button resets all filter state and URL params</idea>
+      <idea ac="3">Test search by student name (partial match): "john" matches "John Doe"</idea>
+      <idea ac="3">Test search by reference number (exact match)</idea>
+      <idea ac="3">Test debounced search: verify API called only after 300ms delay</idea>
+      <idea ac="4">Test GET /api/payment-plans/[id] returns plan with nested enrollments, student, college, installments</idea>
+      <idea ac="4">Test plan progress calculation: 5 of 10 installments paid shows correct counts and amounts</idea>
+      <idea ac="4">Test installments displayed in chronological order by student_due_date</idea>
+      <idea ac="4">Test visual indicators: overdue installments highlighted, next pending highlighted</idea>
+      <idea ac="5">Test RLS: user cannot access payment plans from another agency (403 or empty result)</idea>
+      <idea ac="5">Test RLS: unauthenticated user cannot access payment plans (401)</idea>
+      <idea>E2E: Navigate from list to detail page by clicking a plan</idea>
+      <idea>E2E: Apply filters, verify results update, navigate to detail, back button preserves filters</idea>
+      <idea>E2E: Search for student, click result, verify correct plan loaded</idea>
+      <idea>Test empty states: no payment plans, no results after filtering</idea>
+      <idea>Test loading states: skeleton loaders while data fetching</idea>
+      <idea>Test error states: API error displays error message</idea>
+    </ideas>
+  </tests>
+</story-context>

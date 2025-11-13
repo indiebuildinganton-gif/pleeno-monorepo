@@ -1,0 +1,291 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4</storyId>
+    <title>Manual Payment Recording</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-4-manual-payment-recording.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to manually record when an installment is paid</iWant>
+    <soThat>I can keep the system up-to-date and track which payments have been received</soThat>
+    <tasks>
+      - Task 1: Record Payment API (AC: 1, 2, 3, 4, 7)
+      - Task 2: Mark as Paid UI Component (AC: 1, 2, 3, 6)
+      - Task 3: TanStack Query Mutation for Payment Recording (AC: 6)
+      - Task 4: Payment Plan Detail Page Updates (AC: 1, 4, 5)
+      - Task 5: Dashboard Widget Updates (AC: 5)
+      - Task 6: Partial Payment Display (AC: 2)
+      - Task 7: Audit Logging (AC: Foundation for Epic 8)
+      - Task 8: Commission Recalculation (AC: 5, foundation for Story 4.5)
+      - Task 9: Testing (AC: All)
+      - Task 10: Payment History Timeline (AC: 5, foundation for Epic 8) - Optional
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Mark Installment as Paid - User can mark pending installments as paid, recording payment date, actual amount paid, with validation (no future dates, positive amounts). Status changes to "paid".
+
+    2. Partial Payment Support - User can record partial payments where paid_amount < installment.amount. System tracks outstanding balance. Future: multiple partial payments.
+
+    3. Payment Notes - User can add optional notes (max 500 chars) to payment record. Notes stored and visible in payment history.
+
+    4. Payment Plan Status Auto-Update - When all installments paid → payment_plan.status changes to "completed". Auto-update triggers after each payment.
+
+    5. Dashboard and Reports Reflect Updates - Dashboard widgets, next due date, cash flow projection, and commission breakdown all update to reflect new payment status.
+
+    6. Optimistic UI Updates - Client-side optimistic update with instant UI feedback. Revert on error. TanStack Query invalidates queries on success.
+
+    7. Data Isolation - All operations filtered by agency_id via RLS. Users can only record payments for their agency's installments.
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.4: Manual Payment Recording</section>
+        <snippet>Manual payment recording enables Agency Users to mark installments as paid, record actual payment details, and automatically update payment plan status when all installments are completed. Lines 772-802.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Multi-Zone Architecture</section>
+        <snippet>Payment recording lives in apps/payments/ zone. Uses TanStack Query mutations with optimistic updates for instant feedback. RLS enforces agency_id filtering.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Commission Calculation Engine</section>
+        <snippet>Earned commission = (SUM(paid_amount WHERE status='paid') / total_amount) * expected_commission. Recalculate after each payment.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/4-3-payment-plan-list-and-detail-views.md</path>
+        <title>Story 4.3: Payment Plan List and Detail Views</title>
+        <section>InstallmentsList Component</section>
+        <snippet>Created InstallmentsList component displaying installments in table format. Provides foundation for adding "Mark as Paid" functionality in Story 4.4.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/4-3-payment-plan-list-and-detail-views.md</path>
+        <title>Story 4.3: Payment Plan List and Detail Views</title>
+        <section>TanStack Query Integration</section>
+        <snippet>usePaymentPlanDetail query hook fetches plan data with nested installments. Query key structure: ['payment-plans', planId]. Stale time: 2 minutes for detail view.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/payments/app/plans/[id]/components/InstallmentsList.tsx</path>
+        <kind>component</kind>
+        <symbol>InstallmentsList</symbol>
+        <lines>EXISTING - to be modified</lines>
+        <reason>Add "Mark as Paid" button column for pending installments. Reuse existing table structure and status badge components.</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/[id]/components/PaymentPlanDetail.tsx</path>
+        <kind>component</kind>
+        <symbol>PaymentPlanDetail</symbol>
+        <lines>EXISTING - to be modified</lines>
+        <reason>Add payment progress bar showing "X of Y installments paid" and "$X of $Y paid". Auto-refresh on payment recording.</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/[id]/hooks/usePaymentPlanDetail.ts</path>
+        <kind>hook</kind>
+        <symbol>usePaymentPlanDetail</symbol>
+        <lines>EXISTING - to be invalidated</lines>
+        <reason>Invalidate this query after payment mutation to trigger refetch and update UI with latest data.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/formatters.ts</path>
+        <kind>utility</kind>
+        <symbol>formatCurrency</symbol>
+        <lines>EXISTING</lines>
+        <reason>Use for consistent currency formatting of paid amounts and outstanding balances.</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/date-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>formatDate, parseDate</symbol>
+        <lines>EXISTING</lines>
+        <reason>Use for date formatting and validation of paid_date (cannot be in future).</reason>
+      </artifact>
+      <artifact>
+        <path>packages/database/src/client.ts</path>
+        <kind>database</kind>
+        <symbol>supabase</symbol>
+        <lines>EXISTING</lines>
+        <reason>Supabase client for database operations with RLS policies enforcing agency_id filtering.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>5.90.7</version>
+        <usage>TanStack Query for mutations with optimistic updates, query invalidation, error handling</usage>
+      </node>
+      <node>
+        <package>react-hook-form</package>
+        <version>7.66.0</version>
+        <usage>Form state management for MarkAsPaidModal with validation</usage>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>4.x</version>
+        <usage>Schema validation for payment recording request (paid_date, paid_amount, notes)</usage>
+      </node>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <version>Latest</version>
+        <usage>Supabase client for database mutations with RLS</usage>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>4.1.0</version>
+        <usage>Date manipulation and validation (paid_date cannot be future)</usage>
+      </node>
+      <node>
+        <package>shadcn-ui</package>
+        <version>Latest</version>
+        <usage>UI components: Dialog, Form, DatePicker, Input, Textarea, Button, Toast</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Multi-Zone Architecture: Payment recording lives in apps/payments/ zone
+    - API Routes: Use POST /api/installments/[id]/record-payment (not Server Actions) for consistency
+    - Optimistic Updates: TanStack Query mutation with optimistic cache update, revert on error
+    - RLS Enforcement: All mutations filtered by agency_id via Supabase RLS policies
+    - Server-Side Validation: Zod schema validation on API route (paid_date not future, paid_amount positive)
+    - Client-Side Validation: React Hook Form + Zod on MarkAsPaidModal form
+    - Audit Logging: Log all payment recordings with user context (user_id, timestamp, old/new values)
+    - Commission Recalculation: Update payment_plan.earned_commission after each payment
+    - Query Invalidation: Invalidate ['payment-plans', planId], ['payment-plans'], ['dashboard', 'payment-status']
+    - Database Transaction: UPDATE installment + UPDATE payment_plan (if all paid) must be atomic
+    - Path Format: Use project-relative paths only (not absolute paths)
+    - Currency Formatting: Use packages/utils/src/formatters.ts formatCurrency() with agency.currency
+    - Date Handling: Store paid_date in UTC, display in agency timezone using date-helpers.ts
+    - Status Badge Reuse: Follow same badge styling from Story 4.3 (paid=green, partial=yellow)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/installments/[id]/record-payment</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Request Body: {
+          paid_date: string (ISO date format, YYYY-MM-DD),
+          paid_amount: number (positive, max 2 decimals, &lt;= installment.amount * 1.1),
+          notes?: string (optional, max 500 chars)
+        }
+
+        Response: {
+          installment: {
+            id, payment_plan_id, installment_number, amount, paid_date, paid_amount, status, payment_notes
+          },
+          payment_plan: {
+            id, status, earned_commission
+          }
+        }
+
+        Errors:
+        - 404: Installment not found
+        - 400: Validation failed (paid_date in future, paid_amount invalid)
+        - 403: Forbidden (installment belongs to different agency)
+      </signature>
+      <path>apps/payments/app/api/installments/[id]/record-payment/route.ts (NEW)</path>
+    </interface>
+
+    <interface>
+      <name>useRecordPayment</name>
+      <kind>TanStack Query mutation hook</kind>
+      <signature>
+        const { mutate: recordPayment, isPending } = useRecordPayment()
+
+        recordPayment({
+          installmentId: string,
+          paid_date: string,
+          paid_amount: number,
+          notes?: string
+        }, {
+          onSuccess: (data) => void,
+          onError: (error) => void
+        })
+
+        Features:
+        - Optimistic update: Immediately update cache before API call
+        - Invalidate queries on success: payment-plans, dashboard widgets
+        - Revert optimistic update on error
+        - Show toast notifications
+      </signature>
+      <path>apps/payments/app/plans/[id]/hooks/useRecordPayment.ts (NEW)</path>
+    </interface>
+
+    <interface>
+      <name>RecordPaymentSchema</name>
+      <kind>Zod schema</kind>
+      <signature>
+        z.object({
+          paid_date: z.string().refine(date => new Date(date) &lt;= new Date(), "Payment date cannot be in the future"),
+          paid_amount: z.number().positive().refine(n => Number.isInteger(n * 100), "Max 2 decimal places"),
+          notes: z.string().max(500).optional()
+        })
+      </signature>
+      <path>packages/validations/src/installment.schema.ts (NEW)</path>
+    </interface>
+
+    <interface>
+      <name>MarkAsPaidModal</name>
+      <kind>React component</kind>
+      <signature>
+        interface MarkAsPaidModalProps {
+          installment: Installment
+          isOpen: boolean
+          onClose: () => void
+          onSuccess?: () => void
+        }
+
+        Form fields:
+        - paid_date: DatePicker (default: today, max: today)
+        - paid_amount: NumberInput (default: installment.amount)
+        - notes: Textarea (optional, max 500 chars with counter)
+
+        Actions:
+        - Submit: Calls useRecordPayment mutation
+        - Cancel: Closes modal
+      </signature>
+      <path>apps/payments/app/plans/[id]/components/MarkAsPaidModal.tsx (NEW)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Follow existing test patterns in __tests__/ directory. Integration tests should verify API endpoints with RLS policies. Component tests should test optimistic updates and error handling. E2E tests should cover complete payment recording flow.
+    </standards>
+
+    <locations>
+      - __tests__/integration/api/installments/record-payment.test.ts (API integration tests)
+      - apps/payments/__tests__/components/MarkAsPaidModal.test.tsx (Component tests)
+      - apps/payments/__tests__/hooks/useRecordPayment.test.ts (Hook tests)
+      - __tests__/e2e/payment-recording.spec.ts (E2E tests)
+    </locations>
+
+    <ideas>
+      AC 1: Test POST /api/installments/[id]/record-payment successful payment recording
+      AC 1: Test paid_date validation (cannot be future date)
+      AC 1: Test paid_amount validation (positive, non-zero, max 2 decimals)
+      AC 2: Test partial payment recording (paid_amount &lt; installment.amount)
+      AC 3: Test payment notes storage and retrieval (max 500 chars)
+      AC 4: Test payment plan status auto-update when all installments paid
+      AC 5: Test dashboard widget query invalidation after payment
+      AC 6: Test optimistic UI update (instant feedback before API response)
+      AC 6: Test optimistic update revert on API error
+      AC 7: Test RLS enforcement (user cannot record payment for other agency's installment)
+      E2E: Test complete flow - navigate to plan detail, mark as paid, verify status update
+      E2E: Test partial payment display and outstanding balance calculation
+    </ideas>
+  </tests>
+</story-context>

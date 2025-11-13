@@ -1,0 +1,312 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>4</storyId>
+    <title>Payment Status Dashboard Widget</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-4-payment-status-dashboard-widget.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>a dashboard widget showing payment status overview at a glance</iWant>
+    <soThat>I instantly know which payments need attention</soThat>
+    <tasks>
+- [ ] Task 1: Create Dashboard Page and Layout (AC: #1)
+  - [ ] Create dashboard page at `apps/dashboard/app/page.tsx` if not exists
+  - [ ] Create dashboard layout with navigation at `apps/dashboard/app/layout.tsx`
+  - [ ] Configure routing in shell app to proxy `/dashboard` to dashboard zone
+  - [ ] Add dashboard to Turborepo configuration
+
+- [ ] Task 2: Implement Payment Status Summary API Route (AC: #1-5)
+  - [ ] Create API route: `GET /api/dashboard/payment-status-summary`
+  - [ ] Implement database queries to calculate:
+    - Count and sum of pending installments
+    - Count and sum of due soon installments (due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days')
+    - Count and sum of overdue installments (status = 'overdue')
+    - Count and sum of paid installments (status = 'paid' AND paid_at >= start of current month)
+  - [ ] Apply RLS to ensure agency_id filtering
+  - [ ] Return JSON response with counts and totals for each category
+  - [ ] Add 5-minute caching for performance optimization
+
+- [ ] Task 3: Create PaymentStatusWidget Component (AC: #1-5)
+  - [ ] Create React component: `apps/dashboard/app/components/PaymentStatusWidget.tsx`
+  - [ ] Use TanStack Query to fetch payment status summary from API
+  - [ ] Display four status cards with:
+    - Count of installments
+    - Total amount formatted as currency
+    - Visual status indicator (color-coded)
+  - [ ] Use visual indicators:
+    - Green for paid
+    - Yellow/amber for due soon
+    - Red for overdue
+    - Gray/neutral for pending
+  - [ ] Style with Tailwind CSS and Shadcn UI components
+  - [ ] Add loading state while data fetches
+  - [ ] Add error state if query fails
+
+- [ ] Task 4: Add Navigation to Payment Plans with Filters (AC: #6)
+  - [ ] Make each status card clickable (Link or router navigation)
+  - [ ] Pass filter parameter to `/payments` route:
+    - Pending: `/payments?status=pending`
+    - Due Soon: `/payments?status=due_soon`
+    - Overdue: `/payments?status=overdue`
+    - Paid This Month: `/payments?status=paid&amp;period=current_month`
+  - [ ] Ensure payments zone can receive and apply filter query parameters
+
+- [ ] Task 5: Testing (AC: All)
+  - [ ] Write unit tests for payment status summary API route
+  - [ ] Mock database queries and verify correct aggregation logic
+  - [ ] Write component tests for PaymentStatusWidget using React Testing Library
+  - [ ] Test loading states, error states, and data display
+  - [ ] Verify click navigation passes correct filter parameters
+  - [ ] Write integration test verifying dashboard loads and displays widget
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given I am viewing the dashboard, When the page loads, Then I see a payment status summary widget displaying count and total value for each status category
+
+2. And the widget displays count and total value of pending payments
+
+3. And the widget displays count and total value of due soon payments (next 7 days)
+
+4. And the widget displays count and total value of overdue payments
+
+5. And the widget displays count and total value of paid payments (this month)
+
+6. And clicking any metric filters the payment plans list accordingly (navigates to /payments with appropriate filter)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Dashboard Endpoints</section>
+        <snippet>Defines API structure for dashboard queries including GET /api/dashboard/payment-status-summary endpoint pattern. Shows expected response format with counts and totals for payment statuses.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Project Structure - Dashboard Zone</section>
+        <snippet>Dashboard zone structure at apps/dashboard/ with app/page.tsx for main dashboard, app/layout.tsx for navigation, app/components/ for widgets like KPIWidget.tsx and OverduePayments.tsx. Uses basePath: /dashboard in next.config.js.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Multi-Tenant Isolation (Row-Level Security)</section>
+        <snippet>All database queries must respect RLS policies. Supabase Auth automatically sets auth.uid() from JWT. RLS policies filter by agency_id. API routes must use server-side Supabase client.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Decision Summary</section>
+        <snippet>Tech stack: Next.js 15 App Router, TypeScript, Turborepo monorepo, Zustand for client state, TanStack Query for server state, Tailwind CSS, Shadcn UI, Recharts for charts, Vitest + RTL + Playwright for testing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epics Breakdown</title>
+        <section>Epic 5: Story 5.4</section>
+        <snippet>Payment Status Dashboard Widget requirements: display counts and totals for pending, due soon (7 days), overdue, and paid (this month) installments. Clicking metrics filters payment plans list. Use visual color coding: green for paid, yellow for due soon, red for overdue.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Business Intelligence Dashboard</section>
+        <snippet>Dashboard-first experience with immediate visibility on login. Key KPIs panel showing critical metrics. Clean, modern dashboard aesthetic with visual hierarchy making KPIs prominent. Reference design: Stripe Dashboard (clean, data-rich, professional).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project. All code will be created from scratch. -->
+    </code>
+    <dependencies>
+      <node>
+        <framework>Next.js</framework>
+        <version>15.x</version>
+        <description>App Router, React Server Components</description>
+      </node>
+      <node>
+        <framework>TypeScript</framework>
+        <version>5.x</version>
+        <description>Type safety</description>
+      </node>
+      <node>
+        <framework>Turborepo</framework>
+        <version>Latest</version>
+        <description>Monorepo build system</description>
+      </node>
+      <node>
+        <framework>Tailwind CSS</framework>
+        <version>4.x</version>
+        <description>Utility-first styling</description>
+      </node>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>5.90.7</version>
+        <description>Server state management, caching</description>
+      </node>
+      <node>
+        <package>zustand</package>
+        <version>5.0.8</version>
+        <description>Client state management</description>
+      </node>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <version>Latest</version>
+        <description>Database client</description>
+      </node>
+      <node>
+        <package>@supabase/ssr</package>
+        <version>Latest</version>
+        <description>Server-side auth</description>
+      </node>
+      <node>
+        <package>shadcn-ui</package>
+        <version>Latest</version>
+        <description>UI component library (Radix UI + Tailwind)</description>
+      </node>
+      <node>
+        <package>recharts</package>
+        <version>3.3.0</version>
+        <description>React charting library</description>
+      </node>
+      <node>
+        <package>react-hook-form</package>
+        <version>7.66.0</version>
+        <description>Form management</description>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>4.x</version>
+        <description>Schema validation</description>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>4.1.0</version>
+        <description>Date utilities with timezone support</description>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>Architecture</type>
+      <description>Must use Turborepo multi-zone architecture with dashboard as independent Next.js zone at apps/dashboard/</description>
+    </constraint>
+    <constraint>
+      <type>Architecture</type>
+      <description>Shell app (apps/shell/) must proxy /dashboard requests to dashboard zone via next.config.js rewrites</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>All database queries MUST use Row-Level Security (RLS) via auth.uid() for multi-tenant isolation</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>API routes must use server-side Supabase client (not anon key) to maintain auth context</description>
+    </constraint>
+    <constraint>
+      <type>Security</type>
+      <description>Dashboard is a protected route - middleware must validate JWT before access</description>
+    </constraint>
+    <constraint>
+      <type>Performance</type>
+      <description>Dashboard load time target: &lt;2 seconds</description>
+    </constraint>
+    <constraint>
+      <type>Performance</type>
+      <description>API response caching: Implement 5-minute cache for payment status summary to reduce database load</description>
+    </constraint>
+    <constraint>
+      <type>Performance</type>
+      <description>Add database indexes on installments table: status, due_date, paid_at, agency_id for aggregation queries</description>
+    </constraint>
+    <constraint>
+      <type>State Management</type>
+      <description>Use TanStack Query for server state (payment data), Zustand only if client state needed (e.g., filter preferences)</description>
+    </constraint>
+    <constraint>
+      <type>Styling</type>
+      <description>Use Tailwind CSS + Shadcn UI components. Reference Stripe Dashboard aesthetic: clean, data-rich, professional</description>
+    </constraint>
+    <constraint>
+      <type>UI/UX</type>
+      <description>Color coding required: Green for paid, Yellow/amber for due soon, Red for overdue, Gray/neutral for pending</description>
+    </constraint>
+    <constraint>
+      <type>Navigation</type>
+      <description>Clicking status cards must navigate to /payments zone with filter query parameters</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/dashboard/payment-status-summary</name>
+      <kind>REST API Endpoint</kind>
+      <signature>
+Response: {
+  success: true,
+  data: {
+    pending: { count: number, total_amount: number },
+    due_soon: { count: number, total_amount: number },
+    overdue: { count: number, total_amount: number },
+    paid_this_month: { count: number, total_amount: number }
+  }
+}
+      </signature>
+      <path>apps/dashboard/app/api/payment-status-summary/route.ts</path>
+    </interface>
+    <interface>
+      <name>PaymentStatusWidget Component</name>
+      <kind>React Component</kind>
+      <signature>
+export default function PaymentStatusWidget(): JSX.Element
+// Props: none (fetches data internally via TanStack Query)
+// Returns: Widget with 4 status cards (pending, due soon, overdue, paid)
+      </signature>
+      <path>apps/dashboard/app/components/PaymentStatusWidget.tsx</path>
+    </interface>
+    <interface>
+      <name>Installments Table Query</name>
+      <kind>Database Query</kind>
+      <signature>
+-- Pending: status = 'pending'
+-- Due Soon: status = 'pending' AND due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'
+-- Overdue: status = 'overdue'
+-- Paid This Month: status = 'paid' AND paid_at >= date_trunc('month', CURRENT_DATE)
+-- All queries filtered by: agency_id = auth.uid() via RLS
+      </signature>
+      <path>Database: installments table</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest for unit tests, React Testing Library (RTL) for component tests, Playwright for E2E integration tests. All tests must mock external dependencies. Component tests should verify loading states, error states, and user interactions. API route tests must mock Supabase client and verify RLS enforcement.
+    </standards>
+    <locations>
+      <location>apps/dashboard/__tests__/</location>
+      <location>apps/dashboard/app/components/__tests__/</location>
+      <location>__tests__/integration/</location>
+    </locations>
+    <ideas>
+      <test id="AC-1">Unit test: Verify API route returns correct structure with counts and totals for all status categories</test>
+      <test id="AC-1">Unit test: Mock Supabase queries and verify aggregation logic calculates correct sums</test>
+      <test id="AC-1,2,3,4,5">Component test: Render PaymentStatusWidget with mock data and verify all 4 status cards display</test>
+      <test id="AC-1">Component test: Verify loading state shows while TanStack Query is fetching</test>
+      <test id="AC-1">Component test: Verify error state displays when API query fails</test>
+      <test id="AC-2,3,4,5">Component test: Verify each status card shows correct count and formatted amount</test>
+      <test id="AC-2,3,4,5">Component test: Verify color coding - green (paid), yellow (due soon), red (overdue), gray (pending)</test>
+      <test id="AC-6">Component test: Click status card and verify navigation to /payments with correct filter query param</test>
+      <test id="AC-6">Integration test: Verify pending card navigates to /payments?status=pending</test>
+      <test id="AC-6">Integration test: Verify due soon card navigates to /payments?status=due_soon</test>
+      <test id="AC-6">Integration test: Verify overdue card navigates to /payments?status=overdue</test>
+      <test id="AC-6">Integration test: Verify paid card navigates to /payments?status=paid&amp;period=current_month</test>
+      <test id="All">E2E test (Playwright): Login → Dashboard loads → Widget displays with real data</test>
+      <test id="Security">Unit test: Verify API route enforces RLS and filters by agency_id</test>
+    </ideas>
+  </tests>
+</story-context>

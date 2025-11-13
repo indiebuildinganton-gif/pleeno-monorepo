@@ -1,0 +1,240 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>3</storyId>
+    <title>User Management Interface</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-3-user-management-interface.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to view and manage all users in my agency</iWant>
+    <soThat>I can control who has access and what roles they have</soThat>
+    <tasks>
+      - Extend users table schema with status field (AC: 3, 4)
+      - Implement user role change API (AC: 2)
+      - Implement user status change API (AC: 3, 4)
+      - Create user management list page (AC: 1)
+      - Create user actions dropdown menu (AC: 2, 3)
+      - Create role change confirmation dialog (AC: 2)
+      - Create status change confirmation dialog (AC: 3, 4)
+      - Display pending invitations section (AC: 5, 6)
+      - Implement invitation resend functionality (AC: 5)
+      - Implement invitation deletion (AC: 6)
+      - Create validation schemas (AC: 2, 3)
+      - Add navigation link to user management (AC: 1)
+      - Write tests for user management (AC: 1-6)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given I am an Agency Admin, When I access the user management page, Then I see a list of all users in my agency with their roles and status
+    2. And I can change a user's role (Admin ↔ User)
+    3. And I can deactivate or reactivate user accounts
+    4. And deactivated users cannot log in
+    5. And I can resend invitation emails for pending invitations
+    6. And I can delete pending invitations
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Pleeno Epic Breakdown</title>
+        <section>Story 2.3: User Management Interface</section>
+        <snippet>Create /settings/users page with user list table. Add users.status field: ENUM ('active', 'inactive'). Implement API routes: PATCH /api/users/[id]/role, PATCH /api/users/[id]/status. RLS ensures admins only manage users in their agency.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Data Architecture - Agency Domain</section>
+        <snippet>Users table with role-based access. RLS policies: "Admins can manage users in their agency" ON users FOR ALL USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid()) AND (SELECT role FROM users WHERE id = auth.uid()) = 'agency_admin').</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>API Contracts - Authentication Endpoints</section>
+        <snippet>Standard API response format: SuccessResponse with data or ErrorResponse with error code, message, details. Use handleApiError() for consistent error handling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Security Architecture - Multi-Tenant Isolation</section>
+        <snippet>RLS automatically filters queries by user's agency_id from JWT. All queries auto-filtered at database level - impossible to query other agencies' data.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Project Structure - Agency Zone</section>
+        <snippet>apps/agency/ contains user management at apps/agency/app/users/ with page.tsx for list view, [id]/page.tsx for detail view, and components/ for client components. API routes at apps/agency/app/api/users/.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/2-2-user-invitation-and-task-assignment-system.md</path>
+        <title>Story 2.2: User Invitation and Task Assignment System</title>
+        <section>Dev Notes - Database Schema</section>
+        <snippet>audit_log table for tracking all changes: entity_type, entity_id, user_id, action, changes_json, created_at. Trigger functions log user profile and task assignment changes automatically.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/2-2-user-invitation-and-task-assignment-system.md</path>
+        <title>Story 2.2: User Invitation and Task Assignment System</title>
+        <section>Architecture Alignment - RLS Policies</section>
+        <snippet>InviteUserModal component for user invitations. Pending invitations table structure with email, role, invited_by, expires_at. API pattern: validate admin role, check RLS, handle errors with handleApiError().</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>N/A - Greenfield Project</path>
+        <kind>note</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>This is a greenfield project with no existing code. Implementation will follow architecture patterns defined in docs/architecture.md.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="next" version="15.x" />
+        <package name="react" version="19" />
+        <package name="typescript" version="5.x" />
+        <package name="@supabase/supabase-js" version="latest" />
+        <package name="@supabase/ssr" version="latest" />
+        <package name="zustand" version="5.0.8" />
+        <package name="@tanstack/react-query" version="5.90.7" />
+        <package name="react-hook-form" version="7.66.0" />
+        <package name="@hookform/resolvers" version="latest" />
+        <package name="zod" version="4.x" />
+        <package name="date-fns" version="4.1.0" />
+        <package name="@tanstack/react-table" version="8.21.3" />
+        <package name="tailwindcss" version="4.x" />
+        <package name="shadcn-ui" version="latest" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use Next.js 15 App Router with Server Components for initial page load
+    - Use Client Components for interactive UI (actions menu, dialogs)
+    - All database access must go through Supabase client with RLS enabled
+    - Only agency_admin role can change user roles or status
+    - Validate admin role before rendering admin-only UI elements
+    - Cannot deactivate own account (prevent lockout)
+    - At least one active admin required per agency (prevent orphaning)
+    - Use TanStack Query for optimistic updates and cache invalidation
+    - Follow architecture pattern: packages/validations for Zod schemas, packages/utils for error handling
+    - All API routes must use handleApiError() for consistent error responses
+    - Convert absolute paths to project-relative format in all references
+    - Status field: ENUM ('active', 'inactive') DEFAULT 'active'
+    - Audit all role and status changes with trigger functions
+    - Use React Hook Form + Zod resolver for form validation
+    - Display confirmation dialogs for destructive actions
+    - Show success/error messages with toast notifications
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PATCH /api/users/[id]/role</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: { role: 'agency_admin' | 'agency_user' }
+Response: { success: boolean, data?: User, error?: { code: string, message: string } }
+      </signature>
+      <path>apps/agency/app/api/users/[id]/role/route.ts</path>
+    </interface>
+    <interface>
+      <name>PATCH /api/users/[id]/status</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: { status: 'active' | 'inactive' }
+Response: { success: boolean, data?: User, error?: { code: string, message: string } }
+      </signature>
+      <path>apps/agency/app/api/users/[id]/status/route.ts</path>
+    </interface>
+    <interface>
+      <name>POST /api/invitations/[id]/resend</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: (empty body)
+Response: { success: boolean, data?: { id: string, expires_at: string }, error?: { code: string, message: string } }
+      </signature>
+      <path>apps/agency/app/api/invitations/[id]/resend/route.ts</path>
+    </interface>
+    <interface>
+      <name>DELETE /api/invitations/[id]</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: (empty body)
+Response: { success: boolean, error?: { code: string, message: string } }
+      </signature>
+      <path>apps/agency/app/api/invitations/[id]/route.ts</path>
+    </interface>
+    <interface>
+      <name>UserTable Component</name>
+      <kind>React Client Component</kind>
+      <signature>
+interface UserTableProps {
+  initialUsers: User[]
+}
+export function UserTable({ initialUsers }: UserTableProps): JSX.Element
+      </signature>
+      <path>apps/agency/app/users/components/UserTable.tsx</path>
+    </interface>
+    <interface>
+      <name>UserActionsMenu Component</name>
+      <kind>React Client Component</kind>
+      <signature>
+interface UserActionsMenuProps {
+  user: User
+}
+export function UserActionsMenu({ user }: UserActionsMenuProps): JSX.Element
+      </signature>
+      <path>apps/agency/app/users/components/UserActionsMenu.tsx</path>
+    </interface>
+    <interface>
+      <name>Database Schema - users table extension</name>
+      <kind>SQL schema</kind>
+      <signature>
+ALTER TABLE users ADD COLUMN status TEXT CHECK (status IN ('active', 'inactive')) DEFAULT 'active';
+
+CREATE TRIGGER user_changes_audit_trigger
+  AFTER UPDATE ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION log_user_changes();
+      </signature>
+      <path>supabase/migrations/002_agency_domain/005_users_status.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Tests should be colocated near source files or in __tests__ directory. Follow architecture pattern: test API routes with integration tests, test components with RTL, test critical flows with Playwright E2E.
+    </standards>
+    <locations>
+      - __tests__/integration/ for API integration tests
+      - __tests__/e2e/ for Playwright end-to-end tests
+      - apps/agency/app/users/__tests__/ for component tests
+      - packages/validations/__tests__/ for schema validation tests
+    </locations>
+    <ideas>
+      <idea ac="1">Test: Admin can view all users in their agency (200)</idea>
+      <idea ac="1">Test: User cannot access user management (403)</idea>
+      <idea ac="1">Test: RLS filters users to same agency only</idea>
+      <idea ac="2">Test: Admin can change user role (200)</idea>
+      <idea ac="2">Test: Cannot remove last admin from agency (400)</idea>
+      <idea ac="2">Test: Role change logged in audit trail</idea>
+      <idea ac="3">Test: Admin can deactivate user (200)</idea>
+      <idea ac="3">Test: Admin cannot deactivate self (400)</idea>
+      <idea ac="4">Test: Inactive user blocked from login (401)</idea>
+      <idea ac="4">Test: Status change logged in audit trail</idea>
+      <idea ac="5">Test: Admin can resend pending invitation (200)</idea>
+      <idea ac="5">Test: Cannot resend used invitation (400)</idea>
+      <idea ac="5">Test: Resend extends expiration by 7 days</idea>
+      <idea ac="6">Test: Admin can delete pending invitation (200)</idea>
+      <idea ac="6">Test: Cannot delete used invitation (400)</idea>
+      <idea ac="all">E2E Test: Complete role change flow with confirmation</idea>
+      <idea ac="all">E2E Test: Complete status change flow and verify login blocked</idea>
+      <idea ac="all">E2E Test: Complete invitation resend flow and verify email</idea>
+    </ideas>
+  </tests>
+</story-context>

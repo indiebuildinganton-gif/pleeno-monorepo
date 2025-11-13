@@ -1,0 +1,284 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Student Registry</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/3-2-student-registry.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to create and manage a database of students with flexible data entry options</iWant>
+    <soThat>I can track which students are enrolled where, monitor their visa status, and link them to payment plans</soThat>
+    <tasks>
+      - Task 1: Database Schema Implementation (students, student_enrollments, student_notes, student_documents tables with RLS)
+      - Task 2: Student API Routes (CRUD endpoints with search)
+      - Task 3: Student Notes API (notes CRUD)
+      - Task 4: Student Documents API (file upload/download with Supabase Storage)
+      - Task 5: Activity Feed API (audit log queries)
+      - Task 6: CSV Import/Export API (bulk operations with validation)
+      - Task 7: AI Extraction API Premium Feature (OCR + LLM extraction from offer letters)
+      - Task 8: Student List UI Component (table with search, filters, badges)
+      - Task 9: Student Form Component (React Hook Form + Zod validation)
+      - Task 10: Student Detail Page (info display with clickable links)
+      - Task 11: Notes Section UI (text area with character counter)
+      - Task 12: Activity Feed UI (timeline with filters)
+      - Task 13: CSV Import Wizard UI (file upload with field mapping)
+      - Task 14: Document Viewer Component (PDF/image preview with maximize)
+      - Task 15: AI Extraction Wizard Premium (upload and review extracted data)
+      - Task 16: Audit Logging (comprehensive change tracking)
+      - Task 17: Testing (unit, integration, E2E tests)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Student List View - Table format with columns (Full Name, Email, Visa Status, College/Branch, Updated), colored badges for visa status, relative timestamps, search, CSV export, Add Student button
+
+    2. Student Form (Create/Edit) - Required fields (full_name, passport_number), optional fields (email, phone, DOB, nationality), visa status dropdown, college/branch association, unique passport constraint, document attachments
+
+    3. Student Detail Page - Student name heading, action buttons (Edit Info, New Payment Plan, Delete), info fields (Email, Phone, Visa Status badge, College/Branch link), format "College - Branch (City)"
+
+    4. Notes Section - Text area (max 2000 chars), character counter, Post Note button, list of notes with timestamps, edit/delete icons
+
+    5. Activity Feed - Timeline panel (right side), shows enrollment changes, email updates, notes, field changes with old→new values, time filter, search, auto-refresh
+
+    6. Data Import/Export - Manual creation, CSV export, CSV bulk upload with wizard, field mapping, validation, error reporting, partial data support, admin email notification for incomplete data, audit logging
+
+    7. Document Management - Upload offer letters/documents, view/download/maximize, PDF and image support
+
+    8. Premium Feature (AI-Powered Extraction) - Upload PDF offer letter, auto-extract student/college/course/payment data, pre-populate forms, fuzzy matching, create new colleges if needed, subscription tier gating, extraction metrics logging
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Pleeno Epic Breakdown</title>
+        <section>Story 3.2: Student Registry</section>
+        <snippet>Complete student management system with flexible data entry, visa tracking, notes, activity feed, CSV import/export, document management, and premium AI extraction from offer letters. Lines 430-590 provide full acceptance criteria.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Entities Domain (Epic 3)</section>
+        <snippet>Students schema defined with agency_id for RLS, unique passport numbers, optional email/phone fields, visa status enum. Includes student_documents table for file uploads and student_enrollments linking students to colleges/branches. Lines 1484-1580.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>File Upload Pattern</section>
+        <snippet>Supabase Storage pattern for offer letters with RLS policies, file type/size validation, unique filename generation, and metadata storage. Storage path: {entity_id}/{filename}. Lines 1199-1254.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno System Architecture</title>
+        <section>Project Structure - Entities Zone</section>
+        <snippet>Student components live in apps/entities/students/ with Next.js App Router. Server Components for list/detail pages, Client Components for forms and interactive elements. Uses packages/ui, packages/database, packages/utils for shared code.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno Product Requirements</title>
+        <section>Core Entity Management</section>
+        <snippet>Student registry is foundational data entity for payment tracking. Supports CSV import for agency onboarding, AI extraction as premium feature, partial data entry with phone as primary contact method.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>supabase/migrations/002_entities_domain/003_students_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>students table</symbol>
+        <lines>CREATE TABLE</lines>
+        <reason>Defines students table schema with RLS policies - needs to be created for this story</reason>
+      </artifact>
+      <artifact>
+        <path>packages/database/src/types/database.types.ts</path>
+        <kind>types</kind>
+        <symbol>Database types</symbol>
+        <lines>all</lines>
+        <reason>TypeScript types generated from Supabase schema - will be regenerated after migrations</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/date-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>formatRelativeTime, formatDateInAgencyTimezone</symbol>
+        <lines>existing</lines>
+        <reason>Used for relative timestamps ("4 days ago") and timezone-aware date formatting</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/file-upload.ts</path>
+        <kind>utility</kind>
+        <symbol>uploadDocument, deleteDocument</symbol>
+        <lines>to be created</lines>
+        <reason>File upload helpers for Supabase Storage with validation - referenced in architecture</reason>
+      </artifact>
+      <artifact>
+        <path>packages/validations/src/student.schema.ts</path>
+        <kind>validation</kind>
+        <symbol>studentSchema</symbol>
+        <lines>to be created</lines>
+        <reason>Zod validation schema for student form - required fields (full_name, passport_number), optional (email, phone, DOB, nationality)</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <ecosystem name="node">
+        <package name="@supabase/supabase-js" version="latest" purpose="Supabase client for database and storage" />
+        <package name="@supabase/ssr" version="latest" purpose="Server-side Supabase client for Next.js" />
+        <package name="@tanstack/react-query" version="5.90.7" purpose="Server state management and caching" />
+        <package name="react-hook-form" version="7.66.0" purpose="Form state management" />
+        <package name="@hookform/resolvers" version="latest" purpose="Zod resolver for React Hook Form" />
+        <package name="zod" version="4.x" purpose="Schema validation" />
+        <package name="date-fns" version="4.1.0" purpose="Date manipulation and formatting" />
+        <package name="date-fns-tz" version="latest" purpose="Timezone support" />
+        <package name="@tanstack/react-table" version="8.21.3" purpose="Table component for student list" />
+        <package name="@react-pdf/renderer" version="4.3.1" purpose="PDF generation for exports" />
+        <package name="resend" version="6.4.2" purpose="Email notifications for import completion" />
+      </ecosystem>
+      <ecosystem name="shadcn-ui">
+        <component name="Table" purpose="Student list table component" />
+        <component name="Form" purpose="Student create/edit forms" />
+        <component name="Badge" purpose="Visa status badges with color coding" />
+        <component name="Dialog" purpose="Modals for note editing, document viewing" />
+        <component name="Button" purpose="Action buttons throughout UI" />
+        <component name="Input" purpose="Form inputs" />
+        <component name="Textarea" purpose="Notes text area" />
+        <component name="Select" purpose="Visa status, college/branch dropdowns" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Multi-tenant isolation enforced via PostgreSQL Row-Level Security (RLS) - ALL queries auto-filtered by agency_id
+    - Student passport numbers must be unique within each agency (composite unique constraint on agency_id + passport_number)
+    - Email and phone are OPTIONAL fields to support partial data import
+    - Notes limited to 2,000 characters maximum
+    - File uploads limited to 10MB, PDF and images only (JPEG, PNG)
+    - Storage path pattern: student-documents/{student_id}/{filename}
+    - AI extraction feature gated by agencies.subscription_tier (basic/premium/enterprise)
+    - All student CRUD operations must be logged to audit_logs table
+    - Visa status must be one of: 'in_process', 'approved', 'denied', 'expired'
+    - Student management lives in apps/entities/ zone with routes under /entities/students
+    - Use Server Components for pages, Client Components for forms and interactive elements
+    - Use TanStack Query for server state caching with 1-minute stale time for students
+    - Store all dates in UTC, display in agency's configured timezone
+    - CSV import must log all changes to audit trail
+    - Activity feed must show field-level changes with old → new values
+  </constraints>
+
+  <interfaces>
+    <api name="GET /api/students" kind="REST endpoint">
+      <signature>GET /api/students?search=query&amp;page=number&amp;per_page=number</signature>
+      <path>apps/entities/app/api/students/route.ts</path>
+      <returns>Paginated list of students with meta (total, page, per_page)</returns>
+    </api>
+    <api name="POST /api/students" kind="REST endpoint">
+      <signature>POST /api/students {full_name, passport_number, email?, phone?, visa_status?, date_of_birth?, nationality?}</signature>
+      <path>apps/entities/app/api/students/route.ts</path>
+      <returns>Created student object</returns>
+    </api>
+    <api name="GET /api/students/[id]" kind="REST endpoint">
+      <signature>GET /api/students/[id]</signature>
+      <path>apps/entities/app/api/students/[id]/route.ts</path>
+      <returns>Student with joined enrollments, branch, college data</returns>
+    </api>
+    <api name="PATCH /api/students/[id]" kind="REST endpoint">
+      <signature>PATCH /api/students/[id] {partial student fields}</signature>
+      <path>apps/entities/app/api/students/[id]/route.ts</path>
+      <returns>Updated student object</returns>
+    </api>
+    <api name="DELETE /api/students/[id]" kind="REST endpoint">
+      <signature>DELETE /api/students/[id]</signature>
+      <path>apps/entities/app/api/students/[id]/route.ts</path>
+      <returns>Success confirmation</returns>
+    </api>
+    <api name="GET /api/students/[id]/notes" kind="REST endpoint">
+      <signature>GET /api/students/[id]/notes</signature>
+      <path>apps/entities/app/api/students/[id]/notes/route.ts</path>
+      <returns>Array of notes with user attribution</returns>
+    </api>
+    <api name="POST /api/students/[id]/notes" kind="REST endpoint">
+      <signature>POST /api/students/[id]/notes {content: string (max 2000)}</signature>
+      <path>apps/entities/app/api/students/[id]/notes/route.ts</path>
+      <returns>Created note object</returns>
+    </api>
+    <api name="POST /api/students/[id]/documents" kind="REST endpoint">
+      <signature>POST /api/students/[id]/documents FormData {file: File, document_type: enum}</signature>
+      <path>apps/entities/app/api/students/[id]/documents/route.ts</path>
+      <returns>Document metadata with public URL</returns>
+    </api>
+    <api name="GET /api/students/[id]/activity" kind="REST endpoint">
+      <signature>GET /api/students/[id]/activity?period=string&amp;search=string</signature>
+      <path>apps/entities/app/api/students/[id]/activity/route.ts</path>
+      <returns>Array of activity log entries from audit_logs table</returns>
+    </api>
+    <api name="GET /api/students/export" kind="REST endpoint">
+      <signature>GET /api/students/export</signature>
+      <path>apps/entities/app/api/students/export/route.ts</path>
+      <returns>CSV file download</returns>
+    </api>
+    <api name="POST /api/students/import" kind="REST endpoint">
+      <signature>POST /api/students/import FormData {file: File (CSV)}</signature>
+      <path>apps/entities/app/api/students/import/route.ts</path>
+      <returns>Import summary with incomplete student notifications sent</returns>
+    </api>
+    <api name="POST /api/students/extract-from-offer-letter" kind="REST endpoint">
+      <signature>POST /api/students/extract-from-offer-letter FormData {file: File (PDF)} - PREMIUM ONLY</signature>
+      <path>apps/entities/app/api/students/extract-from-offer-letter/route.ts</path>
+      <returns>Extracted JSON data with confidence scores</returns>
+      <gating>Check agencies.subscription_tier before processing</gating>
+    </api>
+    <function name="uploadDocument" kind="utility function">
+      <signature>async uploadDocument(entityId: string, file: File, bucket: string): Promise&lt;{url: string, filename: string}&gt;</signature>
+      <path>packages/utils/src/file-upload.ts</path>
+      <validates>File type (PDF, JPEG, PNG), file size (max 10MB)</validates>
+    </function>
+    <function name="formatRelativeTime" kind="utility function">
+      <signature>formatRelativeTime(date: Date): string</signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+      <returns>"4 days ago" style timestamps</returns>
+    </function>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing Stack: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E tests. All tests must verify RLS data isolation. Integration tests should use Supabase local instance. E2E tests focus on critical user flows (student creation, document upload, CSV import).
+    </standards>
+
+    <locations>
+      - __tests__/integration/students.test.ts
+      - __tests__/e2e/student-flow.spec.ts
+      - apps/entities/app/students/components/*.test.tsx
+      - packages/utils/src/*.test.ts
+    </locations>
+
+    <ideas>
+      <test ac="1" idea="Test student list renders correctly with search, filters, and pagination" />
+      <test ac="1" idea="Verify visa status badges display correct colors (red/blue/green/gray)" />
+      <test ac="1" idea="Test CSV export generates file with all student fields" />
+      <test ac="2" idea="Test form validation - full_name and passport_number required, others optional" />
+      <test ac="2" idea="Test unique passport number constraint within agency" />
+      <test ac="2" idea="Verify file upload accepts PDF/images, rejects other types" />
+      <test ac="3" idea="Test student detail page displays all info with correct formatting" />
+      <test ac="3" idea="Verify college/branch link navigates to college detail page" />
+      <test ac="4" idea="Test notes character counter and 2,000 char limit enforcement" />
+      <test ac="4" idea="Verify note edit/delete functionality" />
+      <test ac="5" idea="Test activity feed shows field changes with old → new values" />
+      <test ac="5" idea="Verify activity filter by time period and search work correctly" />
+      <test ac="6" idea="Test CSV import with valid data succeeds" />
+      <test ac="6" idea="Test CSV import with invalid data shows validation errors" />
+      <test ac="6" idea="Verify admin email notification sent after import with incomplete data" />
+      <test ac="6" idea="Test partial data import (missing optional fields)" />
+      <test ac="7" idea="Test document upload stores file in Supabase Storage correctly" />
+      <test ac="7" idea="Verify PDF preview and maximize functionality" />
+      <test ac="8" idea="Test AI extraction only works for premium/enterprise tiers" />
+      <test ac="8" idea="Verify extracted data pre-populates forms correctly" />
+      <test ac="8" idea="Test fuzzy matching finds existing colleges/branches" />
+      <test ac="All" idea="Verify RLS policies prevent cross-agency data access" />
+      <test ac="All" idea="Test all CRUD operations logged to audit_logs with user_id and timestamps" />
+    </ideas>
+  </tests>
+</story-context>

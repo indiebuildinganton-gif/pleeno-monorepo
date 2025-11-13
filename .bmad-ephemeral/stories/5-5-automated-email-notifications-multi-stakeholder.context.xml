@@ -1,0 +1,396 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.5</storyId>
+    <title>Automated Email Notifications (Multi-Stakeholder)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-5-automated-email-notifications-multi-stakeholder.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>configurable email notifications for overdue payments sent to multiple stakeholders</iWant>
+    <soThat>the right people are alerted and can take action based on our agency's process</soThat>
+    <tasks>
+- Task 1: Database Schema for Notification System (AC: #1-6)
+  - Add `users.email_notifications_enabled` field (BOOLEAN DEFAULT false)
+  - Add `students.assigned_user_id` field (FK to users) for sales agent assignment
+  - Create `notification_rules` table with fields (id, agency_id, recipient_type ENUM, event_type ENUM, is_enabled, custom_template)
+  - Create `email_templates` table with fields (id, agency_id, template_type ENUM, subject, body_html, variables JSONB)
+  - Add `installments.last_notified_date` field (TIMESTAMPTZ) to prevent duplicate emails
+  - Create migration file in `supabase/migrations/004_notifications_domain/`
+  - Apply RLS policies to new tables
+
+- Task 2: Notification Settings UI (AC: #1-4)
+  - Create `/agency/settings/notifications` page in agency zone
+  - Build notification rules configuration form with checkboxes for recipient types, dropdowns for event types, enable/disable toggles
+  - Implement API routes: GET/POST/PATCH/DELETE /api/notification-rules
+  - Add sales agent assignment field to student edit form
+  - Add email preferences section to `/agency/profile` page
+
+- Task 3: Email Template Management UI (AC: #2)
+  - Create `/agency/settings/email-templates` page
+  - Build template editor UI with rich text editor, subject line input, variable placeholders helper, preview functionality
+  - Implement API routes: GET/POST/PATCH/DELETE /api/email-templates
+  - Provide default templates for each type (student_overdue, college_overdue, sales_agent_overdue, agency_admin_overdue)
+  - Allow agencies to customize default templates
+
+- Task 4: Email Sending Service (AC: #5, #7-11)
+  - Set up Resend API integration (install @resend/node)
+  - Create shared email utilities in `packages/utils/src/email-helpers.ts` (renderTemplate, sendEmail functions)
+  - Create React Email templates in `emails/` directory (invitation.tsx, payment-reminder.tsx, commission-alert.tsx, overdue-notification.tsx)
+  - Configure Resend API key in environment variables
+
+- Task 5: Notification Job - Extend Status Update Function (AC: #5, #7-11)
+  - Extend existing status update job (from Story 5.1) to track newly overdue installments
+  - Modify `update_installment_statuses()` SQL function to track status changes and return newly overdue installment IDs
+  - Create Supabase Edge Function: `send-notifications` at `supabase/functions/notifications/send-notifications/index.ts`
+  - Implement notification logic in Edge Function (query rules, determine recipients, check for duplicates, render templates, send via Resend, log sends)
+  - Add error handling and retry logic for failed emails
+  - Log all notification attempts to notification_log table
+
+- Task 6: Testing (AC: All)
+  - Write unit tests for email template rendering utility and variable placeholder replacement
+  - Write integration tests for notification rules API routes (CRUD operations)
+  - Write Edge Function tests for send-notifications (mock Resend API, verify correct emails sent)
+  - Test duplicate prevention: verify last_notified_date logic and notification_log UNIQUE constraint
+  - Test end-to-end: trigger status update → verify notifications sent
+
+- Task 7: Documentation and Configuration (AC: All)
+  - Document notification system in architecture.md
+  - Add sample email templates to repository
+  - Create admin guide for configuring notification rules
+  - Add environment variable documentation for RESEND_API_KEY
+  - Update deployment checklist to include Resend setup
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I am an Agency Admin configuring notification settings
+   **When** I set up email notification rules
+   **Then** I can enable/disable notifications for different recipient types:
+   - Agency admins and users
+   - Students (overdue payment reminders)
+   - Colleges (optional, using agency-defined template)
+   - Sales agents/account managers assigned to students (optional)
+
+2. **And** I can create custom email templates for college notifications
+
+3. **And** I can configure which events trigger notifications (overdue, due soon, payment received)
+
+4. **And** I can assign sales agents/account managers to students for targeted notifications
+
+5. **And** emails are sent only once per installment per recipient when it first becomes overdue
+
+6. **And** each recipient type has independent enable/disable settings
+
+7. **Given** the daily status job detects new overdue payments
+   **When** notifications are enabled
+   **Then** emails are sent according to configured rules
+
+8. **Agency Admin/User Emails:**
+   - Summary of all newly overdue installments
+   - Includes student names, colleges, amounts, and due dates
+   - Includes link to view overdue payments in the app
+
+9. **Student Emails:**
+   - Individual email per overdue installment
+   - Payment amount, due date, payment instructions
+   - Agency contact information
+
+10. **College Emails (Optional):**
+    - Uses agency-defined custom template
+    - Summary of overdue payments for students at that college
+    - Can include any custom fields configured by agency
+
+11. **Sales Agent Emails (Optional):**
+    - Notification when their assigned student has overdue payment
+    - Student name, amount, due date, contact information
+    - Link to student profile in the app
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pattern 1: Multi-Stakeholder Notification System</title>
+        <section>Novel Pattern Designs</section>
+        <snippet>Multi-stakeholder notification system that sends different notifications to different stakeholders based on configurable rules. Single event (installment overdue) needs to notify 4 stakeholder types with different message templates. Includes notification_rules, email_templates, and notification_log tables with complete SQL schema and TypeScript implementation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Notifications Domain (Epic 5)</title>
+        <section>Data Architecture - Notifications Domain</section>
+        <snippet>Database schema for notification_rules (agency_id, recipient_type, event_type, is_enabled, template_id, trigger_config), email_templates (template_type, subject, body_html, variables), and notification_log (installment_id, recipient_type, recipient_email with UNIQUE constraint to prevent duplicates).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Email Integration</title>
+        <section>Integration Points</section>
+        <snippet>React Email templates in emails/ directory. Resend API sends via Edge Functions or API routes. Database tracking via notification_log table prevents duplicate sends. Supabase webhooks for external integrations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 5: Intelligent Status Automation - Story 5.5</title>
+        <section>Epic 5 - Story 5.5</section>
+        <snippet>Automated Email Notifications (Multi-Stakeholder). Configurable email notifications for overdue payments sent to multiple stakeholders: agency users, students, colleges (optional), and sales agents (optional). Custom email templates, event triggers, sales agent assignment, one-time-only sends per installment per recipient.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>API Response Format</title>
+        <section>Implementation Patterns - Error Handling</section>
+        <snippet>Consistent JSON structure with success boolean, data payload for success responses, error object with code/message/details for errors. Paginated responses include meta object with total, page, per_page, total_pages.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Multi-Tenant Isolation (Row-Level Security)</title>
+        <section>Security Architecture</section>
+        <snippet>RLS Policy Pattern applied to ALL tenant-scoped tables: CREATE POLICY "tenant_isolation" ON {table_name} FOR ALL USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid())). JWT claims include agency_id and role. Impossible to query other agencies' data (enforced at DB level).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>supabase/migrations/004_notifications_domain/001_notifications_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>notification_rules, email_templates, notification_log tables</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Migration file to create notification_rules, email_templates, and notification_log tables with proper ENUM types, foreign keys, and UNIQUE constraints for duplicate prevention</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/settings/notifications/page.tsx</path>
+        <kind>page</kind>
+        <symbol>NotificationSettingsPage</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Notification rules configuration UI - allows agency admins to enable/disable notifications for different recipient types and event types</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/settings/email-templates/page.tsx</path>
+        <kind>page</kind>
+        <symbol>EmailTemplatesPage</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Email template editor UI with rich text editor, variable placeholders helper, and preview functionality</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/api/notification-rules/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET, POST handlers for notification rules</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>CRUD API endpoints for notification_rules table with RLS enforcement</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/api/email-templates/route.ts</path>
+        <kind>api-route</kind>
+        <symbol>GET, POST handlers for email templates</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>CRUD API endpoints for email_templates table with template validation and sanitization</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/email-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>renderTemplate, sendEmail functions</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Shared email utilities for template rendering (replace placeholders with data) and sending emails via Resend API</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/notifications/send-notifications/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>sendNotifications</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Supabase Edge Function that processes notification rules, determines recipients, checks for duplicates, renders templates, sends emails via Resend, and logs all sends to notification_log</reason>
+      </artifact>
+      <artifact>
+        <path>emails/payment-reminder.tsx</path>
+        <kind>email-template</kind>
+        <symbol>StudentOverdueEmail</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>React Email template for student overdue payment reminders with payment amount, due date, and payment instructions</reason>
+      </artifact>
+      <artifact>
+        <path>emails/commission-alert.tsx</path>
+        <kind>email-template</kind>
+        <symbol>CollegeNotificationEmail</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>React Email template for college notifications with summary of overdue payments for students at that college</reason>
+      </artifact>
+      <artifact>
+        <path>emails/overdue-notification.tsx</path>
+        <kind>email-template</kind>
+        <symbol>AgencyOverdueEmail, SalesAgentOverdueEmail</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>React Email template for agency admin/user and sales agent notifications with summary of newly overdue installments</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@resend/node</package>
+        <version>^6.4.2</version>
+        <reason>Resend API client for sending transactional emails with React Email template support</reason>
+      </node>
+      <node>
+        <package>@react-email/components</package>
+        <version>latest</version>
+        <reason>React Email component library for building email templates with React components</reason>
+      </node>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <version>existing</version>
+        <reason>Supabase client for database queries and RLS enforcement in Edge Functions</reason>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>existing ^4.x</version>
+        <reason>Schema validation for notification rules and email templates API routes</reason>
+      </node>
+      <node>
+        <package>react-hook-form</package>
+        <version>existing ^7.66.0</version>
+        <reason>Form state management for notification settings and email template editor</reason>
+      </node>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>existing ^5.90.7</version>
+        <reason>Server state management for notification rules and email templates with caching and mutations</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **Multi-Tenant Security:** All notification_rules, email_templates, and notification_log tables MUST have RLS policies enforcing agency_id filtering
+- **Duplicate Prevention:** notification_log table MUST have UNIQUE constraint on (installment_id, recipient_type, recipient_email) to prevent duplicate emails
+- **One-Time Sends:** Each installment can only trigger notification ONCE per recipient type per recipient email
+- **Template Sanitization:** All user-provided email template HTML MUST be sanitized to prevent XSS attacks before rendering
+- **Admin-Only Access:** Email template editing and notification rule configuration restricted to Agency Admins only (role check in API routes and UI)
+- **Rate Limiting:** Email sending should be rate-limited to prevent abuse (max 100 emails per hour per agency)
+- **Error Handling:** Failed email sends must be logged and retried with exponential backoff
+- **Resend API Security:** API key stored in environment variables only (never in code or client-side)
+- **Edge Function Security:** send-notifications Edge Function must use server-side Supabase client with service role key
+- **Variable Validation:** Template variables must be validated before rendering to prevent undefined/null errors
+- **Audit Logging:** All notification sends must be logged to notification_log table with timestamp for audit purposes
+- **Email Validation:** Recipient email addresses must be validated before sending
+- **Testing Requirement:** Unit tests for template rendering, integration tests for API routes, E2E tests for complete notification flow
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>POST /api/notification-rules</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: {
+  recipient_type: 'agency_user' | 'student' | 'college' | 'sales_agent',
+  event_type: 'overdue' | 'due_soon' | 'payment_received',
+  is_enabled: boolean,
+  template_id?: string,
+  trigger_config?: { advance_hours?: number, trigger_time?: string, timezone?: string }
+}
+Response: {
+  success: true,
+  data: NotificationRule
+}
+      </signature>
+      <path>apps/agency/app/api/notification-rules/route.ts</path>
+    </interface>
+    <interface>
+      <name>POST /api/email-templates</name>
+      <kind>REST endpoint</kind>
+      <signature>
+Request: {
+  template_type: 'student_overdue' | 'college_overdue' | 'sales_agent_overdue' | 'agency_admin_overdue',
+  subject: string,
+  body_html: string,
+  variables?: Record&lt;string, string&gt;
+}
+Response: {
+  success: true,
+  data: EmailTemplate
+}
+      </signature>
+      <path>apps/agency/app/api/email-templates/route.ts</path>
+    </interface>
+    <interface>
+      <name>renderTemplate(template, variables)</name>
+      <kind>function signature</kind>
+      <signature>
+function renderTemplate(
+  template: { subject: string; body_html: string },
+  variables: Record&lt;string, any&gt;
+): { subject: string; html: string }
+      </signature>
+      <path>packages/utils/src/email-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>sendEmail(to, subject, html)</name>
+      <kind>function signature</kind>
+      <signature>
+async function sendEmail(
+  to: string,
+  subject: string,
+  html: string
+): Promise&lt;{ success: boolean; messageId?: string; error?: string }&gt;
+      </signature>
+      <path>packages/utils/src/email-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>sendNotifications(event)</name>
+      <kind>Edge Function</kind>
+      <signature>
+export async function sendNotifications(
+  event: NotificationEvent
+): Promise&lt;{ sent: number; failed: number; errors: string[] }&gt;
+
+interface NotificationEvent {
+  agency_id: string
+  event_type: 'overdue' | 'due_soon' | 'payment_received'
+  installment_ids: string[]
+}
+      </signature>
+      <path>supabase/functions/notifications/send-notifications/index.ts</path>
+    </interface>
+    <interface>
+      <name>update_installment_statuses()</name>
+      <kind>SQL function</kind>
+      <signature>
+CREATE OR REPLACE FUNCTION update_installment_statuses()
+RETURNS TABLE(
+  agency_id UUID,
+  updated_count INT,
+  transitions JSONB,
+  newly_overdue_ids UUID[]
+) AS $$
+-- Returns list of newly overdue installment IDs for notification trigger
+$$
+      </signature>
+      <path>supabase/migrations/004_notifications_domain/005_status_update_function.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Follow existing testing patterns from previous stories. Mock external services (Resend API, Supabase) in unit and integration tests. Test error cases and edge cases (duplicate sends, invalid templates, missing variables). Verify RLS policies work correctly in integration tests. E2E tests should cover complete notification flow: admin configures rules → status update triggers → emails sent to correct recipients.
+    </standards>
+    <locations>
+- Unit tests: packages/utils/src/__tests__/email-helpers.test.ts
+- API route tests: apps/agency/app/api/notification-rules/__tests__/route.test.ts
+- Edge Function tests: supabase/functions/notifications/send-notifications/__tests__/index.test.ts
+- Component tests: apps/agency/app/settings/notifications/__tests__/page.test.tsx
+- E2E tests: __tests__/e2e/notification-flow.spec.ts
+    </locations>
+    <ideas>
+- AC #1: Test notification rules configuration form allows enabling/disabling rules for each recipient type
+- AC #2: Test email template editor allows creating custom templates with variable placeholders
+- AC #3: Test event type configuration (overdue, due soon, payment received) is saved correctly
+- AC #4: Test sales agent assignment field on student edit form updates students.assigned_user_id
+- AC #5: Test notification_log UNIQUE constraint prevents duplicate email sends for same installment/recipient
+- AC #6: Test each recipient type can be independently enabled/disabled
+- AC #7-11: Test send-notifications Edge Function sends correct emails to correct recipients based on enabled rules
+- Test template rendering utility replaces all variable placeholders correctly ({{student_name}}, {{amount}}, etc.)
+- Test duplicate prevention: verify email not sent if entry exists in notification_log
+- Test error handling: verify failed email sends are logged and retried with exponential backoff
+- Test RLS policies: verify users can only manage notification rules for their own agency
+- Test email validation: verify invalid email addresses are rejected before sending
+- Test rate limiting: verify max 100 emails per hour per agency is enforced
+- E2E test: Admin enables overdue notifications for students → status update triggers → student receives email
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,172 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.5</storyId>
+    <title>Commission Calculation Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-5-commission-calculation-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>commissions to be automatically calculated based on actual payments received</iWant>
+    <soThat>I know exactly how much commission I'm entitled to claim from each college</soThat>
+    <tasks>
+- Task 1: Draft Installment Calculation Logic (AC: 1)
+- Task 2: Payment Plan Wizard Draft Review Step (AC: 1)
+- Task 3: Earned Commission Calculation Utility (AC: 2, 6)
+- Task 4: Update Payment Recording to Recalculate Commission (AC: 2)
+- Task 5: Payment Plan Detail Commission Display (AC: 3)
+- Task 6: Commission by College/Branch Report (AC: 4)
+- Task 7: Commission by College/Branch Report Page (AC: 4)
+- Task 8: Dashboard Commission Summary Widget (AC: 5)
+- Task 9: Non-Commissionable Fees Handling (AC: 6)
+- Task 10: Database View for Real-Time Commission Calculation (Optional) (AC: 7)
+- Task 11: Testing (AC: All)
+- Task 12: Migration and Data Seeding (AC: 7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Draft Installment Calculation During Payment Plan Creation
+   - Auto-calculate installment amounts and dates based on total, frequency, and start date
+   - Present draft for review/approval before saving
+   - Allow manual adjustment with validation (SUM must equal total)
+   - Final installment auto-adjusts for rounding differences
+
+2. Earned Commission Calculation Based on Payments
+   - Auto-recalculate on payment recording
+   - Formula: (SUM(paid_amount WHERE status='paid') / total_amount) * expected_commission
+   - Real-time updates via query invalidation
+   - Only paid installments contribute to earned commission
+
+3. Per-Payment-Plan Commission Tracking
+   - Display: Expected, Earned, Outstanding commission
+   - Commission progress bar and percentage
+   - Real-time updates when payments recorded
+
+4. Per-College/Branch Commission Aggregation
+   - Aggregate by college/branch with drill-down
+   - Sortable, filterable by date range, college, branch
+   - Columns: College, Branch, Expected, Earned, Outstanding
+
+5. Dashboard Commission Summary
+   - Widget showing total expected, earned, outstanding commission
+   - Trend indicator vs. last month
+   - Real-time updates via query invalidation
+
+6. Non-Commissionable Fees Exclusion
+   - Exclude materials_cost, admin_fees, other_fees from commission calculations
+   - Commissionable amount = total_amount - fees
+   - generates_commission flag on installments
+
+7. Data Isolation and Performance
+   - RLS filtering by agency_id
+   - Cached earned_commission field for performance
+   - Optional database view for real-time accuracy
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics.md" title="Epic Breakdown" section="Epic 4: Payment Plan Engine">
+        Story 4.5 implements the commission calculation engine that automatically calculates earned commission based on actual payments received. Prerequisites include Stories 4.1-4.4 which establish payment plans, installments, and manual payment recording.
+      </doc>
+      <doc path="docs/epics.md" title="Epic Breakdown" section="Story 4.5: Commission Calculation Engine (lines 804-843)">
+        Full acceptance criteria for commission calculation: Draft installment calculation during payment plan creation, earned commission based on payments, per-plan tracking, per-college/branch aggregation, dashboard summary, non-commissionable fees exclusion, and performance optimization with cached fields.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Technology Stack Details (lines 150-349)">
+        Multi-zone architecture: Commission utilities in packages/utils/src/commission-calculator.ts, payment wizard in apps/payments/, reports in apps/reports/, dashboard widgets in apps/dashboard/. Uses TanStack Query for server state, Zustand for client state, Zod for validation, date-fns for date calculations.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Database Structure (lines 209-241)">
+        Payments domain migrations in supabase/migrations/003_payments_domain/ including payment_plans_schema.sql, installments_schema.sql, commission_functions.sql. Story 4.5 adds migration 007_commission_calculations.sql for earned_commission field and generates_commission flag.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements" section="MVP Features - Commission Calculation (lines 129)">
+        Commission calculation engine requirements: auto-calculate commissionable value, deduct materials/admin fees, handle GST. Supports flexible payment plans with multiple installments per student.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements" section="Business Intelligence Dashboard (lines 143-158)">
+        Dashboard KPIs include total commissions due, 90-day cash flow projection, and strategic analysis by college. Story 4.5 adds commission summary widget showing expected, earned, and outstanding commission with trend indicators.
+      </doc>
+      <doc path=".bmad-ephemeral/stories/4-4-manual-payment-recording.md" title="Story 4.4" section="Learnings from Previous Story">
+        Story 4.4 created payment recording API (POST /api/installments/[id]/record-payment), MarkAsPaidModal component, optimistic updates with TanStack Query, and audit logging. Task 8 laid foundation for commission recalculation. Story 4.5 extends this with full commission calculation engine.
+      </doc>
+    </docs>
+    <code>
+      <artifact path="packages/utils/src/commission-calculator.ts" kind="utility" symbol="calculateInstallmentSchedule" lines="TBD" reason="NEW: Core utility for generating draft installment schedules based on total amount, frequency, and start date with rounding handling" />
+      <artifact path="packages/utils/src/commission-calculator.ts" kind="utility" symbol="calculateEarnedCommission" lines="TBD" reason="NEW: Core utility for calculating earned commission proportionally based on paid installments, excluding non-commissionable fees" />
+      <artifact path="packages/utils/src/formatters.ts" kind="utility" symbol="formatCurrency" lines="EXISTING" reason="Currency formatting utility for displaying commission amounts with agency currency symbol" />
+      <artifact path="packages/utils/src/date-helpers.ts" kind="utility" symbol="date functions" lines="EXISTING" reason="Date manipulation utilities using date-fns for installment due date calculations" />
+      <artifact path="apps/payments/app/api/installments/[id]/record-payment/route.ts" kind="api-route" symbol="POST handler" lines="FROM 4.4" reason="MODIFY: Extend to trigger commission recalculation after payment recording" />
+      <artifact path="apps/payments/app/plans/[id]/components/PaymentPlanDetail.tsx" kind="component" symbol="PaymentPlanDetail" lines="FROM 4.3" reason="MODIFY: Add CommissionSummary component to display expected/earned/outstanding commission" />
+      <artifact path="apps/payments/app/plans/new/components/PaymentPlanWizard.tsx" kind="component" symbol="PaymentPlanWizard" lines="FROM 4.2" reason="MODIFY: Add draft installment review step with auto-calculation and manual editing" />
+      <artifact path="supabase/migrations/003_payments_domain/007_commission_calculations.sql" kind="migration" symbol="migration" lines="TBD" reason="NEW: Add earned_commission field to payment_plans, generates_commission to installments, and performance index" />
+    </code>
+    <dependencies>
+      <node>
+        <package name="@tanstack/react-query" version="5.90.7" reason="Server state management for commission queries and mutations" />
+        <package name="zustand" version="5.0.8" reason="Client state for dashboard filters and UI state" />
+        <package name="react-hook-form" version="7.66.0" reason="Form state for installment draft editing" />
+        <package name="zod" version="4.x" reason="Schema validation for installment calculations and API requests" />
+        <package name="date-fns" version="4.1.0" reason="Date manipulation for installment due date calculations (addMonths, addDays)" />
+        <package name="recharts" version="3.3.0" reason="Commission progress bar and dashboard visualizations" />
+        <package name="@tanstack/react-table" version="8.21.3" reason="Commission by college report sortable table" />
+        <package name="@supabase/supabase-js" version="latest" reason="Database queries for commission aggregation and RLS enforcement" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Multi-zone architecture: Commission utilities must be in packages/utils (shared), UI components in respective zones (payments, reports, dashboard)
+    - RLS enforcement: All commission queries must filter by agency_id via Supabase Row-Level Security
+    - Cached vs Real-Time: Use cached earned_commission field for performance, optional database view for accuracy
+    - Commission formula: earned_commission = (SUM(paid_amount WHERE status='paid' AND generates_commission=true) / commissionable_amount) * expected_commission
+    - Non-commissionable fees: Exclude materials_cost, admin_fees, other_fees from commission calculations
+    - Rounding handling: Final installment auto-adjusts to ensure SUM(installments) === total_amount
+    - Optimistic updates: Use TanStack Query mutation pattern with immediate UI update, revert on error
+    - Query invalidation: Commission mutations invalidate payment-plans, dashboard, and commission-related queries
+    - Testing requirement: Unit tests for calculation logic, integration tests for API routes, E2E tests for user workflows
+    - Audit logging: Log all commission-related changes (payment recording triggers recalculation) with user context
+    - Performance: Index installments table on (payment_plan_id, status, generates_commission) for fast SUM queries
+  </constraints>
+
+  <interfaces>
+    <interface name="POST /api/installments/[id]/record-payment" kind="REST endpoint" signature="{ paid_date: string, paid_amount: number, notes?: string } → { installment, payment_plan }" path="apps/payments/app/api/installments/[id]/record-payment/route.ts">
+      Extend from Story 4.4 to trigger commission recalculation after payment recording. Returns updated payment plan with new earned_commission value.
+    </interface>
+    <interface name="GET /api/reports/commission-by-college" kind="REST endpoint" signature="{ date_from?, date_to?, college_id?, branch_id? } → [{ college_id, college_name, branch_id, branch_name, total_expected, total_earned, total_outstanding, plan_count }]" path="apps/reports/app/api/commission-by-college/route.ts">
+      NEW: Commission aggregation by college/branch with optional filters. Uses SQL GROUP BY with RLS enforcement.
+    </interface>
+    <interface name="GET /api/dashboard/commission-summary" kind="REST endpoint" signature="void → { total_expected, total_earned, total_outstanding, trend_percentage }" path="apps/dashboard/app/api/commission-summary/route.ts">
+      NEW: Dashboard commission summary widget data. Aggregates across all active payment plans for current agency.
+    </interface>
+    <interface name="calculateInstallmentSchedule" kind="utility function" signature="(params: { total_amount: number, number_of_installments: number, frequency: 'monthly' | 'quarterly', start_date: Date, student_lead_time_days: number }) → Installment[]" path="packages/utils/src/commission-calculator.ts">
+      NEW: Generates draft installment schedule with auto-calculated amounts and due dates. Handles rounding with final installment adjustment.
+    </interface>
+    <interface name="calculateEarnedCommission" kind="utility function" signature="(params: { installments: Installment[], total_amount: number, expected_commission: number, materials_cost: number, admin_fees: number, other_fees: number }) → { earned_commission: number, total_paid: number, commissionable_amount: number, commission_percentage: number }" path="packages/utils/src/commission-calculator.ts">
+      NEW: Calculates earned commission based on paid installments, excluding non-commissionable fees. Filters by generates_commission flag.
+    </interface>
+    <interface name="useRecordPayment" kind="TanStack Query mutation" signature="useMutation({ mutationFn: (data) => fetch(POST /api/installments/[id]/record-payment), onSuccess: invalidateQueries(['payment-plans', 'dashboard', 'commission-summary']) })" path="apps/payments/app/plans/[id]/hooks/useRecordPayment.ts">
+      MODIFY from Story 4.4: Add invalidation for commission-related queries to trigger UI refresh when commission recalculates.
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing follows the architecture's testing strategy: Unit tests with Vitest for calculation logic (commission-calculator.ts), integration tests for API routes with Supabase test client, and E2E tests with Playwright for critical user workflows (payment plan creation, commission tracking). All tests must respect RLS policies and test with multiple agency contexts. Use TanStack Query test utilities for testing mutations and query invalidation.</standards>
+    <locations>
+      - Unit tests: packages/utils/src/commission-calculator.test.ts
+      - Integration tests: apps/payments/__tests__/api/commission.test.ts
+      - E2E tests: __tests__/e2e/payment-flow.spec.ts
+      - Component tests: apps/payments/app/plans/[id]/components/__tests__/
+    </locations>
+    <ideas>
+      <idea ac="1">Test calculateInstallmentSchedule: monthly frequency generates correct dates (12 installments over 12 months), quarterly frequency (4 installments over 12 months), rounding ensures SUM equals total, final installment adjusts correctly</idea>
+      <idea ac="2,6">Test calculateEarnedCommission: basic calculation (50% paid = 50% of expected commission), non-commissionable fees excluded from calculation, generates_commission=false installments ignored, partial payments contribute proportionally, edge case when commissionable_amount=0</idea>
+      <idea ac="2,4">Test commission recalculation on payment recording: POST /api/installments/[id]/record-payment updates earned_commission field, invalidates correct queries, GET /api/reports/commission-by-college returns accurate aggregations by college/branch</idea>
+      <idea ac="1,3,5">E2E: Payment plan creation with draft review - enter amount/installments/frequency, verify draft displayed, edit amounts manually, verify validation, submit and check commission display on detail page and dashboard</idea>
+      <idea ac="2,3,5">E2E: Commission updates when payment recorded - record payment, verify earned_commission updates on plan detail, verify dashboard commission widget refreshes, verify commission by college report updates</idea>
+      <idea ac="7">Performance: Benchmark cached field vs database view query times with 1000+ payment plans to validate performance optimization decision</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,327 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.2</storyId>
+    <title>Flexible Installment Structure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-2-flexible-installment-structure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to define flexible installment schedules for each payment plan</iWant>
+    <soThat>I can accommodate different payment arrangements (monthly, quarterly, custom) with separate commission and non-commission fees</soThat>
+    <tasks>
+- Task 1: Database Schema - Installments Table (AC: 2, 3, 6, 9)
+- Task 2: Database Schema - Payment Plans Extensions (AC: 4, 6, 7)
+- Task 3: Commission Calculation Functions (AC: 4, 5, 9)
+- Task 4: Due Date Calculation Utilities (AC: 6)
+- Task 5: Installment Generation Logic (AC: 3, 5, 6, 9)
+- Task 6: Multi-Step Payment Plan Wizard - Step 1 (AC: 1)
+- Task 7: Multi-Step Payment Plan Wizard - Step 2 (AC: 2, 3, 4, 5, 6, 7)
+- Task 8: Multi-Step Payment Plan Wizard - Step 3 (AC: 8, 9, 10)
+- Task 9: Payment Plan Creation with Installments (AC: 10)
+- Task 10: Installment Table Component (AC: 9)
+- Task 11: Validation Schema (AC: 10)
+- Task 12: Audit Logging (AC: All)
+- Task 13: Testing (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+### Step 1: General Information
+1. Student and Enrollment Selection - select student, auto-assign college/branch, enter course name, total course value, commission rate (0-1 decimal), course start/end dates
+2. All required fields must be completed to proceed to Step 2
+
+### Step 2: Payment Structure
+3. Initial Payment Configuration - amount, due date, toggle for "already paid" status (installment_number = 0)
+4. Installment Configuration - number of installments, frequency (monthly/quarterly/custom), auto-calculate amounts and due dates
+5. Non-Commissionable Fees - materials cost, admin fees, other fees (excluded from commission)
+6. Real-Time Payment Summary - total commission (green), remaining after initial payment, amount per installment
+7. Due Date Configuration - first college due date, student lead time (days), auto-calculate student due dates = college_due_date - student_lead_time
+8. GST Handling - toggle GST inclusive (affects commission calculation base)
+
+### Step 3: Review & Confirmation
+9. Summary Display - student, course, total value, total commission (green), commission rate, GST inclusive status
+10. Installment Schedule Table - initial payment row + installment rows showing: amount, student due date, college due date, status
+11. Validation and Confirmation - sum(initial + installments) = total course value, validation warnings if mismatch, navigate back to edit, final save creates plan with all installments
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 4.2: Flexible Installment Structure</section>
+        <snippet>Three-step wizard for payment plan creation: Step 1 (General Information), Step 2 (Payment Structure with initial payment, installments, non-commissionable fees, dual timelines, GST), Step 3 (Review & Confirmation with validation)</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-5.1: Payment Plan Creation Wizard</section>
+        <snippet>Multi-step wizard with installment structure, non-commissionable fees (materials, admin, other), real-time commission summary, dual timeline (student vs college due dates), GST handling (inclusive/exclusive)</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-5.5: Commission Calculation Engine</section>
+        <snippet>Formula: Commissionable Value = Gross Tuition - Materials Cost - Admin Fee. GST rules: If GST inclusive calculate on full amount, if GST exclusive remove GST first. Agency Commission = Commissionable Value × Commission %</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Pattern 2: Commission Calculation Engine</section>
+        <snippet>Database functions: calculate_commissionable_value(), calculate_expected_commission() with GST handling. TypeScript utilities for client-side preview. Database triggers for auto-calculation on INSERT/UPDATE</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Project Structure - Monorepo</section>
+        <snippet>Turborepo monorepo with Next.js 15 zones. Payments zone: apps/payments/ with multi-step wizard components. Shared packages: packages/utils/ for commission calculator, packages/ui/ for Shadcn components, packages/database/ for Supabase client</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Technology Stack</section>
+        <snippet>React Hook Form 7.66.0 for multi-step wizards, Zod 4.x for validation, date-fns 4.1.0 for date calculations (addDays, subDays, addMonths), TanStack Query 5.90.7 for API mutations, Shadcn UI for components</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/4-1-payment-plan-creation.md</path>
+        <title>Story 4.1: Payment Plan Creation</title>
+        <section>Full Story</section>
+        <snippet>Created payment_plans table with basic commission calculation. Story 4.2 extends this by adding installments table, multi-step wizard, non-commissionable fees, dual timeline, and enhanced commission calculation with GST handling</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>packages/utils/src/commission-calculator.ts</path>
+        <kind>utility</kind>
+        <symbol>calculateCommissionableValue, calculateExpectedCommission, calculateEarnedCommission, calculateStudentDueDate, calculateCollegeDueDate</symbol>
+        <lines>N/A - to be created/extended</lines>
+        <reason>Core commission calculation utilities needed for client-side real-time preview in wizard Step 2. Extends existing calculateExpectedCommission() from Story 4.1 with new functions for commissionable value (with fees) and due date calculations</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/date-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>calculateStudentDueDate, calculateCollegeDueDate, generateInstallmentDueDates</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Date calculation utilities for dual timeline feature. Calculates student_due_date = college_due_date - student_lead_time_days. Generates due dates for monthly/quarterly installments</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/new/page.tsx</path>
+        <kind>page</kind>
+        <symbol>Multi-step wizard page</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Main wizard orchestrator page for 3-step payment plan creation with installments. Replaces single-step form from Story 4.1</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/new/components/PaymentPlanWizardStep1.tsx</path>
+        <kind>component</kind>
+        <symbol>PaymentPlanWizardStep1</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Step 1: General Information - student selection, course details, commission rate, course dates</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/new/components/PaymentPlanWizardStep2.tsx</path>
+        <kind>component</kind>
+        <symbol>PaymentPlanWizardStep2</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Step 2: Payment Structure - initial payment, installment config, non-commissionable fees, due dates, GST toggle, real-time summary</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/new/components/PaymentPlanWizardStep3.tsx</path>
+        <kind>component</kind>
+        <symbol>PaymentPlanWizardStep3</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Step 3: Review & Confirmation - summary display, installment schedule table, validation, navigation to edit previous steps</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/new/components/InstallmentTable.tsx</path>
+        <kind>component</kind>
+        <symbol>InstallmentTable</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Reusable installment schedule table component showing installment #, amount, student due date, college due date, status badges</reason>
+      </artifact>
+      <artifact>
+        <path>packages/validations/src/payment-plan-wizard.schema.ts</path>
+        <kind>validation</kind>
+        <symbol>step1Schema, step2Schema, installmentSchema, paymentPlanWizardSchema</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Zod validation schemas for each wizard step and final combined validation including installment sum reconciliation check</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_payments_domain/004_installments_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>installments table</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Creates installments table with fields: id, payment_plan_id (FK), agency_id, installment_number (0=initial), amount, student_due_date, college_due_date, is_initial_payment, generates_commission, status, paid_date, paid_amount</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_payments_domain/005_payment_plans_extensions.sql</path>
+        <kind>migration</kind>
+        <symbol>ALTER TABLE payment_plans</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Adds columns to payment_plans: initial_payment_amount, initial_payment_due_date, initial_payment_paid, materials_cost, admin_fees, other_fees, first_college_due_date, student_lead_time_days, gst_inclusive, number_of_installments, payment_frequency</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_payments_domain/006_commission_functions.sql</path>
+        <kind>migration</kind>
+        <symbol>calculate_commissionable_value, calculate_expected_commission</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Creates PostgreSQL functions for commission calculations with GST handling. Reusable in triggers and queries</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_payments_domain/007_commission_triggers.sql</path>
+        <kind>migration</kind>
+        <symbol>update_payment_plan_commissions trigger</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Database trigger to auto-calculate commissionable_value and expected_commission on payment_plans INSERT/UPDATE</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/003_payments_domain/008_installments_rls.sql</path>
+        <kind>migration</kind>
+        <symbol>RLS policies for installments</symbol>
+        <lines>N/A - to be created</lines>
+        <reason>Row-Level Security policies on installments table filtering by agency_id for multi-tenant data isolation</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <reason>Supabase client for database operations</reason>
+      </node>
+      <node>
+        <package>react-hook-form</package>
+        <version>7.66.0</version>
+        <reason>Form state management for multi-step wizard with minimal re-renders</reason>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>4.x</version>
+        <reason>TypeScript-first schema validation for wizard steps</reason>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>4.1.0</version>
+        <reason>Date manipulation utilities (addDays, subDays, addMonths) for due date calculations</reason>
+      </node>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>5.90.7</version>
+        <reason>Server state management, API mutations for payment plan creation</reason>
+      </node>
+      <node>
+        <package>@tanstack/react-table</package>
+        <version>8.21.3</version>
+        <reason>Headless table library for installment schedule display</reason>
+      </node>
+      <node>
+        <package>zustand</package>
+        <version>5.0.8</version>
+        <reason>Client state management for wizard state across steps (optional, could use useState)</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-Step Wizard Pattern: Use 3-step wizard (General Info → Payment Structure → Review). Maintain state across steps using Zustand or useState. Validate each step before progression. Allow editing previous steps.</constraint>
+    <constraint>Commission Calculation: Commissionable Value = Total Course Value - Materials Cost - Admin Fees - Other Fees. If GST exclusive: base = commissionable_value / 1.10. Expected Commission = base * commission_rate.</constraint>
+    <constraint>Dual Timeline: Each installment has student_due_date AND college_due_date. Formula: student_due_date = college_due_date - student_lead_time_days. Ensures agency buffer time to collect from student before paying college.</constraint>
+    <constraint>Installment Numbering: Initial payment = installment_number 0 with is_initial_payment = true. Regular installments = 1, 2, 3...N. Sort by installment_number for display.</constraint>
+    <constraint>Database Transaction: Use single transaction to create payment_plan + all installments atomically. Rollback entire operation if any installment fails. Ensures data consistency.</constraint>
+    <constraint>RLS Enforcement: All database queries filtered by agency_id via Row-Level Security. Applies to both payment_plans and installments tables.</constraint>
+    <constraint>Validation Rule: SUM(initial_payment + all installments) MUST equal total_course_value. Display validation error if amounts don't reconcile before allowing save.</constraint>
+    <constraint>All commission-eligible installments: generates_commission = true. Non-commissionable fees tracked separately but included in total course value.</constraint>
+    <constraint>Project Structure: Payments zone at apps/payments/. Wizard components in apps/payments/app/plans/new/components/. Shared utilities in packages/utils/src/. Database migrations in supabase/migrations/003_payments_domain/.</constraint>
+    <constraint>Testing Standards: Write unit tests for commission calculation utilities. Write integration tests for API route with installments. Write E2E test for full 3-step wizard flow. Test RLS policies on installments table.</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/payment-plans</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/payment-plans - Creates payment plan with installments in single transaction</signature>
+      <path>apps/payments/app/api/payment-plans/route.ts</path>
+      <reason>Enhanced from Story 4.1 to accept full wizard payload including installments. Creates payment_plan record + initial payment installment (if amount > 0) + regular installments (1..N). Returns created plan with installments.</reason>
+    </interface>
+    <interface>
+      <name>POST /api/payment-plans/[id]/generate-installments</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/payment-plans/[id]/generate-installments - Generates draft installments for preview (does not save)</signature>
+      <path>apps/payments/app/api/payment-plans/[id]/generate-installments/route.ts</path>
+      <reason>Accepts Step 2 data (initial payment, number of installments, frequency, fees, due dates). Calculates commissionable value, distributes across installments, generates due dates. Returns JSON for preview in Step 3.</reason>
+    </interface>
+    <interface>
+      <name>calculateCommissionableValue</name>
+      <kind>TypeScript function</kind>
+      <signature>calculateCommissionableValue(plan: {total_course_value, materials_cost, admin_fees, other_fees}): number</signature>
+      <path>packages/utils/src/commission-calculator.ts</path>
+      <reason>Calculates commission-eligible amount by subtracting non-commissionable fees from total course value. Used for client-side real-time preview in wizard Step 2.</reason>
+    </interface>
+    <interface>
+      <name>calculateExpectedCommission</name>
+      <kind>TypeScript function</kind>
+      <signature>calculateExpectedCommission(plan: {commissionable_value, commission_rate, gst_inclusive}): number</signature>
+      <path>packages/utils/src/commission-calculator.ts</path>
+      <reason>Calculates expected commission with GST handling. If gst_inclusive: use commissionable_value. If not: base = commissionable_value / 1.10. Returns base * commission_rate.</reason>
+    </interface>
+    <interface>
+      <name>calculateStudentDueDate</name>
+      <kind>TypeScript function</kind>
+      <signature>calculateStudentDueDate(collegeDueDate: Date, studentLeadTimeDays: number): Date</signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+      <reason>Calculates when student must pay based on college due date and lead time buffer. Formula: subDays(collegeDueDate, studentLeadTimeDays).</reason>
+    </interface>
+    <interface>
+      <name>generateInstallmentDueDates</name>
+      <kind>TypeScript function</kind>
+      <signature>generateInstallmentDueDates(firstDueDate: Date, count: number, frequency: 'monthly' | 'quarterly'): Date[]</signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+      <reason>Generates array of due dates for installments. Monthly: add 1 month per installment. Quarterly: add 3 months per installment. Returns Date[].</reason>
+    </interface>
+    <interface>
+      <name>calculate_commissionable_value</name>
+      <kind>PostgreSQL function</kind>
+      <signature>calculate_commissionable_value(total_value DECIMAL, materials DECIMAL, admin DECIMAL, other DECIMAL) RETURNS DECIMAL</signature>
+      <path>supabase/migrations/003_payments_domain/006_commission_functions.sql</path>
+      <reason>Database function for server-side commission calculation. Returns total_value - materials - admin - other. Used in triggers and queries.</reason>
+    </interface>
+    <interface>
+      <name>calculate_expected_commission</name>
+      <kind>PostgreSQL function</kind>
+      <signature>calculate_expected_commission(commissionable_value DECIMAL, commission_rate DECIMAL, gst_inclusive BOOLEAN) RETURNS DECIMAL</signature>
+      <path>supabase/migrations/003_payments_domain/006_commission_functions.sql</path>
+      <reason>Database function for commission calculation with GST handling. If gst_inclusive: base = commissionable_value. Else: base = commissionable_value / 1.10. Returns base * commission_rate.</reason>
+    </interface>
+    <interface>
+      <name>update_payment_plan_commissions</name>
+      <kind>PostgreSQL trigger function</kind>
+      <signature>TRIGGER update_payment_plan_commissions BEFORE INSERT OR UPDATE ON payment_plans</signature>
+      <path>supabase/migrations/003_payments_domain/007_commission_triggers.sql</path>
+      <reason>Auto-calculates and updates commissionable_value and expected_commission on payment_plans INSERT/UPDATE. Ensures consistency and eliminates manual calculation errors.</reason>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Testing follows architecture.md standards: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E. All tests in __tests__/ directory. Test commission calculation utilities with various fee combinations and GST scenarios. Test due date calculations with different lead times and frequencies. Integration tests for API routes with database transactions. E2E test for full 3-step wizard flow including validation errors and navigation.</standards>
+    <locations>
+      <location>packages/utils/src/__tests__/commission-calculator.test.ts</location>
+      <location>packages/utils/src/__tests__/date-helpers.test.ts</location>
+      <location>apps/payments/__tests__/integration/payment-plans-api.test.ts</location>
+      <location>apps/payments/__tests__/components/PaymentPlanWizard.test.tsx</location>
+      <location>__tests__/e2e/payment-plan-wizard.spec.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="3, 4, 5">Test calculateCommissionableValue() with various combinations of materials_cost, admin_fees, other_fees. Verify correct subtraction from total_course_value.</idea>
+      <idea ac="4, 5, 8">Test calculateExpectedCommission() with gst_inclusive=true and gst_inclusive=false. Verify GST removal (divide by 1.10) when exclusive. Test edge cases: 0% commission rate, 100% commission rate.</idea>
+      <idea ac="7">Test calculateStudentDueDate() with various student_lead_time_days values (7, 14, 30). Verify correct date subtraction using subDays(). Test edge case: lead time = 0.</idea>
+      <idea ac="4">Test generateInstallmentDueDates() for monthly frequency (add 1 month per installment). Test for quarterly frequency (add 3 months per installment). Verify correct date array generation for 11 installments.</idea>
+      <idea ac="11">Test POST /api/payment-plans API integration with full wizard payload. Verify payment_plan record created. Verify initial payment installment created (installment_number=0) when initial_payment_amount > 0. Verify regular installments created (1..N). Test transaction rollback on error.</idea>
+      <idea ac="11">Test validation: SUM(initial_payment + installments) must equal total_course_value. Test error response when amounts don't reconcile. Test validation passes when amounts match.</idea>
+      <idea ac="All">Test RLS policies on installments table. Verify user can only query installments for their agency_id. Test cross-agency access denied.</idea>
+      <idea ac="1, 2, 8, 9, 10, 11">E2E test full 3-step wizard: Complete Step 1 (student, course, commission), proceed to Step 2 (initial payment, installments, fees, dates, GST), generate installments, review Step 3 (summary, table), navigate back to edit Step 1, proceed again, save payment plan. Verify database records created correctly.</idea>
+      <idea ac="10, 11">Test wizard navigation: Edit button in Step 3 returns to Step 1. Data persists across navigation. Validation errors prevent progression. Test "Next" button disabled when required fields empty.</idea>
+      <idea ac="6">Test real-time commission preview updates in Step 2. Change total_course_value, verify commission recalculates. Change materials_cost, verify commission decreases. Toggle gst_inclusive, verify commission changes.</idea>
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,273 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6.3</storyId>
+    <title>Commission Breakdown by College</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-3-commission-breakdown-by-college.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to see commission breakdown by college/branch with tax details</iWant>
+    <soThat>I know which institutions are most valuable, understand tax implications, and can prioritize relationships</soThat>
+    <tasks>
+- Task 1: Create Commission Breakdown API Route (AC: #1-4, 7)
+  - Create API route: GET /api/dashboard/commission-by-college
+  - Accept query parameters: period, college_id, branch_id
+  - Query payment_plans joined with enrollments, branches, colleges
+  - Aggregate per college/branch: total_expected_commission, total_earned_commission, outstanding_commission, total_gst, total_with_gst
+  - Return sorted by earned_commission DESC
+  - Apply RLS for agency_id filtering
+  - Add 5-minute cache for performance
+
+- Task 2: Create CommissionBreakdownTable Component (AC: #1-3, 6-7)
+  - Create React component using TanStack Table
+  - Display columns: College, Branch, Total Commissions, Total GST, Total (Commission + GST), Expected, Earned, Outstanding
+  - Implement column sorting with visual indicators
+  - Format amounts using agency currency
+  - Highlight top 3 performing colleges
+  - Display GST amounts in separate column
+
+- Task 3: Implement Filter Controls (AC: #4)
+  - Add filter UI: Time Period Dropdown, College Filter, Branch Filter
+  - Use Zustand store to persist filters
+  - Refetch data on filter change
+  - Add "Clear Filters" button
+
+- Task 4: Implement Drill-Down to Payment Plans (AC: #5)
+  - Make college/branch names clickable links
+  - Add "View Payment Plans" button in rows
+  - Navigate to filtered payment plans view
+
+- Task 5: Add Summary Metrics (AC: #1, 7)
+  - Display summary cards: Total Commissions Earned, Total GST, Total Amount, Outstanding Commission
+  - Update summaries when filters change
+  - Show percentage breakdown
+
+- Task 6: Add Widget Header and Controls (AC: #1, 4)
+  - Widget container with title, refresh button, export button
+  - College/branch filter controls
+  - Date range indicator
+
+- Task 7: Integrate GST Calculation Logic (AC: #7)
+  - Create utility function: calculateGST(amount, rate, inclusive)
+  - Query colleges.gst_status and payment_plans.gst_inclusive
+  - Default GST rate: 10% for Australian agencies
+  - Display GST calculations clearly with tooltips
+
+- Task 8: Integrate into Dashboard Page (AC: #1)
+  - Import component into apps/dashboard/app/page.tsx
+  - Position below Cash Flow Chart
+  - Full-width row layout
+  - Consistent styling with other widgets
+
+- Task 9: Testing (AC: All)
+  - API route unit tests: aggregation, filtering, GST calculation, RLS
+  - Component tests: table rendering, sorting, filtering, drill-down, loading/error states
+  - Integration tests: dashboard load, filter application, navigation
+  - Responsive design testing
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given I am viewing the dashboard, when I access the commission breakdown widget, then I see a table or chart showing commission earned per college/branch
+
+2. And each row shows: college name, branch name, total commissions, total GST, total commission + GST, total expected commission, total earned commission, outstanding commission
+
+3. And the list is sortable by any column
+
+4. And I can filter by college, branch, and time period (all time, this year, this quarter, this month)
+
+5. And clicking a college/branch drills down to see associated payment plans
+
+6. And the widget highlights top-performing colleges
+
+7. And tax calculations (GST) are displayed separately and as combined totals
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Business Intelligence Dashboard - Story 6.3</title>
+        <section>Story 6.3: Commission Breakdown by College</section>
+        <snippet>Technical implementation requires JOIN payment_plans → enrollments → branches → colleges, aggregate commission data by college/branch, calculate GST based on tax rate, sort by earned_commission DESC, and create CommissionBreakdownTable component with TanStack Table.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Commission Calculation Pattern</title>
+        <section>Pattern 2: Commission Calculation Engine</section>
+        <snippet>Commissions are calculated with multi-tier fee deductions and GST handling. GST can be inclusive or exclusive. Earned commission is calculated proportionally as payments are received. Database functions calculate_commissionable_value and calculate_expected_commission handle core logic.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Dashboard Zone</title>
+        <section>Epic 6: Dashboard Microfrontend Zone</section>
+        <snippet>Dashboard zone at apps/dashboard/ contains KPI widgets, charts, and analytics. Uses Recharts for visualizations, TanStack Query for server state, Zustand for client state. Components follow widget pattern with loading/error states and 5-minute caching.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Database Schema</title>
+        <section>Payment Plans Domain</section>
+        <snippet>payment_plans table includes expected_commission, gst_inclusive fields. Installments track paid_amount and status. Commissions calculated from: SUM(installments.paid_amount WHERE status='paid') / payment_plan.total_amount * payment_plan.expected_commission</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-2-cash-flow-projection-chart.md</path>
+        <title>Previous Story - Cash Flow Projection Chart</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>Dashboard zone established at apps/dashboard/. TanStack Query caching configured with 5-minute stale time. Recharts library installed and patterns established. Currency formatting utility available. RLS policies auto-filter by agency_id. View toggle state pattern using Zustand dashboard-store.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <note>This is a greenfield project - no existing code to reuse. Implementation will follow architecture patterns and create new components/utilities as specified in story tasks.</note>
+      <expectedFiles>
+        <file>
+          <path>apps/dashboard/app/api/commission-by-college/route.ts</path>
+          <kind>API Route</kind>
+          <purpose>Commission breakdown query endpoint with filtering and aggregation</purpose>
+        </file>
+        <file>
+          <path>apps/dashboard/app/components/CommissionBreakdownTable.tsx</path>
+          <kind>React Component</kind>
+          <purpose>Main table component using TanStack Table with sorting/filtering</purpose>
+        </file>
+        <file>
+          <path>packages/utils/src/commission-calculator.ts</path>
+          <kind>Utility Module</kind>
+          <purpose>GST calculation functions (calculateGST, calculateEarnedCommission)</purpose>
+        </file>
+        <file>
+          <path>packages/utils/src/formatters.ts</path>
+          <kind>Utility Module</kind>
+          <purpose>Currency formatting function (formatCurrency)</purpose>
+        </file>
+        <file>
+          <path>packages/stores/src/dashboard-store.ts</path>
+          <kind>Zustand Store</kind>
+          <purpose>Dashboard state management including commission filter state</purpose>
+        </file>
+      </expectedFiles>
+    </code>
+    <dependencies>
+      <node>
+        <package>@tanstack/react-table</package>
+        <version>8.21.3</version>
+        <purpose>Headless table library for sortable data grid</purpose>
+      </node>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>5.90.7</version>
+        <purpose>Server state management with caching and refetch</purpose>
+      </node>
+      <node>
+        <package>zustand</package>
+        <version>5.0.8</version>
+        <purpose>Client-side state for filter persistence</purpose>
+      </node>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <version>latest</version>
+        <purpose>Database client with RLS support</purpose>
+      </node>
+      <node>
+        <package>zod</package>
+        <version>4.x</version>
+        <purpose>Schema validation for API parameters</purpose>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>4.1.0</version>
+        <purpose>Date manipulation for time period filtering</purpose>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="architecture">Component must be created in apps/dashboard/ zone following microfrontend architecture. Use basePath: /dashboard for routing.</constraint>
+    <constraint category="database">All queries MUST respect Row-Level Security (RLS) policies. Use server-side Supabase client. Agency_id filtering is automatic via RLS.</constraint>
+    <constraint category="commission-calculation">GST calculation must handle both inclusive and exclusive modes: If gst_inclusive=true, GST = commission / (1 + rate) * rate. If false, GST = commission * rate. Default rate: 10% (0.1).</constraint>
+    <constraint category="commission-calculation">Earned commission calculated proportionally: earned = (total_paid / total_amount) * expected_commission. Only count installments with status='paid'.</constraint>
+    <constraint category="performance">API route must implement 5-minute cache using Next.js revalidate or Vercel Edge caching. TanStack Query stale time: 5 minutes.</constraint>
+    <constraint category="state-management">Use TanStack Query for server state (commission data). Use Zustand dashboard-store for filter state persistence (period, college_id, branch_id).</constraint>
+    <constraint category="ui-patterns">Follow established dashboard widget pattern: loading skeleton, error state with retry, empty state with CTA. Consistent styling with KPI widgets and Cash Flow Chart.</constraint>
+    <constraint category="accessibility">Table must use semantic HTML (thead, tbody, th, td). Sortable headers need aria-sort attribute. Minimum color contrast ratio: 4.5:1 (WCAG AA).</constraint>
+    <constraint category="testing">Required tests: API route unit tests (aggregation, filtering, GST), component tests (rendering, sorting, filtering), integration tests (navigation, drill-down).</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/dashboard/commission-by-college</name>
+      <kind>REST API Endpoint</kind>
+      <signature>GET /api/dashboard/commission-by-college?period={all|year|quarter|month}&amp;college_id={uuid}&amp;branch_id={uuid}
+
+Response: { data: [ { college_id, college_name, branch_id, branch_name, branch_city, total_commissions, total_gst, total_with_gst, total_expected_commission, total_earned_commission, outstanding_commission, payment_plan_count } ] }</signature>
+      <path>apps/dashboard/app/api/commission-by-college/route.ts</path>
+    </interface>
+    <interface>
+      <name>calculateGST</name>
+      <kind>TypeScript Function</kind>
+      <signature>function calculateGST(commissionAmount: number, gstRate: number, gstInclusive: boolean): number</signature>
+      <path>packages/utils/src/commission-calculator.ts</path>
+    </interface>
+    <interface>
+      <name>calculateEarnedCommission</name>
+      <kind>TypeScript Function</kind>
+      <signature>function calculateEarnedCommission(totalPaid: number, totalAmount: number, expectedCommission: number): number</signature>
+      <path>packages/utils/src/commission-calculator.ts</path>
+    </interface>
+    <interface>
+      <name>formatCurrency</name>
+      <kind>TypeScript Function</kind>
+      <signature>function formatCurrency(amount: number, currency: string): string</signature>
+      <path>packages/utils/src/formatters.ts</path>
+    </interface>
+    <interface>
+      <name>Database: payment_plans</name>
+      <kind>PostgreSQL Table</kind>
+      <signature>payment_plans (id, agency_id, enrollment_id, total_amount, expected_commission, gst_inclusive, status, created_at)</signature>
+      <path>supabase/migrations/003_payments_domain/001_payment_plans_schema.sql</path>
+    </interface>
+    <interface>
+      <name>Database: installments</name>
+      <kind>PostgreSQL Table</kind>
+      <signature>installments (id, payment_plan_id, agency_id, amount, paid_amount, status, student_due_date, paid_date)</signature>
+      <path>supabase/migrations/003_payments_domain/002_installments_schema.sql</path>
+    </interface>
+    <interface>
+      <name>Database: colleges</name>
+      <kind>PostgreSQL Table</kind>
+      <signature>colleges (id, agency_id, name, gst_status, default_commission_rate_percent)</signature>
+      <path>supabase/migrations/002_entities_domain/001_colleges_schema.sql</path>
+    </interface>
+    <interface>
+      <name>Database: branches</name>
+      <kind>PostgreSQL Table</kind>
+      <signature>branches (id, college_id, agency_id, name, city, commission_rate_percent)</signature>
+      <path>supabase/migrations/002_entities_domain/002_branches_schema.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Testing follows architecture standards: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E integration tests. All tests must respect TypeScript strict mode. Coverage target: 80% for critical business logic (commission calculations, GST). API routes tested with mocked Supabase client. Components tested with mocked TanStack Query.</standards>
+    <locations>
+      <location>apps/dashboard/__tests__/api/commission-by-college.test.ts</location>
+      <location>apps/dashboard/__tests__/components/CommissionBreakdownTable.test.tsx</location>
+      <location>packages/utils/src/commission-calculator.test.ts</location>
+      <location>__tests__/e2e/dashboard-commission-breakdown.spec.ts</location>
+    </locations>
+    <ideas>
+      <test ac="1,2,7">API Route: Test commission aggregation by college/branch with GST calculation (inclusive and exclusive modes). Verify correct SUM of expected, earned, outstanding commissions.</test>
+      <test ac="4">API Route: Test time period filtering (all, year, quarter, month). Verify date range filters apply correctly to payment_plans.created_at.</test>
+      <test ac="4">API Route: Test college_id and branch_id filtering. Verify RLS policies filter by agency_id automatically.</test>
+      <test ac="3">Component: Test column sorting - click header to sort ASC/DESC. Verify visual indicators (arrows) display correctly.</test>
+      <test ac="4">Component: Test filter controls - select period/college/branch triggers refetch with new parameters. Verify "Clear Filters" resets state.</test>
+      <test ac="5">Component: Test drill-down links - click college name navigates to /entities/colleges/[id]. Click branch navigates with branch filter.</test>
+      <test ac="6">Component: Test top performer highlighting - verify top 3 colleges by earned_commission have visual badges.</test>
+      <test ac="1">Integration: E2E test - login, navigate to dashboard, verify commission breakdown table renders with data.</test>
+      <test ac="7">Unit: Test calculateGST function with inclusive mode (GST extracted) and exclusive mode (GST added). Test edge cases (zero amount, negative).</test>
+    </ideas>
+  </tests>
+</story-context>

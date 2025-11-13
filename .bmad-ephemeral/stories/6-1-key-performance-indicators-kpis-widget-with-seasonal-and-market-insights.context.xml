@@ -1,0 +1,321 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>1</storyId>
+    <title>Key Performance Indicators (KPIs) Widget with Seasonal and Market Insights</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to see high-level KPIs with seasonal trends and market breakdown on my dashboard</iWant>
+    <soThat>I can quickly assess business health, identify peak months, and understand which schools and markets drive the most commission</soThat>
+    <tasks>
+      - Task 1: Create KPI Metrics API Route (AC: #1-7)
+        • Create API route: GET /api/dashboard/kpis
+        • Query database to calculate: active_students, active_payment_plans, outstanding_amount, earned_commission, collection_rate
+        • Query previous month's values for trend comparison
+        • Apply RLS and 5-minute caching
+
+      - Task 2: Create Seasonal Commission API Route (AC: #8-10)
+        • Create API route: GET /api/dashboard/seasonal-commission
+        • Query 12-month commission data grouped by month
+        • Include year-over-year comparison if available
+        • Identify peak and quiet months
+
+      - Task 3: Create Commission by School API Route (AC: #11-13)
+        • Create API route: GET /api/dashboard/commission-by-school
+        • Query top 5 schools by commission with percentage share
+        • Calculate trend vs previous month
+
+      - Task 4: Create Commission by Country API Route (AC: #14-16)
+        • Create API route: GET /api/dashboard/commission-by-country
+        • Query top 5 countries by commission with percentage share
+        • Handle NULL nationality gracefully
+
+      - Task 5: Create KPIWidget Component (AC: #1-7)
+        • React component with 5 metric cards and trend indicators
+        • Use TanStack Query for data fetching
+
+      - Task 6: Create SeasonalCommissionChart Component (AC: #8-10)
+        • Recharts line chart with peak/quiet month visual indicators
+        • Year-over-year comparison line if data available
+
+      - Task 7: Create CommissionBySchoolWidget Component (AC: #11-13)
+        • Horizontal bar chart/table for top 5 schools with trends
+
+      - Task 8: Create CommissionByCountryWidget Component (AC: #14-16)
+        • Horizontal bar chart/table for top 5 countries with trends
+
+      - Task 9: Integrate Widgets into Dashboard Page (AC: All)
+        • Responsive grid layout with section headings
+
+      - Task 10: Testing (AC: All)
+        • Unit tests for API routes and components
+        • Integration tests for dashboard
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Dashboard displays KPI cards with core business metrics
+    2. Total active students count shown
+    3. Total active payment plans count shown
+    4. Total outstanding amount (unpaid installments) shown
+    5. Total earned commission (from paid installments) shown
+    6. Payment collection rate percentage shown
+    7. Each KPI shows trend indicator vs last month (↑ green, ↓ red, → gray)
+    8. Seasonal commission chart shows 12-month data
+    9. Chart highlights peak and quiet months visually
+    10. Year-over-year comparison shown if historical data available
+    11. Top 5 schools by commission displayed with amounts
+    12. Percentage share per school shown
+    13. Trend indicator per school shown
+    14. Top 5 countries by commission displayed with amounts
+    15. Percentage share per country shown
+    16. Trend indicator per country shown
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Executive Summary</section>
+        <snippet>Pleeno transforms agencies from perpetual financial anxiety into confident, data-driven operations. The "wow moment" is opening the dashboard Monday morning and instantly seeing payments auto-updated, installments flagged due soon/overdue, and 90-day cash flow projection—transforming chaos to clarity in seconds.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Success Criteria - Product Performance Metrics</section>
+        <snippet>Dashboard load time: <2 seconds. Data accuracy: Zero calculation errors in commission logic. Multi-tenant isolation: Zero data leakage between agencies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Decision Summary</section>
+        <snippet>Frontend: Next.js 15 with App Router, TypeScript strict mode, Tailwind CSS + Shadcn UI. State: Zustand (client), TanStack Query (server). Charts: Recharts 3.3.0. Database: PostgreSQL via Supabase with RLS. Multi-Zones Microfrontends for independent deployments.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Project Structure - Dashboard Zone</section>
+        <snippet>Dashboard zone at apps/dashboard/ with basePath /dashboard. Contains page.tsx (main dashboard), api/ routes, and components/ for widgets. Shell app proxies /dashboard requests via next.config.js rewrites.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Pattern 2: Commission Calculation Engine</section>
+        <snippet>Earned commission = (paid_amount / total_amount) * expected_commission. Calculate proportionally as payments received. Filter by generates_commission = true to exclude non-commissionable fees. PostgreSQL function calculate_earned_commission() handles complex logic with GST.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Date Handling Pattern</section>
+        <snippet>Use date-fns and date-fns-tz for timezone-aware calculations. Always store UTC, display in agency timezone. Functions: formatDateInAgencyTimezone(), formatRelativeTime(), calculateStudentDueDate().</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Dashboard Endpoints API</section>
+        <snippet>GET /api/dashboard/kpis returns current metrics + trends. GET /api/dashboard/cash-flow-projection with time series data. GET /api/dashboard/commission-by-college with aggregated commission data. All endpoints use 5-minute cache.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Multi-Tenant Isolation (RLS)</section>
+        <snippet>RLS policy pattern: CREATE POLICY "tenant_isolation" ON {table} USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid())). Impossible to query other agencies' data—enforced at DB level.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Performance Considerations - Database Indexes</section>
+        <snippet>Critical indexes: idx_installments_agency_status, idx_installments_paid_date, idx_payment_plans_agency_status, idx_students_agency_status. Use database aggregation (SUM, COUNT, GROUP BY) instead of fetching all rows.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Caching Strategy - TanStack Query</section>
+        <snippet>KPI data: 5-minute stale time. Payment plans: 1-minute stale time. Static data: 1-hour stale time. Use queryClient.setQueryDefaults() for configuration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 6: Business Intelligence Dashboard</section>
+        <snippet>Goal: Surface critical KPIs, cash flow projections, and actionable insights through interactive dashboard—delivering transformation from chaos to control. Story 6.1 adds KPIs with seasonal trends and market breakdown by school and country.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 6.1 Technical Notes</section>
+        <snippet>Implement API routes for KPIs, seasonal data, school breakdown, and country breakdown. Calculate metrics: active_students (COUNT), active_payment_plans (COUNT), outstanding_amount (SUM pending/overdue), earned_commission (SUM), collection_rate (%). Show trends vs previous month. Top 5 schools and countries with percentage shares.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - greenfield project -->
+      <note>This is a greenfield project with no existing code. All components and API routes will be created from scratch following the architecture patterns documented in docs/architecture.md.</note>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js/npm">
+        <package name="next" version="15.x" purpose="React framework with App Router" />
+        <package name="react" version="19.x" purpose="UI library" />
+        <package name="typescript" version="5.x" purpose="Static typing" />
+        <package name="@supabase/supabase-js" purpose="Database client" />
+        <package name="@supabase/ssr" purpose="Server-side rendering support" />
+        <package name="zustand" version="5.0.8" purpose="Client state management" />
+        <package name="@tanstack/react-query" version="5.90.7" purpose="Server state and caching" />
+        <package name="react-hook-form" version="7.66.0" purpose="Form management" />
+        <package name="zod" version="4.x" purpose="Schema validation" />
+        <package name="date-fns" version="4.1.0" purpose="Date manipulation" />
+        <package name="date-fns-tz" purpose="Timezone support" />
+        <package name="recharts" version="3.3.0" purpose="Charts and visualizations" />
+        <package name="@tanstack/react-table" version="8.21.3" purpose="Table components" />
+        <package name="tailwindcss" version="4.x" purpose="Utility-first CSS" />
+        <package name="shadcn/ui" purpose="Accessible UI components" />
+      </ecosystem>
+      <ecosystem name="Monorepo">
+        <package name="turborepo" purpose="Build caching and orchestration" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      Multi-zone microfrontend architecture: Dashboard lives in apps/dashboard/ zone with independent deployment. Shell app at apps/shell/ handles routing and proxies /dashboard requests.
+    </constraint>
+    <constraint type="security">
+      All database queries MUST respect Row-Level Security (RLS) policies. Use server-side Supabase client (not anon key) in API routes. JWT auth middleware protects dashboard routes. No cross-agency data access possible.
+    </constraint>
+    <constraint type="performance">
+      Dashboard load time target: <2 seconds. API responses cached for 5 minutes. Database queries use indexes and aggregation (SUM, COUNT, GROUP BY). Limit result sets (top 5 schools, top 5 countries).
+    </constraint>
+    <constraint type="database">
+      Database schema: agencies (currency, timezone), students (nationality), payment_plans (earned_commission), installments (status, amount, paid_date), enrollments (links), colleges (name, id), branches (college_id). Use calculate_earned_commission() PostgreSQL function.
+    </constraint>
+    <constraint type="date-handling">
+      Use agency timezone for all date calculations. Current month: first to last day in agency timezone. Previous month: one month back. Last 12 months: rolling window. Use date-fns and date-fns-tz libraries.
+    </constraint>
+    <constraint type="commission-calculation">
+      Earned commission = (paid_amount / total_amount) * expected_commission. Filter by generates_commission = true. Use proportional calculation as payments received. Reference: docs/architecture.md#Pattern 2.
+    </constraint>
+    <constraint type="styling">
+      Use Tailwind CSS for styling. Shadcn UI for components. Color coding: green for positive trends/paid, yellow/amber for due soon, red for overdue/negative trends, gray for neutral.
+    </constraint>
+    <constraint type="state-management">
+      TanStack Query for server state (API caching, mutations). Zustand for client state (filters, UI state). 5-minute stale time for KPI data. Background refetch on window focus.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/dashboard/kpis</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: {
+          success: true,
+          data: {
+            active_students: number,
+            active_payment_plans: number,
+            outstanding_amount: number,
+            earned_commission: number,
+            collection_rate: number,
+            trends: {
+              active_students: 'up' | 'down' | 'neutral',
+              active_payment_plans: 'up' | 'down' | 'neutral',
+              outstanding_amount: 'up' | 'down' | 'neutral',
+              earned_commission: 'up' | 'down' | 'neutral',
+              collection_rate: 'up' | 'down' | 'neutral'
+            }
+          }
+        }
+      </signature>
+      <path>To be created: apps/dashboard/app/api/kpis/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/dashboard/seasonal-commission</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: {
+          success: true,
+          data: Array&lt;{
+            month: string,
+            commission: number,
+            year_over_year_change?: number,
+            is_peak?: boolean,
+            is_quiet?: boolean
+          }&gt;
+        }
+      </signature>
+      <path>To be created: apps/dashboard/app/api/seasonal-commission/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/dashboard/commission-by-school</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: {
+          success: true,
+          data: Array&lt;{
+            college_id: string,
+            college_name: string,
+            commission: number,
+            percentage_share: number,
+            trend: 'up' | 'down' | 'neutral'
+          }&gt;
+        }
+      </signature>
+      <path>To be created: apps/dashboard/app/api/commission-by-school/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/dashboard/commission-by-country</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: {
+          success: true,
+          data: Array&lt;{
+            country: string,
+            commission: number,
+            percentage_share: number,
+            trend: 'up' | 'down' | 'neutral'
+          }&gt;
+        }
+      </signature>
+      <path>To be created: apps/dashboard/app/api/commission-by-country/route.ts</path>
+    </interface>
+    <interface>
+      <name>calculate_earned_commission()</name>
+      <kind>PostgreSQL function</kind>
+      <signature>
+        CREATE OR REPLACE FUNCTION calculate_earned_commission(plan_id UUID)
+        RETURNS DECIMAL AS $$
+        -- Returns earned commission based on paid installments
+        -- Formula: (paid_amount / total_amount) * expected_commission
+        -- Filters by generates_commission = true
+      </signature>
+      <path>To be created: supabase/migrations/003_payments_domain/003_commission_functions.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E (optional). Test files colocated with components or in __tests__/ directory. Mock Supabase client queries in unit tests. Test loading states, error states, and edge cases. Verify currency formatting respects agency settings. Test trend calculations (positive, negative, zero change).
+    </standards>
+    <locations>
+      - apps/dashboard/app/api/**/*.test.ts (API route tests)
+      - apps/dashboard/app/components/**/*.test.tsx (component tests)
+      - __tests__/e2e/dashboard.spec.ts (integration tests)
+    </locations>
+    <ideas>
+      AC #1-7: Test KPI API route with mock data, verify aggregation logic, test trend calculation (previous month comparison). Test KPIWidget component renders 5 cards correctly, displays trend arrows, formats currency, handles loading/error states.
+
+      AC #8-10: Test seasonal commission API with 12-month mock data, verify peak/quiet month detection, test year-over-year calculation. Test SeasonalCommissionChart renders Recharts line chart, highlights peak/quiet months, displays tooltip on hover.
+
+      AC #11-13: Test commission-by-school API returns top 5 sorted by commission, calculates percentage share correctly, compares to previous month. Test CommissionBySchoolWidget displays horizontal bars, shows trends, links to college detail page.
+
+      AC #14-16: Test commission-by-country API handles NULL nationality as "Unknown", calculates percentage share, compares trends. Test CommissionByCountryWidget displays country names (with flags if possible), shows progress bars, handles "Unknown" gracefully.
+
+      Integration: E2E test login → navigate to /dashboard → verify all 4 widgets display with data → verify clicking school/country navigates correctly. Test dashboard loads within 2-second performance target.
+    </ideas>
+  </tests>
+</story-context>

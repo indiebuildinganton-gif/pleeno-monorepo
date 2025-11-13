@@ -1,0 +1,217 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>College Registry</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/3-1-college-registry.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to create and manage a registry of colleges, their branch locations, and contact information</iWant>
+    <soThat>I can associate students and payment plans with specific institutions, track commissions by branch, monitor GST status, and maintain contact details for each college</soThat>
+    <tasks>
+- Create colleges domain database schema (AC: 1-4)
+- Create branches schema (AC: 5-8)
+- Create college contacts schema (AC: 9-13)
+- Create college notes schema (AC: 17-19)
+- Create activity feed infrastructure (AC: 14-16)
+- Implement colleges API endpoints (CRUD operations)
+- Implement branches API endpoints
+- Implement contacts API endpoints
+- Implement notes API endpoints
+- Implement activity API endpoint
+- Create college list page (Server Component)
+- Create college detail page (Server Component)
+- Create college form component (Client Component)
+- Create branch form component (Client Component)
+- Create contact form component (Client Component)
+- Create activity feed component (Client Component)
+- Create notes section component (Client Component)
+- Create validation schemas (Zod)
+- Add admin permission checks
+- Write comprehensive tests
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Admin can view all colleges in their agency
+2. Admin can create college with name, city, commission rate, GST status
+3. Admin can edit existing college information
+4. Admin can toggle GST status between "Included" and "Excluded"
+5. Admin can add branches with name and city
+6. Default commission rate auto-filled for new branches (editable)
+7. Branches displayed as clickable links: "College Name — Branch City"
+8. Each branch has associated commission rate (percentage)
+9. Admin can add multiple contacts with name, role/department, position/title, email, phone
+10. Contacts display role/department in parentheses: "Lina Perez (College)"
+11. Contacts show position/title below name
+12. Admin can edit or delete existing contacts
+13. Contact changes logged in activity feed
+14. Activity section shows recent changes (GST status, field updates)
+15. Activity can be filtered by time period ("Last 30 days")
+16. Activity can be searched within the log
+17. Notes section allows adding notes up to 2,000 characters
+18. Character counter displays "0 / 2,000"
+19. Notes saved with timestamp and user attribution
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+- path: docs/epics.md
+  title: Epic Breakdown
+  section: Epic 3: Core Entity Management - Story 3.1
+  snippet: Build the college and student registries that serve as the foundational data entities for all payment tracking. This delivers the "what are we tracking" layer.
+
+- path: docs/PRD.md
+  title: Product Requirements Document
+  section: FR-3: College Management
+  snippet: Create college profile with name, city, commercial terms (commission %, GST settings), payment terms, multiple branches per college with branch-specific commission rates, and contact management.
+
+- path: docs/architecture.md
+  title: System Architecture
+  section: Epic 3: Entities Domain - Database Schema
+  snippet: entities_domain migrations organized in 002_entities_domain/ with colleges, branches, college_contacts, and college_notes tables. RLS policies enforce agency_id isolation. Multi-zone frontend in apps/entities/.
+    </docs>
+
+    <code>
+- path: supabase/migrations/002_entities_domain/
+  kind: database-migration
+  symbol: colleges_schema
+  lines: N/A
+  reason: New migration directory for Epic 3 entities domain schema (colleges, branches, contacts, notes)
+
+- path: apps/entities/
+  kind: microfrontend-zone
+  symbol: entities-zone
+  lines: N/A
+  reason: Dedicated Next.js zone for college and student management (Epic 3)
+
+- path: packages/database/src/client.ts
+  kind: module
+  symbol: createServerClient
+  lines: N/A
+  reason: Supabase server client for RLS-protected database queries in Server Components
+
+- path: packages/validations/
+  kind: module
+  symbol: validation-schemas
+  lines: N/A
+  reason: Shared Zod validation schemas location - will add college.schema.ts
+
+- path: packages/utils/
+  kind: module
+  symbol: utilities
+  lines: N/A
+  reason: Shared utilities location - will add format-branch-link.ts and admin permission helpers
+    </code>
+
+    <dependencies>
+nodejs:
+  - "@supabase/supabase-js": "^2.x"
+  - "@supabase/ssr": "latest"
+  - "next": "15.x"
+  - "react": "19.x"
+  - "typescript": "5.x"
+  - "zod": "4.x"
+  - "react-hook-form": "7.66.0"
+  - "@hookform/resolvers": "latest"
+  - "@tanstack/react-query": "5.90.7"
+  - "@tanstack/react-table": "8.21.3"
+  - "date-fns": "4.1.0"
+  - "tailwindcss": "4.x"
+database:
+  - "postgresql": "15+"
+  - "supabase": "latest"
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Multi-tenant isolation: All queries filtered by agency_id via Row-Level Security (RLS)
+- Admin-only operations: Only agency_admin role can create/edit/delete colleges, branches, contacts
+- RLS policies enforce admin-only access at database level for mutations
+- Regular users can view all entities and add notes, but cannot modify colleges/branches/contacts
+- Commission rate validation: Must be between 0-100%
+- GST status validation: Must be 'included' or 'excluded'
+- Note content limited to 2,000 characters maximum
+- College names must be unique within an agency
+- All database changes must be logged in audit_logs table
+- Branch commission rate inherits from college default if not specified (trigger-based)
+- Cascade delete: Deleting college deletes branches and contacts
+- Soft delete: Prevent college deletion if payment plans exist
+- Email and phone validation if provided in contacts
+- All paths must be project-relative in context files
+- Server Components for initial data fetch, Client Components for interactivity
+- TanStack Query for client-side caching and mutations
+- Follow Next.js 15 App Router patterns with Server Components
+  </constraints>
+
+  <interfaces>
+API Endpoints:
+- GET /api/colleges - List all colleges for agency (paginated)
+- POST /api/colleges - Create new college (admin only)
+- GET /api/colleges/[id] - Get college details with branches and contacts
+- PATCH /api/colleges/[id] - Update college (admin only)
+- DELETE /api/colleges/[id] - Delete college (admin only, check for payment plans)
+- GET /api/colleges/[id]/branches - List branches for college
+- POST /api/colleges/[id]/branches - Create branch (admin only)
+- PATCH /api/branches/[id] - Update branch (admin only)
+- DELETE /api/branches/[id] - Delete branch (admin only)
+- GET /api/colleges/[id]/contacts - List contacts for college
+- POST /api/colleges/[id]/contacts - Add contact (admin only)
+- PATCH /api/contacts/[id] - Update contact (admin only)
+- DELETE /api/contacts/[id] - Delete contact (admin only)
+- GET /api/colleges/[id]/notes - List notes for college
+- POST /api/colleges/[id]/notes - Add note (all authenticated users)
+- GET /api/colleges/[id]/activity?period=30&search=gst - Get activity feed with filters
+
+Database Functions:
+- get_college_activity(p_college_id UUID, p_from_date TIMESTAMPTZ, p_search_query TEXT) RETURNS TABLE - Query activity logs for college, branches, and contacts
+- set_branch_default_commission() RETURNS TRIGGER - Auto-populate branch commission rate from college default
+
+Validation Schemas:
+- CollegeSchema: { name: string (min 2), city?: string, commission_rate: number (0-100), gst_status: 'included' | 'excluded' }
+- BranchSchema: { name: string, city: string, commission_rate?: number (0-100) }
+- ContactSchema: { name: string, role_department?: string, position_title?: string, email?: string (valid format), phone?: string }
+- NoteSchema: { content: string (max 2000) }
+
+Utility Functions:
+- formatBranchLink(collegeName: string, branchCity: string): string - Format branch display as "College Name — Branch City"
+- requireAdmin(supabase): void - Check if current user is agency_admin, throw ForbiddenError if not
+  </interfaces>
+
+  <tests>
+    <standards>
+Following the architecture patterns:
+- Unit tests: Vitest for validation schemas and utility functions
+- Integration tests: Vitest + Supabase local for API endpoints and database operations
+- E2E tests: Playwright for critical user flows (create college, add branch, add contact, add note, filter activity)
+- Test RLS policies: Verify agency isolation and admin-only permissions
+- Test data validation: Commission rates, GST status, email/phone formats, note length
+- Test audit logging: Verify all changes logged with correct user attribution
+- Test cascade delete and soft delete behaviors
+    </standards>
+
+    <locations>
+apps/entities/__tests__/ - E2E tests for college management flows
+apps/entities/app/api/**/*.test.ts - Integration tests for API endpoints
+packages/validations/src/**/*.test.ts - Unit tests for Zod schemas
+packages/utils/src/**/*.test.ts - Unit tests for utility functions
+    </locations>
+
+    <ideas>
+AC 1-2: Test admin can view and create colleges with all required fields
+AC 3-4: Test admin can update college and toggle GST status
+AC 5-8: Test branch creation with default commission rate inheritance
+AC 9-13: Test contact CRUD operations and audit logging
+AC 14-16: Test activity feed filtering and search functionality
+AC 17-19: Test notes with character counter and user attribution
+RLS: Test regular users cannot modify colleges (403), cross-agency access prevented
+Validation: Test commission rate boundaries (0, 50, 100, -1, 101), GST status enum, note length limit
+Deletion: Test soft delete when payment plans exist, cascade delete for branches/contacts
+    </ideas>
+  </tests>
+</story-context>

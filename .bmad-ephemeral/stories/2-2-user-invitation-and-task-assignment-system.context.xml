@@ -1,0 +1,362 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.2</storyId>
+    <title>User Invitation and Task Assignment System</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-2-user-invitation-and-task-assignment-system.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to invite team members to join my agency and assign them specific tasks</iWant>
+    <soThat>I can build my team and flexibly delegate work based on individual needs</soThat>
+    <tasks>
+- Create database schema for invitations and task assignments (AC: 1, 2, 5, 8)
+- Create audit logging schema for user profile changes (AC: 8)
+- Seed master tasks list with common agency tasks (AC: 5)
+- Implement user invitation API route (AC: 1, 2, 3, 4)
+- Implement email sending for invitations (AC: 1, 6)
+- Create invitation acceptance page and flow (AC: 2, 3, 4)
+- Create user management page with invitation capability (AC: 1, 5, 7)
+- Implement task assignment management for existing users (AC: 5, 7, 8)
+- Create task assignment UI for existing users (AC: 7, 8)
+- Implement invitation expiration validation (AC: 2)
+- Display pending invitations in user management (AC: 1)
+- Create validation schemas (AC: 1, 5)
+- Write tests for invitation system (AC: 1-8)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I am an Agency Admin, **When** I invite a new user by email, **Then** an invitation email is sent with a secure signup link
+
+2. **And** the invitation link expires after 7 days
+
+3. **And** the invited user can complete registration with the link
+
+4. **And** the new user is automatically associated with my agency
+
+5. **And** I can assign specific tasks from a master task list (e.g., data entry, document verification, payment processing) by ticking checkboxes
+
+6. **And** the invitation email includes a unique link showing only their assigned tasks
+
+7. **And** I can modify task assignments for existing users at any time
+
+8. **And** all changes to user profiles and task assignments are logged with: who made the change, what was changed, and timestamp
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Pleeno - Epic Breakdown</title>
+        <section>Epic 2: Agency & User Management - Story 2.2</section>
+        <snippet>Enable agency self-service setup and team collaboration through user management, role-based access control, and agency configuration. Story 2.2 implements user invitation flow with task assignment system, allowing admins to invite team members via email with secure signup links that expire after 7 days.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno - Product Requirements Document</title>
+        <section>FR-1.4: User Invitation Flow with Task Assignment</section>
+        <snippet>Admin invites new user via email with invitation email containing unique signup link. New user sets password and completes profile. User assigned role by inviting admin. Admin can assign specific tasks from master task list (e.g., data entry, document verification, payment processing) by ticking checkboxes. Admin can modify task assignments for existing users at any time. All task assignments are logged in audit trail.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Data Architecture - Agency Domain (Invitations)</section>
+        <snippet>Invitations table stores secure tokens (UUID v4), expires after 7 days, tracks invited_by and used_at. Master_tasks table pre-populated with common agency tasks. User_task_assignments links users to tasks with assigned_by tracking. Audit_log table tracks all invitation and task assignment changes with JSONB changes field.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Multi-Stakeholder Notification System (Email Pattern)</section>
+        <snippet>Email integration uses React Email templates with Resend API. Invitations send via Edge Functions or API routes. Database tracking via notification_log prevents duplicate sends. Template includes agency name, inviter name, secure link, and assigned tasks list.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Implementation Patterns - API Route Pattern</section>
+        <snippet>API routes validate request with Zod schema, check user role = 'agency_admin', use Supabase RLS for automatic agency_id filtering, return standardized response format with success/error, handle errors with handleApiError() utility.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/2-1-agency-profile-setup.md</path>
+        <title>Story 2.1: Agency Profile Setup</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Expected infrastructure: agency settings page structure, API route patterns with role checks, validation schemas (Zod), form components (React Hook Form), role-based access helpers, error handling patterns. User management extends agency settings in same zone.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>apps/agency/app/api/invitations/route.ts</path>
+        <kind>API route</kind>
+        <symbol>POST</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Handles invitation creation - validates admin role, generates UUID token, creates invitation record, sends email with task assignments</reason>
+      </artifact>
+      <artifact>
+        <path>apps/agency/app/api/users/[id]/tasks/route.ts</path>
+        <kind>API route</kind>
+        <symbol>POST</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Manages task assignment for existing users - replaces all assignments, logs changes to audit trail</reason>
+      </artifact>
+      <artifact>
+        <path>apps/shell/app/accept-invitation/[token]/page.tsx</path>
+        <kind>Server Component page</kind>
+        <symbol>InvitationAcceptancePage</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Handles invitation acceptance flow - validates token expiration, displays signup form, creates user with agency_id and role from invitation</reason>
+      </artifact>
+      <artifact>
+        <path>packages/validations/src/invitation.schema.ts</path>
+        <kind>Validation schema</kind>
+        <symbol>InvitationCreateSchema</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Zod schema for invitation creation validation - validates email format, role enum, task_ids array</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/email-helpers.ts</path>
+        <kind>Utility</kind>
+        <symbol>sendInvitationEmail</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Integrates with Resend API to send invitation emails with React Email template, includes task assignments</reason>
+      </artifact>
+      <artifact>
+        <path>emails/invitation.tsx</path>
+        <kind>React Email template</kind>
+        <symbol>InvitationEmail</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Email template component showing agency name, inviter, assigned tasks, and accept button with unique link</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/002_agency_domain/004_invitations_schema.sql</path>
+        <kind>Database migration</kind>
+        <symbol>CREATE TABLE invitations</symbol>
+        <lines>N/A (to be created)</lines>
+        <reason>Creates invitations, master_tasks, user_task_assignments, and audit_log tables with RLS policies</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="uuid" version="^9.0.0">Generate cryptographically secure UUID v4 tokens for invitations</package>
+        <package name="resend" version="^3.0.0">Email API for sending invitation emails</package>
+        <package name="@react-email/components" version="^0.0.0">React Email components for invitation template</package>
+        <package name="react-hook-form" version="^7.66.0">Form state management for invite modal and acceptance forms</package>
+        <package name="@hookform/resolvers" version="^3.0.0">Zod resolver for React Hook Form validation</package>
+        <package name="zod" version="^3.0.0">Schema validation for invitation and task assignment data</package>
+        <package name="@tanstack/react-query" version="^5.90.7">Server state management for user list and optimistic updates</package>
+      </node>
+      <database>
+        <package name="@supabase/supabase-js" version="^2.0.0">Supabase client for database operations</package>
+        <package name="@supabase/ssr" version="^0.0.0">Server-side Supabase client with cookie handling</package>
+      </database>
+      <framework>
+        <package name="next" version="15.x">Next.js App Router for pages and API routes</package>
+        <package name="react" version="19.x">React for components and Server Components</package>
+        <package name="typescript" version="5.x">TypeScript for type safety</package>
+      </framework>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **Security**: Only agency_admin role can create invitations and modify task assignments (enforce with requireRole check)
+- **Security**: Invitation tokens must be UUID v4 (cryptographically secure, unique across all invitations)
+- **Security**: Invitations expire after 7 days (enforced at validation time, not just display)
+- **Security**: Used invitation tokens cannot be reused (check used_at timestamp)
+- **Security**: RLS policies enforce agency_id filtering on all invitation-related tables
+- **Audit**: All invitation creations logged with invited_by user_id and timestamp
+- **Audit**: All task assignment changes logged to audit_log table with JSONB changes field
+- **Email**: Use Resend API for reliable email delivery (no direct SMTP)
+- **Email**: Include agency name, inviter name, and task list in invitation template
+- **Email**: Link format must include token and task_ids as URL parameters
+- **Validation**: Email must be valid format (Zod schema validation)
+- **Validation**: Role must be 'agency_admin' or 'agency_user' enum
+- **Validation**: Task IDs must be valid UUIDs from master_tasks table
+- **Database**: Use parameterized queries via Supabase (prevent SQL injection)
+- **Database**: All tables require agency_id foreign key with CASCADE delete
+- **Database**: Unique constraint on invitation token
+- **Database**: Unique constraint on (user_id, task_id) in user_task_assignments
+- **Testing**: Write integration tests for invitation creation, acceptance, and task assignment
+- **Testing**: Write E2E tests for complete invitation flow from admin to new user signup
+- **UI**: Use React Hook Form + Zod for all forms (InviteUserModal, acceptance form)
+- **UI**: Use TanStack Query for optimistic updates on task assignment changes
+- **UI**: Display pending invitations separately from active users
+- **UI**: Show "expires in" relative time for pending invitations
+- **Monorepo**: Follow Turborepo structure - apps/agency/ for user management, apps/shell/ for acceptance
+- **Architecture**: API routes return standardized format: { success: true/false, data/error }
+- **Architecture**: Use handleApiError() for all API error responses
+- **Architecture**: Server Components for initial page load, Client Components for forms
+  </constraints>
+  <interfaces>
+    <api>
+      <endpoint method="POST" path="/api/invitations">
+        <request>
+          {
+            email: string (required, email format),
+            role: "agency_admin" | "agency_user" (required),
+            task_ids?: string[] (optional, array of UUIDs)
+          }
+        </request>
+        <response>
+          {
+            success: true,
+            data: {
+              id: string (UUID),
+              email: string,
+              expires_at: string (ISO timestamp)
+            }
+          }
+        </response>
+        <auth>Requires authenticated user with agency_admin role</auth>
+      </endpoint>
+      <endpoint method="POST" path="/api/users/{id}/tasks">
+        <request>
+          {
+            task_ids: string[] (required, array of UUIDs, replaces all assignments)
+          }
+        </request>
+        <response>
+          {
+            success: true,
+            data: {
+              user_id: string,
+              tasks: Array&lt;{ id: string, task_name: string, task_code: string }&gt;
+            }
+          }
+        </response>
+        <auth>Requires authenticated user with agency_admin role</auth>
+      </endpoint>
+      <endpoint method="DELETE" path="/api/invitations/{id}">
+        <request>No body</request>
+        <response>{ success: true }</response>
+        <auth>Requires authenticated user with agency_admin role</auth>
+      </endpoint>
+      <endpoint method="POST" path="/api/invitations/{id}/resend">
+        <request>No body</request>
+        <response>
+          {
+            success: true,
+            data: { message: "Invitation resent" }
+          }
+        </response>
+        <auth>Requires authenticated user with agency_admin role</auth>
+      </endpoint>
+    </api>
+    <database>
+      <table name="invitations">
+        <schema>
+          id: UUID PRIMARY KEY,
+          agency_id: UUID REFERENCES agencies(id),
+          email: TEXT NOT NULL,
+          role: TEXT CHECK (role IN ('agency_admin', 'agency_user')),
+          token: TEXT UNIQUE NOT NULL,
+          invited_by: UUID REFERENCES users(id),
+          expires_at: TIMESTAMPTZ NOT NULL,
+          used_at: TIMESTAMPTZ,
+          created_at: TIMESTAMPTZ DEFAULT now()
+        </schema>
+        <rls>Visible to agency_admin only, filtered by agency_id</rls>
+      </table>
+      <table name="master_tasks">
+        <schema>
+          id: UUID PRIMARY KEY,
+          task_name: TEXT NOT NULL,
+          task_code: TEXT UNIQUE NOT NULL,
+          description: TEXT,
+          created_at: TIMESTAMPTZ DEFAULT now()
+        </schema>
+        <rls>Visible to all authenticated users</rls>
+      </table>
+      <table name="user_task_assignments">
+        <schema>
+          id: UUID PRIMARY KEY,
+          user_id: UUID REFERENCES users(id),
+          task_id: UUID REFERENCES master_tasks(id),
+          assigned_at: TIMESTAMPTZ DEFAULT now(),
+          assigned_by: UUID REFERENCES users(id),
+          UNIQUE(user_id, task_id)
+        </schema>
+        <rls>Visible to agency users, manageable by agency_admin only</rls>
+      </table>
+      <table name="audit_log">
+        <schema>
+          id: UUID PRIMARY KEY,
+          entity_type: TEXT NOT NULL,
+          entity_id: UUID NOT NULL,
+          user_id: UUID REFERENCES users(id),
+          action: TEXT NOT NULL,
+          changes_json: JSONB,
+          created_at: TIMESTAMPTZ DEFAULT now()
+        </schema>
+        <rls>Visible to agency_admin only</rls>
+      </table>
+    </database>
+    <email>
+      <function name="sendInvitationEmail">
+        <signature>
+          sendInvitationEmail({
+            to: string,
+            token: string,
+            agencyName: string,
+            inviterName: string,
+            assignedTasks: Array&lt;{ task_name: string, description: string }&gt;,
+            taskIds: string[]
+          }): Promise&lt;{ id: string }&gt;
+        </signature>
+        <usage>Called after invitation creation to send email via Resend API with React Email template</usage>
+      </function>
+    </email>
+    <validation>
+      <schema name="InvitationCreateSchema">
+        <fields>
+          email: z.string().email(),
+          role: z.enum(['agency_admin', 'agency_user']),
+          task_ids: z.array(z.string().uuid()).optional()
+        </fields>
+      </schema>
+      <schema name="UserTaskAssignmentSchema">
+        <fields>
+          task_ids: z.array(z.string().uuid())
+        </fields>
+      </schema>
+    </validation>
+  </interfaces>
+  <tests>
+    <standards>
+      Use Vitest for unit and integration tests. Jest/Testing Library for React component tests. Playwright for E2E tests.
+      Follow AAA pattern (Arrange, Act, Assert). Mock Supabase client for unit tests. Use test database for integration tests.
+      Test RLS policies with multiple agency contexts. Test error scenarios (expired tokens, unauthorized access, validation failures).
+      Aim for 80%+ code coverage on critical paths (invitation creation, acceptance, task assignment).
+    </standards>
+    <locations>
+      - apps/agency/__tests__/ - Integration tests for API routes and pages
+      - packages/validations/__tests__/ - Unit tests for Zod schemas
+      - packages/utils/__tests__/ - Unit tests for helper functions
+      - e2e/tests/invitations.spec.ts - E2E tests for complete invitation flow
+    </locations>
+    <ideas>
+      - AC1: Test admin can create invitation with valid email, role, and task_ids (returns 200, email sent)
+      - AC1: Test non-admin cannot create invitation (returns 403)
+      - AC2: Test invitation token expires after 7 days (acceptance page rejects expired token)
+      - AC3: Test invited user can complete signup with valid token (user created with correct agency_id)
+      - AC4: Test new user automatically assigned to inviting admin's agency (agency_id matches)
+      - AC5: Test admin can select tasks from master task list (checkboxes populate from database)
+      - AC6: Test invitation email includes assigned tasks list (verify email content)
+      - AC7: Test admin can modify task assignments for existing user (assignments replaced, audit log created)
+      - AC8: Test audit log captures invitation creation (invited_by, timestamp recorded)
+      - AC8: Test audit log captures task assignment changes (changes_json shows old/new values)
+      - Security: Test expired token rejected (400 error, "invitation expired" message)
+      - Security: Test used token cannot be reused (400 error, "invitation already used" message)
+      - Security: Test RLS prevents cross-agency invitation access (admin from Agency A cannot see invitations from Agency B)
+      - Security: Test invitation token is unique (duplicate token insert fails)
+      - Email: Test sendInvitationEmail called with correct parameters (agency name, inviter name, tasks)
+      - Email: Test invitation link includes token and task_ids in URL
+      - Validation: Test InvitationCreateSchema rejects invalid email format
+      - Validation: Test InvitationCreateSchema rejects invalid role (not 'agency_admin' or 'agency_user')
+      - Validation: Test UserTaskAssignmentSchema rejects non-UUID task_ids
+      - E2E: Test complete flow from invite creation to new user login
+    </ideas>
+  </tests>
+</story-context>

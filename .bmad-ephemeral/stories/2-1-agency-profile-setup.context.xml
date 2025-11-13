@@ -1,0 +1,246 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Agency Profile Setup</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-1-agency-profile-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>to configure my agency's profile with basic information</iWant>
+    <soThat>my agency identity is established in the system and my team knows which agency they're working in</soThat>
+    <tasks>
+- Create agency settings page and form components (AC: 1, 2)
+  - Create apps/agency/app/settings/page.tsx with agency settings form
+  - Implement form fields: name, contact_email, contact_phone, currency, timezone
+  - Add validation using React Hook Form + Zod schema
+  - Display current agency values pre-filled in form
+  - Add Save button with loading state
+
+- Implement API route for updating agency settings (AC: 1, 2)
+  - Create apps/agency/app/api/agencies/[id]/route.ts
+  - Implement PATCH handler for updating agency
+  - Validate request body with Zod schema
+  - Check user role = 'agency_admin' before allowing updates
+  - Use Supabase RLS to enforce agency_id filtering
+  - Return updated agency data in standardized response format
+  - Add error handling with handleApiError()
+
+- Create agency validation schema (AC: 2)
+  - Create packages/validations/src/agency.schema.ts
+  - Define AgencyUpdateSchema with required fields
+  - Validate currency, timezone, email, phone formats
+  - Export TypeScript types from schema
+
+- Display agency name in application header (AC: 3)
+  - Update apps/shell/app/layout.tsx root layout
+  - Fetch current agency data from Supabase
+  - Create Header component displaying agency name
+  - Use shared UI component from packages/ui
+  - Handle loading and error states
+
+- Implement timezone-aware date formatting (AC: 4)
+  - Create packages/utils/src/date-helpers.ts
+  - Implement formatDateInAgencyTimezone() using date-fns-tz
+  - Use agency timezone from user session context
+  - Create helper for relative timestamps
+  - Export utilities for use across zones
+  - Write unit tests for timezone conversion
+
+- Add role-based access control for settings page (AC: 1)
+  - Implement requireRole() check in settings page
+  - Redirect non-admin users to dashboard with error message
+  - Display "Admin Only" badge on settings nav item
+  - Test access control with agency_user role
+
+- Write tests for agency settings feature (AC: 1, 2, 3, 4)
+  - Test: Agency admin can view settings page
+  - Test: Agency user cannot access settings page (403)
+  - Test: Form validation works (required fields, email format)
+  - Test: API route updates agency successfully
+  - Test: API route rejects invalid data (400)
+  - Test: Agency name displays in header after save
+  - Test: Timezone conversion works correctly
+  - Test: RLS prevents cross-agency access
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Given** I am an authenticated Agency Admin, **When** I access the agency settings page, **Then** I can view and edit my agency's name, contact information, default currency, and timezone
+
+2. **And** changes are saved to the database with proper validation
+
+3. **And** the agency name appears in the application header/navigation
+
+4. **And** all timestamps display in the agency's configured timezone
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno Product Requirements Document</title>
+        <section>Product Scope - MVP Features - Data Centralization Foundation</section>
+        <snippet>Multi-agency registry with complete data isolation (Row-Level Security), role-based access with Admin and Agency User roles, user profile management. Core foundation for agency identity and team collaboration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Data Architecture - Agency Domain</section>
+        <snippet>Agencies table schema with name, contact_email, contact_phone, currency (default: AUD), timezone (default: Australia/Brisbane), RLS policies for multi-tenant security. Users can view their own agency, admins can manage users in their agency.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Project Structure - Agency Zone</section>
+        <snippet>apps/agency/ microfrontend zone for Epic 2 (Agency & Users). Contains settings pages, user management, and profile management. Uses basePath: /agency for routing.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Implementation Patterns - Date Helpers</section>
+        <snippet>formatDateInAgencyTimezone() function using date-fns-tz for timezone-aware date formatting. All database timestamps stored in UTC, displayed in agency timezone. Includes getRelativeTime() for relative timestamps.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 2: Agency & User Management - Story 2.1</section>
+        <snippet>Agency Profile Setup enables Agency Admins to configure agency name, contact information, currency, and timezone. Prerequisites: Story 1.3 (Authentication). Fields: name, contact_email, contact_phone, currency, timezone. Only admins can edit.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/1-4-error-handling-logging-infrastructure.md</path>
+        <title>Story 1.4: Error Handling & Logging Infrastructure</title>
+        <section>Architecture Alignment - Error Handling Pattern</section>
+        <snippet>Custom error classes (ValidationError, UnauthorizedError, ForbiddenError), handleApiError() middleware for consistent JSON responses, structured logging with context. API routes use standardized error format.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code yet - greenfield project. Story 1.1 will initialize project structure. -->
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js">
+        <package name="next" version="15.x">React framework with App Router</package>
+        <package name="react" version="19.x">UI library</package>
+        <package name="typescript" version="5.x">Type safety</package>
+        <package name="@supabase/supabase-js" version="latest">Supabase client</package>
+        <package name="@supabase/ssr" version="latest">Supabase SSR support</package>
+        <package name="zustand" version="5.0.8">State management</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state</package>
+        <package name="react-hook-form" version="7.66.0">Form management</package>
+        <package name="@hookform/resolvers" version="latest">Form validation</package>
+        <package name="zod" version="4.x">Schema validation</package>
+        <package name="date-fns" version="4.1.0">Date utilities</package>
+        <package name="date-fns-tz" version="latest">Timezone support</package>
+        <package name="tailwindcss" version="4.x">Styling</package>
+      </ecosystem>
+      <ecosystem name="Monorepo">
+        <package name="turborepo" version="latest">Build orchestration</package>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Multi-tenant security: All queries must respect agency_id isolation via Supabase RLS policies</constraint>
+    <constraint>Role-based access: Only agency_admin role can edit agency settings</constraint>
+    <constraint>Error handling: Use custom error classes (ValidationError, UnauthorizedError, ForbiddenError) from packages/utils/src/errors.ts</constraint>
+    <constraint>API responses: Return standardized format { success: true/false, data/error }</constraint>
+    <constraint>Timezone handling: Store all timestamps in UTC, display in agency timezone</constraint>
+    <constraint>Form validation: Use React Hook Form + Zod for all forms</constraint>
+    <constraint>Project structure: Follow microfrontend architecture with apps/ and packages/ separation</constraint>
+    <constraint>Database: Use Supabase PostgreSQL with RLS for all data access</constraint>
+    <constraint>Testing: Write unit tests for utilities, integration tests for API routes, E2E tests for critical flows</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PATCH /api/agencies/[id]</name>
+      <kind>REST API endpoint</kind>
+      <signature>
+Request Body: { name: string, contact_email: string, contact_phone?: string, currency: string, timezone: string }
+Response: { success: true, data: Agency } | { success: false, error: { code, message, details } }
+Auth: Requires agency_admin role
+      </signature>
+      <path>apps/agency/app/api/agencies/[id]/route.ts</path>
+    </interface>
+    <interface>
+      <name>AgencyUpdateSchema</name>
+      <kind>Zod validation schema</kind>
+      <signature>
+z.object({
+  name: z.string().min(1, "Agency name is required"),
+  contact_email: z.string().email("Invalid email format"),
+  contact_phone: z.string().optional(),
+  currency: z.enum(["AUD", "USD", "EUR", "GBP", "NZD", "CAD"]),
+  timezone: z.string() // Valid IANA timezone
+})
+      </signature>
+      <path>packages/validations/src/agency.schema.ts</path>
+    </interface>
+    <interface>
+      <name>formatDateInAgencyTimezone()</name>
+      <kind>Utility function</kind>
+      <signature>
+function formatDateInAgencyTimezone(
+  date: Date | string,
+  timezone: string,
+  format: string = 'PPpp'
+): string
+      </signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>requireRole()</name>
+      <kind>Auth utility function</kind>
+      <signature>
+function requireRole(role: 'agency_admin' | 'agency_user'): Promise&lt;User&gt;
+Throws: ForbiddenError if user lacks required role
+      </signature>
+      <path>packages/auth/src/utils/require-role.ts</path>
+    </interface>
+    <interface>
+      <name>Supabase RLS Policy: "Users can view their own agency"</name>
+      <kind>Database security policy</kind>
+      <signature>
+ON agencies FOR SELECT
+USING (id = (SELECT agency_id FROM users WHERE id = auth.uid()))
+      </signature>
+      <path>supabase/migrations/001_agency_domain/003_user_roles_rls.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+- Unit tests: Vitest for packages/utils, packages/validations
+- Integration tests: Vitest + Supertest for API routes
+- E2E tests: Playwright for critical user flows
+- Component tests: React Testing Library for UI components
+- Test coverage: Aim for 80%+ on business logic
+- Test file location: Co-located with source (*.test.ts, *.spec.ts)
+- Test naming: describe() blocks for features, it() for specific behaviors
+    </standards>
+    <locations>
+- packages/utils/src/*.test.ts (unit tests for date helpers)
+- packages/validations/src/*.test.ts (schema validation tests)
+- apps/agency/app/api/**/*.test.ts (API route integration tests)
+- __tests__/e2e/agency-settings.spec.ts (E2E test for settings flow)
+    </locations>
+    <ideas>
+      <idea ac="1">Test: Agency admin can access settings page and view form</idea>
+      <idea ac="1">Test: Agency user redirected from settings page (403)</idea>
+      <idea ac="2">Test: Form validation rejects invalid email format</idea>
+      <idea ac="2">Test: Form validation requires name and contact_email</idea>
+      <idea ac="2">Test: API route successfully updates agency with valid data</idea>
+      <idea ac="2">Test: API route returns 400 for invalid currency</idea>
+      <idea ac="3">Test: Agency name displays in header after successful save</idea>
+      <idea ac="4">Test: formatDateInAgencyTimezone() converts UTC to agency timezone</idea>
+      <idea ac="4">Test: Timezone change reflects in all displayed timestamps</idea>
+      <idea ac="all">Test: RLS policy prevents cross-agency data access</idea>
+      <idea ac="all">Test: Unauthenticated requests return 401</idea>
+      <idea ac="2">Test: AgencyUpdateSchema validates timezone against IANA list</idea>
+    </ideas>
+  </tests>
+</story-context>

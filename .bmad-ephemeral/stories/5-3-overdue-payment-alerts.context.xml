@@ -1,0 +1,261 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.3</storyId>
+    <title>Overdue Payment Alerts</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-3-overdue-payment-alerts.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to receive in-app notifications for overdue payments</iWant>
+    <soThat>I'm immediately aware when follow-up action is needed</soThat>
+    <tasks>
+- Task 1: Implement notifications table and API (AC: 1, 2)
+  - Create notifications table schema with agency_id, user_id, type, message, link, is_read, created_at
+  - Create API route: GET /api/notifications (paginated, filtered by user)
+  - Create API route: PATCH /api/notifications/[id]/mark-read
+  - Add RLS policies for notifications table
+  - Write unit tests for notification API routes
+
+- Task 2: Generate notifications when installments become overdue (AC: 1)
+  - Update status update job to detect newly overdue installments (status changed today)
+  - Create notification record when installment status changes to 'overdue'
+  - Set notification type = 'overdue_payment', include student name and amount in message
+  - Link notification to /payments/plans?status=overdue filtered view
+  - Test notification generation with various installment scenarios
+
+- Task 3: Build notification UI components (AC: 2, 3, 4)
+  - Add notification bell icon in shell/app header with unread count badge
+  - Create NotificationDropdown component showing recent notifications
+  - Implement click handler to navigate to notification.link
+  - Add "Mark as read" functionality with optimistic UI update
+  - Create /notifications page listing all notifications (read/unread)
+  - Add "Dismiss" button to mark notifications as read
+  - Style unread notifications distinctly (bold, blue background)
+
+- Task 4: Add overdue payments section to dashboard (AC: 5)
+  - Create OverduePaymentsSummary widget for dashboard
+  - Query installments WHERE status = 'overdue' to calculate count and total value
+  - Display prominent card with red styling showing: "X Overdue Payments ($Y total)"
+  - Add click handler to navigate to /payments/plans?status=overdue
+  - Update dashboard layout to prioritize overdue section (top of page)
+  - Test dashboard with various overdue payment scenarios
+
+- Task 5: Testing and validation
+  - Integration test: status job creates notification when installment becomes overdue
+  - Integration test: notification bell icon shows correct unread count
+  - Integration test: clicking notification navigates to filtered payment plans
+  - Integration test: marking notification as read updates UI and database
+  - E2E test: full user flow from login → see notification → click → view overdue payments
+  - Test notification deduplication (don't create duplicate notifications for same installment)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Given the automated status job has marked installments as overdue, When I log into the application, Then I see a notification/alert for new overdue payments since my last login
+
+2. And the notification shows the number of overdue installments
+
+3. And clicking the notification takes me to a filtered view of overdue payments
+
+4. And I can dismiss notifications after reviewing
+
+5. And the dashboard prominently displays the total count and value of overdue payments
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 5: Intelligent Status Automation</title>
+        <section>Story 5.3: Overdue Payment Alerts</section>
+        <snippet>Implements in-app notifications for overdue payments. When automated status job marks installments overdue, users see alerts with count and can navigate to filtered views. Notifications are dismissible and dashboard prominently shows total overdue count/value.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Pattern 1: Multi-Stakeholder Notification System</section>
+        <snippet>Notification system architecture with notification_rules table, notification_log for preventing duplicates, and event-driven Edge Functions. Supports configurable stakeholder types (agency_user, student, college, sales_agent) with conditional sending based on agency preferences.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Project Structure - Monorepo Architecture</section>
+        <snippet>Multi-zone Next.js architecture: shell zone for auth/navigation, dashboard zone for KPI widgets, entities zone for colleges/students, payments zone for payment plans. Shared packages for UI, database client, auth utilities.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>MVP Features - Automated Payment Status Tracking</section>
+        <snippet>Automated status detection bot that flags overdue payments and sends proactive alerts. Eliminates manual checking and provides immediate visibility into payment status changes.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/5-2-due-soon-notification-flags.md</path>
+        <title>Story 5.2: Due Soon Notification Flags</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Implements "due soon" detection with student notifications sent 36 hours before due dates. Uses student_notifications table with UNIQUE constraint for deduplication. Pattern: scheduled jobs + notification tracking tables + email delivery via Resend.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <note>Greenfield implementation - no existing notification code to reference</note>
+      <componentToCreate>
+        <path>apps/shell/app/components/NotificationBell.tsx</path>
+        <kind>React component</kind>
+        <description>Header bell icon with unread count badge. Fetches notifications on mount and subscribes to updates. Uses TanStack Query for caching.</description>
+      </componentToCreate>
+      <componentToCreate>
+        <path>apps/shell/app/components/NotificationDropdown.tsx</path>
+        <kind>React component</kind>
+        <description>Dropdown showing recent 5-10 notifications. Each notification is clickable, navigates to notification.link. Includes "Mark as read" action.</description>
+      </componentToCreate>
+      <componentToCreate>
+        <path>apps/dashboard/app/components/OverduePaymentsSummary.tsx</path>
+        <kind>React component</kind>
+        <description>Prominent dashboard widget showing overdue count and total value. Red styling for urgency. Clickable to navigate to filtered payment plans.</description>
+      </componentToCreate>
+      <componentToCreate>
+        <path>supabase/migrations/004_notifications_domain/001_notifications_schema.sql</path>
+        <kind>Database migration</kind>
+        <description>Creates notifications table with RLS policies. Includes indexes for (user_id, is_read, created_at) and (agency_id, is_read, created_at).</description>
+      </componentToCreate>
+      <componentToCreate>
+        <path>supabase/functions/payments/status-updater/index.ts</path>
+        <kind>Supabase Edge Function</kind>
+        <description>Scheduled job to update installment statuses and generate notifications. Queries newly overdue installments (updated_at today) and creates notification records.</description>
+      </componentToCreate>
+    </code>
+    <dependencies>
+      <node>
+        <package>@supabase/supabase-js</package>
+        <version>Latest</version>
+        <purpose>Supabase client for database queries and auth</purpose>
+      </package>
+      <node>
+        <package>@tanstack/react-query</package>
+        <version>5.90.7</version>
+        <purpose>Server state management, caching, optimistic updates for notifications</purpose>
+      </node>
+      <node>
+        <package>zustand</package>
+        <version>5.0.8</version>
+        <purpose>Optional: Global state for unread notification count</purpose>
+      </node>
+      <node>
+        <package>react-hook-form</package>
+        <version>7.66.0</version>
+        <purpose>Form management (if notification preferences form needed)</purpose>
+      </node>
+      <node>
+        <package>date-fns</package>
+        <version>4.1.0</version>
+        <purpose>Format notification timestamps as relative ("2 hours ago")</purpose>
+      </node>
+      <node>
+        <package>lucide-react</package>
+        <version>Latest</version>
+        <purpose>Bell icon and other UI icons via Shadcn UI</purpose>
+      </node>
+      <node>
+        <package>tailwindcss</package>
+        <version>4.x</version>
+        <purpose>Styling for notification components and dashboard widget</purpose>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- Notifications table must use Row-Level Security (RLS) with agency_id filtering
+- Agency-wide notifications (user_id = NULL) visible to all users in agency
+- User-specific notifications (user_id != NULL) visible only to that user
+- Notification generation must prevent duplicates (one notification per installment)
+- Dashboard overdue widget must appear at top with prominent red styling for urgency
+- All navigation links must use project-relative paths from monorepo root
+- Frontend components follow multi-zone architecture: shell for notifications, dashboard for widgets
+- Notification bell icon must show unread count badge (hide if zero)
+- API routes must support pagination for notification lists
+- TanStack Query used for server state caching and optimistic updates
+- Testing requires integration tests for status job → notification creation flow
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>GET /api/notifications</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/notifications?page=1&limit=20&is_read=false</signature>
+      <path>apps/shell/app/api/notifications/route.ts</path>
+      <description>Returns paginated list of notifications for current user's agency. Filters by is_read status and applies RLS automatically.</description>
+    </interface>
+    <interface>
+      <name>PATCH /api/notifications/[id]/mark-read</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /api/notifications/{id}/mark-read</signature>
+      <path>apps/shell/app/api/notifications/[id]/mark-read/route.ts</path>
+      <description>Marks a notification as read by setting is_read=true and read_at=now(). Returns updated notification.</description>
+    </interface>
+    <interface>
+      <name>notifications table</name>
+      <kind>Database schema</kind>
+      <signature>CREATE TABLE notifications (id, agency_id, user_id, type, message, link, is_read, created_at, read_at)</signature>
+      <path>supabase/migrations/004_notifications_domain/001_notifications_schema.sql</path>
+      <description>Stores in-app notifications with agency/user targeting. Type enum includes: overdue_payment, due_soon, payment_received, system. Link field contains deep link to relevant page.</description>
+    </interface>
+    <interface>
+      <name>status-updater Edge Function</name>
+      <kind>Supabase Edge Function</kind>
+      <signature>POST /functions/v1/payments/status-updater</signature>
+      <path>supabase/functions/payments/status-updater/index.ts</path>
+      <description>Scheduled job that updates installment statuses and generates notifications when status changes to 'overdue'. Queries installments with updated_at::date = CURRENT_DATE to find newly overdue.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+According to architecture docs, testing uses Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Integration tests verify API → database flows. All tests follow standard patterns: arrange-act-assert structure, mocking external services (Supabase, Resend), and testing edge cases.
+    </standards>
+    <locations>
+- Unit tests: `__tests__/unit/` or colocated `*.test.ts` files
+- Component tests: `__tests__/components/` or colocated `*.test.tsx` files
+- Integration tests: `__tests__/integration/`
+- E2E tests: `__tests__/e2e/` using Playwright
+    </locations>
+    <ideas>
+**AC 1 - Notification Generation on Overdue:**
+- Test: Status update job marks installment overdue → notification created with correct agency_id, type, message
+- Test: Multiple installments overdue → one notification per installment
+- Test: Notification includes correct student name and amount in message
+- Test: Notification link = '/payments/plans?status=overdue'
+
+**AC 2 - Notification Count Display:**
+- Test: Bell icon shows correct unread count badge (e.g., "3")
+- Test: No unread notifications → badge hidden or shows "0"
+- Test: Mark notification as read → count decrements
+
+**AC 3 - Navigation to Filtered View:**
+- Test: Click notification → navigates to notification.link
+- Test: Filtered view shows only overdue payment plans
+- Test: URL query params correctly applied (?status=overdue)
+
+**AC 4 - Dismiss Notifications:**
+- Test: Click "Mark as read" → is_read=true, read_at=now()
+- Test: Dismissed notification styled differently (not bold, grayed out)
+- Test: Dismissed notification removed from unread count
+
+**AC 5 - Dashboard Overdue Widget:**
+- Test: Widget displays correct count and total value of overdue payments
+- Test: No overdue payments → shows "No overdue payments" message
+- Test: Click widget → navigates to /payments/plans?status=overdue
+- Test: Widget styling is prominent (red background, large text)
+
+**Deduplication:**
+- Test: Same installment overdue multiple days → only one notification exists
+- Test: Installment paid then overdue again → new notification created
+
+**Edge Cases:**
+- Test: User logs in after multiple days → shows all unread notifications
+- Test: All notifications read → bell icon badge hidden
+- Test: Agency with no overdue payments → no notifications generated
+    </ideas>
+  </tests>
+</story-context>

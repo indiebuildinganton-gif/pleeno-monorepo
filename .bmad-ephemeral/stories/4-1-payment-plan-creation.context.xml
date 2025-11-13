@@ -1,0 +1,351 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>1</storyId>
+    <title>Payment Plan Creation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/4-1-payment-plan-creation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to create a payment plan for a student's enrollment</iWant>
+    <soThat>I can track the total amount owed, installment schedule, and expected commission</soThat>
+    <tasks>
+- Task 1: Database Schema Implementation
+  - Create payment_plans table with all required fields
+  - Add database trigger for commission calculation
+  - Enable RLS policies on payment_plans table
+  - Create indexes for performance
+  - Set default currency from agency configuration
+
+- Task 2: Commission Calculation Function
+  - Create PostgreSQL function for commission calculation
+  - Implement database trigger for auto-update
+  - Add TypeScript utility function for client-side preview
+
+- Task 3: Payment Plan API Routes
+  - Implement POST /api/payment-plans (create)
+  - Implement GET /api/payment-plans/[id] (detail)
+  - Add validation for all fields
+  - Auto-populate agency_id and commission_rate
+
+- Task 4: Payment Plan Form Component
+  - Create form page at /payments/plans/new
+  - Add enrollment selection dropdown
+  - Add form fields (amount, date, notes, reference)
+  - Implement real-time validation
+
+- Task 5: Real-Time Commission Preview
+  - Create PaymentPlanSummary component
+  - Update commission preview as user types
+  - Use commission calculator utility
+  - Format currency values
+
+- Task 6: Payment Plan Creation Mutation
+  - Implement TanStack Query mutation
+  - Handle success and error states
+  - Navigate to detail page on success
+  - Invalidate cache
+
+- Task 7: Enrollment Dropdown Component
+  - Create EnrollmentSelect reusable component
+  - Fetch active enrollments
+  - Support search/filter
+  - Handle empty states
+
+- Task 8: Payment Plan Status Enum
+  - Create database status enum
+  - Default to 'active'
+  - Create status badge component
+
+- Task 9: Audit Logging
+  - Log payment plan creation
+  - Include all field values and commission parameters
+
+- Task 10: Testing
+  - Write integration tests for API
+  - Test commission calculation
+  - Test validation errors
+  - Write E2E test for creation flow
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Payment Plan Data Entry
+   - Specify total amount in agency currency
+   - Select linked enrollment (student + branch)
+   - Specify payment start date
+   - Add optional notes or reference numbers
+   - Calculate expected commission based on branch commission rate
+   - Save plan with status "active"
+
+2. Enrollment Selection
+   - Select from existing enrollments (student-college-branch combinations)
+   - Display format: "Student Name - College Name (Branch City) - Program"
+   - Enrollment must belong to same agency as authenticated user
+
+3. Commission Calculation
+   - Auto-calculate: expected_commission = total_amount * (commission_rate_percent / 100)
+   - Copy commission_rate_percent from associated branch at creation time
+   - Display calculated commission in real-time as user enters amount
+   - Store both total_amount and expected_commission in database
+
+4. Payment Plan Metadata
+   - Support optional notes field (free text, unlimited length)
+   - Support optional reference_number field
+   - Default status to "active" upon creation
+   - Default currency to agency's configured currency
+   - Record created_at and updated_at timestamps
+
+5. Data Validation
+   - total_amount must be greater than 0
+   - commission_rate must be between 0 and 100
+   - start_date must be a valid date
+   - enrollment_id must exist and belong to same agency
+   - Required fields: enrollment_id, total_amount, commission_rate, start_date
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown - Epic 4: Payment Plan Engine</title>
+        <section>Story 4.1: Payment Plan Creation (lines 639-667)</section>
+        <snippet>Create and manage payment plans with flexible installment structures and automated commission calculations. Story 4.1 establishes the foundation by creating payment plans linked to enrollments, with auto-calculated commissions based on branch commission rates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Payments Domain</title>
+        <section>Payments Domain (Epic 4, 5) - lines 1632-1709</section>
+        <snippet>Payment plans table schema with commission calculation trigger. Foreign key from payment_plans to enrollments creates 1:M relationship. Commission calculation handled by database trigger for consistency using formula: expected_commission = total_amount * (commission_rate_percent / 100)</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pattern 2: Commission Calculation Engine</title>
+        <section>Commission Calculation Engine (lines 462-656)</section>
+        <snippet>Detailed commission calculation pattern with database triggers and TypeScript utilities. Covers commissionable value calculation, GST handling, and earned commission tracking. Includes SQL functions and TypeScript implementations for both server and client-side calculations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document - Payment Plan Management</title>
+        <section>FR-5: Payment Plan Management (lines 734-836)</section>
+        <snippet>Complete functional requirements for payment plan creation including multi-step wizard, commission calculation engine (FR-5.5), and search/filtering. Specifies commission formula, validation rules, and real-time preview requirements.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Multi-Tenant Security & Isolation</title>
+        <section>FR-10: Multi-Tenant Security (lines 1206-1244)</section>
+        <snippet>PostgreSQL Row-Level Security (RLS) policies enforce tenant isolation at database layer. Every table includes agency_id foreign key. Database queries auto-filtered by authenticated user's agency_id.</snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/3-3-student-college-enrollment-linking.md</path>
+        <title>Previous Story - Enrollment Linking</title>
+        <section>Complete Story (Story 3.3)</section>
+        <snippet>Story 3.3 established the enrollments foundation that Story 4.1 depends on. Created enrollments table with fields: id, student_id, branch_id, agency_id, program_name, status. Added enrollment_id FK to payment_plans table. Provides enrollment API routes and selection patterns to reuse.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code files found - this is a greenfield implementation -->
+      <!-- Story 3.3 components provide patterns to follow: -->
+      <reference>
+        <kind>component-pattern</kind>
+        <description>Story 3.3 EnrollmentsSection.tsx and EnrolledStudentsSection.tsx provide patterns for displaying enrollment data</description>
+        <location>.bmad-ephemeral/stories/3-3-student-college-enrollment-linking.md (Dev Notes, lines 188-211)</location>
+      </reference>
+      <reference>
+        <kind>api-pattern</kind>
+        <description>Story 3.3 enrollment API routes pattern: GET /api/enrollments/[id], GET /api/students/[id]/enrollments, GET /api/branches/[id]/enrollments</description>
+        <location>.bmad-ephemeral/stories/3-3-student-college-enrollment-linking.md (Task 2, lines 56-62)</location>
+      </reference>
+      <reference>
+        <kind>database-schema</kind>
+        <description>Enrollments table schema from Story 3.3 - provides the enrollment_id FK that payment_plans will reference</description>
+        <location>supabase/migrations/002_entities_domain/006_enrollments_schema.sql (referenced in Story 3.3)</location>
+      </reference>
+    </code>
+    <dependencies>
+      <framework>Next.js 15 (App Router)</framework>
+      <framework>React 19</framework>
+      <framework>TypeScript 5.x</framework>
+      <database>PostgreSQL 15+ via Supabase</database>
+      <auth>Supabase Auth with RLS</auth>
+      <stateManagement>
+        <library>Zustand 5.0.8 (client state)</library>
+        <library>TanStack Query 5.90.7 (server state)</library>
+      </stateManagement>
+      <forms>
+        <library>React Hook Form 7.66.0</library>
+        <library>Zod 4.x (validation)</library>
+      </forms>
+      <utilities>
+        <library>date-fns 4.1.0 (date handling)</library>
+        <library>date-fns-tz (timezone support)</library>
+      </utilities>
+      <ui>
+        <library>Shadcn UI (Radix UI components)</library>
+        <library>Tailwind CSS 4.x</library>
+      </ui>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>architecture</type>
+      <description>Multi-zone architecture: Payment plan creation lives in apps/payments/ zone. Enrollment data comes from apps/entities/ zone. Share logic via packages/utils and packages/database.</description>
+    </constraint>
+    <constraint>
+      <type>security</type>
+      <description>Row-Level Security (RLS) MUST enforce multi-tenant isolation via agency_id on all tables. No manual filtering in application code.</description>
+    </constraint>
+    <constraint>
+      <type>database</type>
+      <description>Commission calculation MUST use database trigger for consistency. Client-side calculation only for preview, not source of truth.</description>
+    </constraint>
+    <constraint>
+      <type>validation</type>
+      <description>Enrollment must exist and belong to same agency as authenticated user. Commission rate must be between 0 and 100. Total amount must be greater than 0.</description>
+    </constraint>
+    <constraint>
+      <type>state-management</type>
+      <description>Use TanStack Query for server state (API caching, mutations). Use React Hook Form for form state. Use Zod schemas for validation.</description>
+    </constraint>
+    <constraint>
+      <type>naming</type>
+      <description>Database: snake_case tables/columns. API: kebab-case endpoints. React: PascalCase components. TypeScript: camelCase functions/variables.</description>
+    </constraint>
+    <constraint>
+      <type>date-handling</type>
+      <description>Store all dates in UTC. Display in agency's configured timezone using date-fns-tz. Use date-fns for all date operations.</description>
+    </constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>POST /api/payment-plans</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Request: {
+          enrollment_id: string (UUID)
+          total_amount: number (decimal)
+          start_date: string (ISO date)
+          notes?: string
+          reference_number?: string
+        }
+        Response: {
+          success: true
+          data: PaymentPlan
+        }
+      </signature>
+      <path>apps/payments/app/api/payment-plans/route.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>GET /api/payment-plans/[id]</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: {
+          success: true
+          data: PaymentPlan & {
+            enrollment: Enrollment & {
+              student: Student
+              branch: Branch & { college: College }
+            }
+          }
+        }
+      </signature>
+      <path>apps/payments/app/api/payment-plans/[id]/route.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>GET /api/enrollments</name>
+      <kind>REST endpoint (from Story 3.3)</kind>
+      <signature>
+        Query: { status?: 'active' | 'completed' | 'cancelled' }
+        Response: {
+          success: true
+          data: Array&lt;Enrollment & { student, branch }
+        }
+      </signature>
+      <path>apps/entities/app/api/enrollments/route.ts (from Story 3.3)</path>
+    </interface>
+    <interface>
+      <name>calculateExpectedCommission</name>
+      <kind>TypeScript function</kind>
+      <signature>
+        function calculateExpectedCommission(
+          totalAmount: number,
+          commissionRatePercent: number
+        ): number
+      </signature>
+      <path>packages/utils/src/commission-calculator.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>calculate_expected_commission</name>
+      <kind>PostgreSQL function</kind>
+      <signature>
+        CREATE FUNCTION calculate_expected_commission(
+          total_amount DECIMAL,
+          commission_rate_percent DECIMAL
+        ) RETURNS DECIMAL
+      </signature>
+      <path>supabase/migrations/003_payments_domain/002_payment_plans_triggers.sql (to be created)</path>
+    </interface>
+    <interface>
+      <name>paymentPlanSchema</name>
+      <kind>Zod schema</kind>
+      <signature>
+        z.object({
+          enrollment_id: z.string().uuid(),
+          total_amount: z.number().positive(),
+          start_date: z.date(),
+          notes: z.string().optional(),
+          reference_number: z.string().optional()
+        })
+      </signature>
+      <path>packages/validations/src/payment-plan.schema.ts (to be created)</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Follow the testing strategy outlined in architecture.md:
+      - Unit tests: Vitest for utility functions (commission calculator)
+      - Component tests: React Testing Library for form components
+      - Integration tests: Test API endpoints with Supabase test database
+      - E2E tests: Playwright for critical user flows (payment plan creation)
+      - Test RLS policies thoroughly - verify users cannot access other agencies' data
+      - Aim for 80%+ code coverage on business logic
+    </standards>
+    <locations>
+      <location>__tests__/ (root integration tests)</location>
+      <location>apps/payments/app/**/*.test.ts (component tests)</location>
+      <location>packages/utils/src/**/*.test.ts (unit tests)</location>
+      <location>__tests__/e2e/payment-flow.spec.ts (E2E tests)</location>
+    </locations>
+    <ideas>
+      <test ac="1,3">
+        <name>Commission Calculation Accuracy</name>
+        <description>Test calculateExpectedCommission() with various amounts and rates. Verify: 0% rate = $0 commission, 15% of $10,000 = $1,500, 100% of $5,000 = $5,000</description>
+      </test>
+      <test ac="5">
+        <name>Validation Rules</name>
+        <description>Test API validation: negative amount rejected, zero amount rejected, missing enrollment_id rejected, invalid date format rejected, commission_rate > 100 rejected</description>
+      </test>
+      <test ac="2">
+        <name>RLS Policy Enforcement</name>
+        <description>Test that user from Agency A cannot create payment plan for enrollment from Agency B. Test that enrollment_id validation checks agency_id match.</description>
+      </test>
+      <test ac="1,2,3">
+        <name>E2E: Payment Plan Creation Flow</name>
+        <description>Test complete flow: login → navigate to create payment plan → select enrollment → enter amount → see real-time commission preview → save → verify plan created → navigate to detail page → verify all fields saved correctly</description>
+      </test>
+      <test ac="3">
+        <name>Database Trigger Verification</name>
+        <description>Integration test: Insert payment plan via SQL, verify expected_commission calculated correctly by trigger. Update total_amount, verify expected_commission recalculated.</description>
+      </test>
+      <test ac="2">
+        <name>Enrollment Dropdown Component</name>
+        <description>Test EnrollmentSelect component: loads active enrollments, displays correct format, filters by search term, handles empty state with helpful message, shows loading state</description>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

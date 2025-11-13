@@ -1,0 +1,304 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>2</storyId>
+    <title>Cash Flow Projection Chart</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-2-cash-flow-projection-chart.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency Admin</asA>
+    <iWant>a visual chart showing projected cash flow for the next 90 days</iWant>
+    <soThat>I can anticipate incoming payments and plan accordingly</soThat>
+    <tasks>
+      - Task 1: Create Cash Flow Projection API Route (AC: #1-3, 5)
+      - Task 2: Create CashFlowChart Component (AC: #1, 3-6)
+      - Task 3: Implement Interactive Tooltip (AC: #4)
+      - Task 4: Add View Toggle Controls (AC: #6)
+      - Task 5: Implement Real-Time Updates (AC: #5)
+      - Task 6: Add Widget Header and Controls (AC: #1, 6)
+      - Task 7: Integrate into Dashboard Page (AC: #1)
+      - Task 8: Testing (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. **Given** I am viewing the dashboard **When** I access the cash flow widget **Then** I see a chart showing projected daily/weekly incoming payments for the next 90 days
+    2. **And** projections are based on scheduled installment due dates
+    3. **And** the chart distinguishes between expected payments and already-paid amounts
+    4. **And** I can hover over chart points to see details (student names, amounts)
+    5. **And** the chart updates in real-time as payments are recorded
+    6. **And** I can toggle between daily, weekly, and monthly views
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Business Intelligence Dashboard</title>
+        <section>Story 6.2: Cash Flow Projection Chart</section>
+        <snippet>
+          Surface critical KPIs, cash flow projections, and actionable insights through an interactive dashboard.
+          Implement API route GET /api/dashboard/cash-flow-projection with days and groupBy parameters.
+          Query installments grouped by due_date, sum amounts, return time series data with expected_amount,
+          paid_amount, and installment count. Create CashFlowChart component using Recharts with stacked
+          visualization (blue for expected, green for paid).
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Multi-Zone Architecture - Dashboard Zone</section>
+        <snippet>
+          Dashboard zone at apps/dashboard/ with Next.js 15 App Router. API routes at apps/dashboard/app/api/.
+          Components use TanStack Query for server state (5-minute stale time, refetch on window focus).
+          RLS policies auto-filter by agency_id. Recharts library for data visualization.
+          Zustand for client state management.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Pattern 2: Commission Calculation Engine</section>
+        <snippet>
+          PostgreSQL functions: calculate_earned_commission(plan_id) returns proportional commission based on paid
+          installments. Filter by generates_commission = true to exclude non-commissionable fees.
+          Use date-fns and date-fns-tz for timezone-aware date calculations with agency.timezone.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Critical User Flows - Flow 4: Review Cash Flow Projection</section>
+        <snippet>
+          Target: less than 5 seconds. Dashboard loads with cash flow visualization chart showing Past payments (green),
+          Pending (yellow), Projected (blue dashed). Chart timeline spans past to next 90 days. Hover over bars shows
+          exact amounts by week/month. 90-day projection KPI displays total expected revenue. Identify cash flow gaps
+          and plan accordingly.
+        </snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>MVP Features - Business Intelligence Dashboard</section>
+        <snippet>
+          Dashboard provides 90-day cash flow projection with timeline chart visualization. Cash flow shows stacked
+          payments by status (past, present, future). Interactive hover reveals payment details. Essential for
+          transforming from chaos to control - agencies can project revenue with confidence.
+        </snippet>
+      </doc>
+      <doc>
+        <path>.bmad-ephemeral/stories/6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights.md</path>
+        <title>Story 6.1: KPIs Widget (Predecessor)</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>
+          Dashboard zone established at apps/dashboard/. KPI widgets pattern with TanStack Query caching (5-minute stale time).
+          Recharts used in SeasonalCommissionChart. Currency formatting utility at packages/utils/src/formatters.ts.
+          Follow KPIWidget component pattern for structure. RLS policies auto-filter by agency_id.
+        </snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- No existing code artifacts - greenfield project. Story 6.1 establishes patterns to follow. -->
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="next" version="15.x">React framework with App Router</package>
+        <package name="react" version="19">React library</package>
+        <package name="typescript" version="5.x">Static typing</package>
+        <package name="@supabase/supabase-js" version="latest">Supabase client</package>
+        <package name="@supabase/ssr" version="latest">Supabase SSR support</package>
+        <package name="@tanstack/react-query" version="5.90.7">Server state management and caching</package>
+        <package name="zustand" version="5.0.8">Client state management</package>
+        <package name="recharts" version="3.3.0">Chart library for data visualization</package>
+        <package name="date-fns" version="4.1.0">Date manipulation</package>
+        <package name="date-fns-tz" version="latest">Timezone-aware date helpers</package>
+        <package name="zod" version="4.x">Schema validation</package>
+        <package name="tailwindcss" version="4.x">Utility-first CSS</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      Multi-zone architecture: Cash flow chart lives in apps/dashboard/ zone.
+      API route at apps/dashboard/app/api/cash-flow-projection/route.ts.
+      Component at apps/dashboard/app/components/CashFlowChart.tsx.
+      Shell app proxies /dashboard requests via next.config.js rewrites.
+    </constraint>
+    <constraint type="database">
+      Query installments table with RLS auto-filtering by agency_id.
+      Filter by student_due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '90 days'.
+      Group by date_trunc('week'|'month'|'day', student_due_date).
+      Join with payment_plans, enrollments, students, colleges for tooltip details.
+      Use PostgreSQL aggregation (SUM, COUNT) at database level for performance.
+    </constraint>
+    <constraint type="date-handling">
+      All date calculations MUST use agency timezone from agencies.timezone field.
+      Query range: TODAY to TODAY + 90 days in agency timezone.
+      Weekly buckets start on Monday (date_trunc('week')).
+      Monthly buckets start on 1st (date_trunc('month')).
+      Use date-fns and date-fns-tz for timezone-aware conversions.
+    </constraint>
+    <constraint type="performance">
+      Add 5-minute cache to API route (Next.js revalidate or Vercel Edge caching).
+      TanStack Query: 5-minute stale time, refetch on window focus, background refetch every 5 minutes.
+      Add database indexes: idx_installments_due_date_agency ON installments(agency_id, student_due_date).
+      Limit installments JSON array in query to essential fields only.
+    </constraint>
+    <constraint type="state-management">
+      Use Zustand dashboard-store for view toggle state (daily/weekly/monthly).
+      Persist user's preferred view selection.
+      TanStack Query handles server state with automatic cache invalidation.
+      Invalidate cash-flow-projection query on payment recording mutation success.
+    </constraint>
+    <constraint type="visualization">
+      Use Recharts library (already installed for Story 6.1).
+      Stacked bar chart or area chart with two data series: paid (green #10b981) and expected (blue #3b82f6).
+      X-axis shows date labels formatted by groupBy (daily: "Jan 15", weekly: "Week 2", monthly: "Feb 2025").
+      Y-axis shows currency amounts formatted with agency.currency.
+      CustomTooltip shows date range, amounts, installment count, and student list (limit 5, then "...and N more").
+    </constraint>
+    <constraint type="security">
+      All queries MUST respect RLS policies (agency_id filtering automatic).
+      Use server-side Supabase client (not anon key) in API routes.
+      JWT auth middleware protects /dashboard routes.
+      No cross-agency data leakage (enforced by RLS).
+      Student names in tooltip only visible to users in same agency.
+    </constraint>
+    <constraint type="testing">
+      Unit tests: Mock Supabase queries, test date grouping logic (daily/weekly/monthly), verify SUM aggregation,
+      test date range filtering, test RLS filtering.
+      Component tests: Test chart rendering, view toggle, tooltip, loading/error states, refetch behavior.
+      Integration tests: Dashboard load → chart displays, record payment → chart updates, toggle view → re-render.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/dashboard/cash-flow-projection</name>
+      <kind>REST API endpoint</kind>
+      <signature>
+        Query Parameters:
+        - days (number, default: 90): Number of days to project forward
+        - groupBy (string, default: "week"): "day", "week", or "month"
+
+        Response:
+        {
+          success: boolean,
+          data: Array<{
+            date_bucket: string (ISO date),
+            paid_amount: number,
+            expected_amount: number,
+            installment_count: number,
+            installments: Array<{
+              student_name: string,
+              amount: number,
+              status: string,
+              due_date: string
+            }>
+          }>
+        }
+      </signature>
+      <path>apps/dashboard/app/api/cash-flow-projection/route.ts</path>
+    </interface>
+    <interface>
+      <name>CashFlowChart Component</name>
+      <kind>React Component</kind>
+      <signature>
+        Props: None (fetches data internally)
+        State: groupBy ('daily' | 'weekly' | 'monthly') via Zustand store
+        Hooks:
+        - useQuery(['cash-flow-projection', groupBy, days])
+        - useDashboardStore() for view toggle state
+        Renders: ResponsiveContainer with BarChart or AreaChart
+      </signature>
+      <path>apps/dashboard/app/components/CashFlowChart.tsx</path>
+    </interface>
+    <interface>
+      <name>Dashboard Store</name>
+      <kind>Zustand Store</kind>
+      <signature>
+        State:
+        - cashFlowView: 'daily' | 'weekly' | 'monthly'
+
+        Actions:
+        - setCashFlowView(view: 'daily' | 'weekly' | 'monthly'): void
+      </signature>
+      <path>packages/stores/src/dashboard-store.ts</path>
+    </interface>
+    <interface>
+      <name>Date Helpers</name>
+      <kind>Utility Functions</kind>
+      <signature>
+        formatDateRange(start: Date, end: Date, groupBy: GroupBy): string
+        getDateBuckets(startDate: Date, days: number, groupBy: GroupBy): Date[]
+        formatDateLabel(date: Date, groupBy: GroupBy): string
+      </signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>Currency Formatter</name>
+      <kind>Utility Function</kind>
+      <signature>
+        formatCurrency(amount: number, currency: string): string
+        Example: formatCurrency(5000, 'AUD') → "$5,000.00"
+      </signature>
+      <path>packages/utils/src/formatters.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: Vitest for unit tests, React Testing Library for component tests, Playwright for E2E.
+      Test location: __tests__/ in respective package/app directories.
+      Coverage target: 80%+ for business logic (API routes, utilities).
+      Mock Supabase client in tests. Test RLS enforcement by verifying agency_id filtering.
+      Test date grouping logic with various timezones and date ranges.
+    </standards>
+
+    <locations>
+      - apps/dashboard/__tests__/api/cash-flow-projection.test.ts
+      - apps/dashboard/__tests__/components/CashFlowChart.test.tsx
+      - packages/utils/__tests__/date-helpers.test.ts
+      - __tests__/e2e/dashboard-cash-flow.spec.ts
+    </locations>
+
+    <ideas>
+      API Route Tests (AC: #1, 2, 3):
+      - Test weekly grouping returns correct date buckets starting on Monday
+      - Test monthly grouping returns correct date buckets starting on 1st
+      - Test daily grouping returns one bucket per day
+      - Test expected_amount SUM only includes status='pending' installments
+      - Test paid_amount SUM only includes status='paid' installments
+      - Test date range filters to exactly 90 days from today
+      - Test RLS filters by authenticated user's agency_id
+      - Test empty result when no installments in 90-day window
+      - Test installments array includes student names, amounts, statuses
+
+      Component Tests (AC: #1, 3, 4, 5, 6):
+      - Test chart renders with mock data (BarChart or AreaChart visible)
+      - Test view toggle buttons (Daily/Weekly/Monthly) call setCashFlowView
+      - Test clicking toggle button refetches data with new groupBy parameter
+      - Test selected button has active styling (highlighted)
+      - Test tooltip appears on hover with correct date range and amounts
+      - Test tooltip shows student list (max 5, then "...and N more")
+      - Test loading state displays skeleton loader
+      - Test error state displays error message and retry button
+      - Test refetch on window focus (simulate focus event)
+      - Test background refetch every 5 minutes (advance timers)
+      - Test currency formatting uses agency.currency
+
+      Integration Tests (AC: #5):
+      - Test payment recording triggers cash flow chart refetch
+      - Test chart updates with new data after payment recorded
+      - Test dashboard page includes cash flow chart in correct position
+      - Test chart responsive on mobile, tablet, desktop
+    </ideas>
+  </tests>
+</story-context>

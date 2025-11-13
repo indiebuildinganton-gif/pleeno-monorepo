@@ -1,0 +1,220 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.1</storyId>
+    <title>Automated Status Detection Job</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-1-automated-status-detection-job.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system</asA>
+    <iWant>a scheduled job that runs daily to update installment statuses</iWant>
+    <soThat>overdue payments are automatically detected without manual checking</soThat>
+    <tasks>
+- Task 1: Create Status Update Database Function (AC: 1, 3)
+- Task 2: Create Jobs Log Table (AC: 3)
+- Task 3: Create Supabase Edge Function (AC: 2, 4, 5)
+- Task 4: Configure pg_cron Schedule (AC: 2)
+- Task 5: Implement API Key Authentication (AC: 5)
+- Task 6: Add Agency Timezone and Cutoff Time Fields (AC: 1)
+- Task 7: Testing (AC: All)
+- Task 8: Monitoring and Alerting Setup (AC: 3, 4)
+- Task 9: Migration File Creation (AC: All)
+- Task 10: Documentation (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Automated Status Detection
+   - All installments with status "pending" and student_due_date &lt; CURRENT_DATE are marked as "overdue"
+   - Job only processes installments for active payment plans
+   - Job respects agency timezone and cutoff time (5:00 PM default)
+
+2. Scheduled Execution
+   - Job runs automatically every day at 7:00 AM UTC (5:00 PM Brisbane time)
+   - Job executes via Supabase Edge Function invoked by pg_cron
+   - Cron schedule: 0 7 * * * (daily at 7:00 AM UTC)
+
+3. Execution Logging and Monitoring
+   - Execution details logged to jobs_log table (job_name, started_at, completed_at, records_updated, status, error_message)
+   - Log includes count of status transitions per agency
+   - Monitoring/alerting configured if job fails
+
+4. Reliability and Error Handling
+   - Job logs errors with full context (error message, stack trace)
+   - Job retries on transient errors (max 3 retries with exponential backoff)
+   - Job does not leave installments in inconsistent state (atomic updates)
+   - Failed executions trigger alerts to system administrators
+
+5. Security and Access Control
+   - Endpoint protected by API key authentication
+   - Only authorized cron job or system administrators can trigger the job
+   - API key stored securely in Supabase secrets
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Pattern 3: Automated Status State Machine</section>
+        <snippet>Implements automated status transition logic using pg_cron + Supabase Edge Functions. Status transitions: pending → overdue based on due_date + cutoff_time. Handles multi-agency timezone logic with atomic database transactions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Background Jobs to Database (Integration Points)</section>
+        <snippet>pg_cron schedules PostgreSQL functions, Edge Functions called via HTTP from pg_cron or database triggers. Background jobs architecture using Supabase Edge Functions with Deno runtime.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pleeno - System Architecture Document</title>
+        <section>Supabase Deployment</section>
+        <snippet>Edge Functions deployment via "supabase functions deploy". Local development with "supabase functions serve". Database migrations via "supabase db push".</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>pleeno - Epic Breakdown</title>
+        <section>Epic 5: Intelligent Status Automation - Story 5.1</section>
+        <snippet>Implement scheduled job running daily at 7:00 AM UTC to update installment statuses. Job processes pending installments and marks as overdue based on due date. Uses pg_cron with Edge Functions for execution logic.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Pleeno PRD</title>
+        <section>Epic 5: Intelligent Status Automation</section>
+        <snippet>Automated status tracking bot eliminates manual work and provides proactive alerts. Daily job automatically flags due soon and overdue payments without manual intervention.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code artifacts - this is foundational infrastructure story -->
+      <note>This story creates the foundational infrastructure for automated status detection. No existing code to reference - implementing from scratch based on architecture patterns.</note>
+    </code>
+    <dependencies>
+      <supabase>
+        <package>@supabase/supabase-js</package>
+        <package>@supabase/ssr</package>
+        <note>Supabase client libraries for database and Edge Functions</note>
+      </supabase>
+      <postgresql>
+        <extension>pg_cron</extension>
+        <note>PostgreSQL extension for job scheduling</note>
+      </postgresql>
+      <deno>
+        <note>Deno runtime for Supabase Edge Functions</note>
+      </deno>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use pg_cron extension for PostgreSQL-native job scheduling
+    - Edge Functions must be Deno-based (Supabase standard)
+    - All database updates must be atomic (wrapped in transactions)
+    - RLS policies must enforce agency_id filtering on all queries
+    - API key authentication required for Edge Function endpoint
+    - Store API keys in Supabase secrets (never in code)
+    - Handle multi-agency timezone differences (agencies.timezone field)
+    - Respect agency-specific cutoff time (default 5:00 PM)
+    - Retry logic: max 3 retries with exponential backoff (1s, 2s, 4s)
+    - Only retry transient errors (network, timeout), not auth/validation errors
+    - Log all job executions to jobs_log table (start, completion, errors)
+    - Trigger admin alerts on job failures
+    - Follow architecture Pattern 3: Automated Status State Machine (docs/architecture.md lines 669-843)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>update_installment_statuses()</name>
+      <kind>PostgreSQL Function</kind>
+      <signature>
+        CREATE OR REPLACE FUNCTION update_installment_statuses()
+        RETURNS TABLE(
+          agency_id UUID,
+          updated_count INT,
+          transitions JSONB
+        )
+      </signature>
+      <path>supabase/migrations/004_notifications_domain/001_jobs_infrastructure.sql</path>
+      <description>Database function that loops through agencies, handles timezone-aware status updates, returns results per agency</description>
+    </interface>
+    <interface>
+      <name>Edge Function: update-installment-statuses</name>
+      <kind>HTTP Endpoint (Supabase Edge Function)</kind>
+      <signature>
+        POST /functions/v1/update-installment-statuses
+        Headers: X-API-Key: &lt;secret&gt;
+        Response: { success: boolean, recordsUpdated: number, agencies: AgencyResult[] }
+      </signature>
+      <path>supabase/functions/update-installment-statuses/index.ts</path>
+      <description>Edge Function endpoint invoked by pg_cron, validates API key, calls database function, handles retries and logging</description>
+    </interface>
+    <interface>
+      <name>jobs_log table</name>
+      <kind>Database Table</kind>
+      <signature>
+        CREATE TABLE jobs_log (
+          id UUID PRIMARY KEY,
+          job_name TEXT NOT NULL,
+          started_at TIMESTAMPTZ NOT NULL,
+          completed_at TIMESTAMPTZ,
+          records_updated INT DEFAULT 0,
+          status TEXT CHECK (status IN ('running', 'success', 'failed')),
+          error_message TEXT,
+          metadata JSONB,
+          created_at TIMESTAMPTZ DEFAULT now()
+        )
+      </signature>
+      <path>supabase/migrations/004_notifications_domain/001_jobs_infrastructure.sql</path>
+      <description>Tracks all job executions with start/end times, record counts, status, and error details</description>
+    </interface>
+    <interface>
+      <name>agencies table extensions</name>
+      <kind>Database Table Alteration</kind>
+      <signature>
+        ALTER TABLE agencies ADD COLUMN timezone TEXT DEFAULT 'Australia/Brisbane';
+        ALTER TABLE agencies ADD COLUMN overdue_cutoff_time TIME DEFAULT '17:00';
+        ALTER TABLE agencies ADD COLUMN due_soon_threshold_days INT DEFAULT 4;
+      </signature>
+      <path>supabase/migrations/004_notifications_domain/001_jobs_infrastructure.sql</path>
+      <description>Adds agency-specific timezone and cutoff configuration for automated status detection</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing follows architecture document standards: Unit tests for SQL functions using pgTAP or similar PostgreSQL testing framework. Integration tests for Edge Functions using Deno test runner. E2E tests verify pg_cron scheduling and end-to-end status updates. All tests must verify RLS policies enforce agency_id filtering. Mock database connections for Edge Function unit tests.</standards>
+    <locations>
+      - supabase/tests/ (database function tests)
+      - supabase/functions/update-installment-statuses/test/ (Edge Function tests)
+      - __tests__/integration/ (integration tests for job execution)
+    </locations>
+    <ideas>
+      <test ac="1">
+        <description>Unit test: update_installment_statuses() SQL function</description>
+        <approach>Create test installments with due dates (yesterday, today before cutoff, today after cutoff, tomorrow). Run function. Verify only appropriate installments marked overdue. Test multi-agency with different timezones.</approach>
+      </test>
+      <test ac="2">
+        <description>Integration test: pg_cron schedule triggers Edge Function</description>
+        <approach>Manually trigger cron job via SQL. Verify Edge Function called with correct headers. Check jobs_log for execution record.</approach>
+      </test>
+      <test ac="3">
+        <description>Integration test: Job logging to jobs_log table</description>
+        <approach>Run job. Query jobs_log. Verify entry contains: job_name, started_at, completed_at, records_updated, status='success', metadata with agency results.</approach>
+      </test>
+      <test ac="4">
+        <description>Unit test: Retry logic with exponential backoff</description>
+        <approach>Mock database to throw transient error. Verify 3 retry attempts with delays (1s, 2s, 4s). Mock permanent error. Verify no retries, error logged.</approach>
+      </test>
+      <test ac="5">
+        <description>Integration test: API key authentication</description>
+        <approach>Call Edge Function without API key → 401. Call with wrong key → 401. Call with correct key → 200. Verify only authorized requests processed.</approach>
+      </test>
+      <test ac="all">
+        <description>E2E test: Full automated status detection flow</description>
+        <approach>Seed database with test agencies and installments. Trigger job manually. Wait for completion. Verify installments updated correctly per agency timezone. Check audit_logs for status change records. Verify jobs_log entry.</approach>
+      </test>
+    </ideas>
+  </tests>
+</story-context>

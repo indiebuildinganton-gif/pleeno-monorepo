@@ -1,0 +1,325 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>User Profile Management</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/2-4-user-profile-management.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User or Admin</asA>
+    <iWant>to manage my own profile information</iWant>
+    <soThat>my account information is accurate and I can change my password</soThat>
+    <tasks>
+      <!-- Database Schema -->
+      - Create email verification schema for admin email changes
+        - Create supabase/migrations/002_agency_domain/006_email_verification.sql
+        - Add users.email_verified_at, pending_email, email_verification_token fields
+        - Create trigger to log email changes in audit trail
+        - Add indexes on email_verification_token
+
+      <!-- API Endpoints -->
+      - Implement profile update API endpoint (PATCH /api/users/me/profile)
+      - Implement password change API endpoint (PATCH /api/users/me/password)
+      - Implement admin email change API (PATCH /api/users/{id}/email)
+      - Implement email verification confirmation (POST /api/users/verify-email)
+
+      <!-- UI Components -->
+      - Create user profile page (apps/agency/app/profile/page.tsx)
+      - Create change password dialog
+      - Create update email dialog (admin only)
+      - Create request email change dialog (regular user)
+      - Create email verification page
+
+      <!-- Email Templates -->
+      - Create email verification email template (React Email)
+
+      <!-- Validation & Utils -->
+      - Create validation schemas (profile, password, email)
+      - Implement password strength validator utility
+
+      <!-- Testing -->
+      - Write integration tests for profile update, password change, email change flows
+      - Write E2E tests for complete user flows
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. User can update their name and password from profile settings
+    2. Password changes require current password confirmation
+    3. Password must meet security requirements (min 8 chars, mix of types)
+    4. User receives confirmation when profile is updated
+    5. User can view role, agency, and email but cannot change them (read-only)
+    6. Regular users must request email changes from Agency Admin
+    7. Only Agency Admins can update user emails
+    8. Admin can update their own email address
+    9. Email changes require administrator verification via email link
+    10. Email changes are logged in audit trail
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic Definition -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2: Agency & User Management</title>
+        <section>Story 2.4: User Profile Management</section>
+        <snippet>Enable agency self-service setup, team collaboration through user management, and role-based access control. Story 2.4 focuses on individual user profile management with differentiated permissions for regular users vs admins, including email verification workflow.</snippet>
+      </doc>
+
+      <!-- Architecture Reference -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Data Architecture - Agency Domain</section>
+        <snippet>Users table with role-based access (agency_admin, agency_user). RLS policies enforce multi-tenant isolation. Authentication via Supabase Auth with JWT claims. Email verification pattern uses token-based workflow with 1-hour expiration.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Implementation Patterns - Authentication Pattern</section>
+        <snippet>Supabase Auth provides JWT-based authentication. Middleware validates JWT on protected routes. Server components use createServerClient() for database access with automatic RLS context. Password changes via supabase.auth.updateUser().</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>Implementation Patterns - Form Handling Pattern</section>
+        <snippet>React Hook Form with Zod validation. TanStack Query mutations for API calls with optimistic updates. Confirmation dialogs for sensitive actions. Toast notifications for success/error feedback.</snippet>
+      </doc>
+
+      <!-- PRD Context -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>FR-1.4: User Profile Management</section>
+        <snippet>Users can update their name and password. Regular users cannot change their own email (admin approval required). Admins can change any user's email with email verification. Password strength requirements enforced. All changes logged in audit trail.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- No existing code yet - greenfield project -->
+      <note>This is a greenfield story. No existing code to reference. Follow architecture patterns defined in architecture.md.</note>
+    </code>
+
+    <dependencies>
+      <node>
+        <!-- Core Framework -->
+        <package name="next" version="15.x">App Router, Server Components, API Routes</package>
+        <package name="react" version="19.x">UI framework with concurrent features</package>
+        <package name="typescript" version="5.x">Type safety</package>
+
+        <!-- Database & Auth -->
+        <package name="@supabase/supabase-js" version="latest">Supabase client for database and auth</package>
+        <package name="@supabase/ssr" version="latest">Server-side Supabase client for Next.js</package>
+
+        <!-- State Management -->
+        <package name="@tanstack/react-query" version="5.90.7">Server state management, mutations, caching</package>
+        <package name="zustand" version="5.0.8">Client state management</package>
+
+        <!-- Forms & Validation -->
+        <package name="react-hook-form" version="7.66.0">Form state management</package>
+        <package name="@hookform/resolvers" version="latest">Form validation resolvers</package>
+        <package name="zod" version="4.x">Schema validation</package>
+
+        <!-- Email -->
+        <package name="resend" version="6.4.2">Email sending service</package>
+        <package name="@react-email/components" version="latest">React Email templates</package>
+
+        <!-- UI Components -->
+        <package name="@radix-ui/react-*" version="latest">Accessible UI primitives (Dialog, DropdownMenu, etc.)</package>
+        <package name="tailwindcss" version="4.x">Styling</package>
+
+        <!-- Testing -->
+        <package name="vitest" version="latest">Unit testing</package>
+        <package name="@testing-library/react" version="latest">React component testing</package>
+        <package name="playwright" version="latest">E2E testing</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Multi-Tenant Security -->
+    - All database operations MUST enforce Row-Level Security (RLS) using agency_id
+    - User can only modify their own profile (enforced by RLS and API checks)
+    - Admin-only operations (email changes for other users) require role validation
+    - Prevent self-deactivation and removing last admin (validation in API routes)
+
+    <!-- Authentication & Authorization -->
+    - Use Supabase Auth for all authentication operations
+    - Password changes via supabase.auth.updateUser() (handles bcrypt hashing)
+    - Verify current password before allowing password change (security)
+    - Email verification tokens expire after 1 hour
+    - Tokens are single-use (cleared after verification)
+
+    <!-- API Route Patterns -->
+    - Server-side validation using Zod schemas
+    - Consistent error handling with handleApiError() utility
+    - Return ApiResponse<T> format: { success: true, data: T } or { success: false, error: {...} }
+    - Use Next.js App Router API routes (route.ts files)
+
+    <!-- UI Patterns -->
+    - Server Components for initial page load and data fetching
+    - Client Components for interactive forms and dialogs
+    - TanStack Query for mutations with optimistic updates
+    - Confirmation dialogs for destructive actions (password change, email change)
+    - Toast notifications for success/error feedback
+
+    <!-- Database Patterns -->
+    - All user table updates trigger audit logging
+    - Email verification uses three fields: pending_email, email_verification_token, email_verified_at
+    - Audit logs are immutable (insert-only)
+    - Update both users table and auth.users for email changes (consistency)
+
+    <!-- Testing Requirements -->
+    - Unit tests for validation schemas and password strength calculator
+    - Integration tests for all API endpoints
+    - E2E tests for complete user flows (profile update, password change, email verification)
+    - Test RLS policies prevent cross-agency access
+
+    <!-- Code Organization -->
+    - Profile pages in apps/agency/app/profile/
+    - API routes in apps/agency/app/api/users/
+    - Validation schemas in packages/validations/src/
+    - Utilities in packages/utils/src/
+    - Email templates in emails/
+    - Database migrations in supabase/migrations/002_agency_domain/
+  </constraints>
+
+  <interfaces>
+    <!-- API Endpoints -->
+    <api>
+      <endpoint method="PATCH" path="/api/users/me/profile">
+        <description>Update current user's profile (name)</description>
+        <request>{ full_name: string }</request>
+        <response>{ success: true, data: User }</response>
+        <auth>Required - any authenticated user</auth>
+      </endpoint>
+
+      <endpoint method="PATCH" path="/api/users/me/password">
+        <description>Change current user's password</description>
+        <request>{ current_password: string, new_password: string, confirm_password: string }</request>
+        <response>{ success: true, data: { message: string } }</response>
+        <auth>Required - any authenticated user</auth>
+      </endpoint>
+
+      <endpoint method="PATCH" path="/api/users/{id}/email">
+        <description>Initiate email change for user (admin only)</description>
+        <request>{ email: string }</request>
+        <response>{ success: true, data: { message: "Verification email sent" } }</response>
+        <auth>Required - agency_admin only</auth>
+      </endpoint>
+
+      <endpoint method="POST" path="/api/users/verify-email?token=...">
+        <description>Verify email change via token</description>
+        <request>Query param: token (UUID)</request>
+        <response>{ success: true, data: { message: "Email verified successfully" } }</response>
+        <auth>Not required (token-based)</auth>
+      </endpoint>
+    </api>
+
+    <!-- Database Schema Extensions -->
+    <database>
+      <table name="users">
+        <field name="email_verified_at" type="TIMESTAMPTZ">Timestamp of email verification</field>
+        <field name="pending_email" type="TEXT">New email pending verification</field>
+        <field name="email_verification_token" type="TEXT UNIQUE">Token for email verification</field>
+      </table>
+
+      <trigger name="log_email_changes">
+        <on>users table UPDATE</on>
+        <action>Insert audit log entry for email_change_requested and email_changed events</action>
+      </trigger>
+    </database>
+
+    <!-- Validation Schemas (Zod) -->
+    <validation>
+      <schema name="ProfileUpdateSchema">
+        <field name="full_name" type="string" rules="min(2), max(100)"/>
+      </schema>
+
+      <schema name="PasswordChangeSchema">
+        <field name="current_password" type="string" rules="required"/>
+        <field name="new_password" type="string" rules="min(8), regex(uppercase, lowercase, number, special)"/>
+        <field name="confirm_password" type="string" rules="matches(new_password)"/>
+      </schema>
+
+      <schema name="EmailUpdateSchema">
+        <field name="email" type="string" rules="email format"/>
+      </schema>
+    </validation>
+
+    <!-- React Components -->
+    <component>
+      <name>ProfilePage</name>
+      <path>apps/agency/app/profile/page.tsx</path>
+      <type>Server Component</type>
+      <description>Main profile page with read-only and editable fields</description>
+    </component>
+
+    <component>
+      <name>ChangePasswordDialog</name>
+      <path>apps/agency/app/profile/components/ChangePasswordDialog.tsx</path>
+      <type>Client Component</type>
+      <description>Dialog for password change with strength indicator</description>
+    </component>
+
+    <component>
+      <name>UpdateEmailDialog</name>
+      <path>apps/agency/app/profile/components/UpdateEmailDialog.tsx</path>
+      <type>Client Component</type>
+      <description>Admin-only dialog for initiating email change</description>
+    </component>
+
+    <component>
+      <name>PasswordStrengthIndicator</name>
+      <path>apps/agency/app/profile/components/PasswordStrengthIndicator.tsx</path>
+      <type>Client Component</type>
+      <description>Visual indicator showing password requirement status</description>
+    </component>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Follow test file naming: *.test.ts for unit tests, *.spec.ts for E2E tests. Mock Supabase client for unit/integration tests. Use test database for integration tests with RLS enabled.
+    </standards>
+
+    <locations>
+      - Unit tests: packages/*/src/**/*.test.ts
+      - Component tests: apps/agency/app/**/*.test.tsx
+      - Integration tests: __tests__/integration/**/*.test.ts
+      - E2E tests: __tests__/e2e/**/*.spec.ts
+    </locations>
+
+    <ideas>
+      <!-- Unit Tests -->
+      - AC3: Test password strength validator with various password combinations
+      - AC3: Test ProfileUpdateSchema, PasswordChangeSchema, EmailUpdateSchema validation
+      - Utility: Test calculatePasswordStrength() function with edge cases
+
+      <!-- Integration Tests -->
+      - AC1: Test PATCH /api/users/me/profile updates full_name successfully (200)
+      - AC1,2: Test PATCH /api/users/me/password with correct current password (200)
+      - AC2: Test password change fails with incorrect current password (401)
+      - AC3: Test new password validation enforces all requirements (400)
+      - AC5: Test users cannot change their email via profile endpoint (403)
+      - AC7,8: Test admin can initiate email change for any user (200)
+      - AC7: Test regular user cannot initiate email change (403)
+      - AC9: Test email verification succeeds with valid token (200)
+      - AC9: Test email verification fails with invalid token (400)
+      - AC9: Test email verification fails with expired token (>1 hour, 400)
+      - AC10: Test email changes are logged in audit trail
+      - Security: Test RLS prevents cross-agency profile access
+
+      <!-- E2E Tests -->
+      - AC1,4: Complete profile update flow (login → update name → verify toast → check persistence)
+      - AC2,3: Complete password change flow (login → change password → logout → login with new password)
+      - AC8,9: Complete admin email change flow (login as admin → update email → verify via email → confirm)
+      - AC6: Test regular user sees "request email change" message (not self-service)
+    </ideas>
+  </tests>
+</story-context>

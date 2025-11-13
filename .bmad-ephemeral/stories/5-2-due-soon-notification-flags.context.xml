@@ -1,0 +1,287 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5.2</storyId>
+    <title>Due Soon Notification Flags</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/5-2-due-soon-notification-flags.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to see visual indicators for payments due within the next 4 days</iWant>
+    <soThat>I can proactively follow up before payments become overdue, including weekend and early-week payments</soThat>
+    <tasks>
+      - Task 1: Implement "due soon" computed field logic (AC: 1, 5)
+        - Add agencies.due_soon_threshold_days field (default: 4)
+        - Create database function or query logic: is_due_soon = (due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL 'N days') AND status = 'pending'
+        - Update RLS policies to ensure proper filtering
+        - Add agencies settings API route: PATCH /api/agencies/[id]/settings for threshold configuration
+
+      - Task 2: Update UI to display "due soon" badges (AC: 2, 3, 4)
+        - Add "due soon" badge component with yellow/amber color coding
+        - Update payment plan list UI to show "due soon" status
+        - Update payment plan detail UI to show "due soon" for individual installments
+        - Add dashboard widget showing count of "due soon" installments
+        - Implement filter for payment plans list to show only "due soon" plans
+        - Ensure consistent color coding: yellow/amber for "due soon", red for "overdue"
+
+      - Task 3: Create student notification system (AC: 6, 7, 8)
+        - Create student_notifications table: id, student_id, installment_id, notification_type, sent_at, delivery_status
+        - Implement scheduled job to run daily at 5:00 AM Brisbane time (7:00 PM UTC previous day)
+        - Query installments due in 36 hours (due_date = CURRENT_DATE + 1 day, accounting for 5 PM cutoff)
+        - Integrate with Resend API for email sending
+        - Create email template with student name, amount due, due date, payment instructions
+        - Log all notifications sent to student_notifications table
+        - Add students.contact_preference field (email, sms, both) for delivery method
+        - Add students.phone_number field for SMS delivery (if contact_preference includes SMS)
+        - Handle notification errors gracefully (log and retry logic)
+
+      - Task 4: Testing and validation
+        - Unit tests for is_due_soon calculation logic
+        - Integration tests for notification sending job
+        - Test with different due_soon_threshold_days values (2, 4, 7 days)
+        - Test notification timing (ensure 5:00 AM Brisbane / 7:00 PM UTC execution)
+        - Test with various timezone scenarios
+        - Verify badge colors and dashboard counts update correctly
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Given installments exist with upcoming due dates, When I view payment plans or the dashboard, Then installments due within 4 days are flagged as "due soon"
+
+    2. And "due soon" installments display with a warning badge/color
+
+    3. And the dashboard shows a count of "due soon" installments
+
+    4. And I can filter the payment plans list to show only plans with "due soon" installments
+
+    5. And the threshold (4 days) is configurable per agency
+
+    6. Student Notification Requirements: Given an installment is due soon, When 36 hours before the payment cutoff time (5:00 PM Brisbane), Then the student receives an automated reminder notification
+
+    7. And the notification is sent at 5:00 AM Brisbane time the day before the due date
+
+    8. And the notification includes: student name, amount due, due date, payment instructions
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 5: Intelligent Status Automation - Story 5.2</title>
+        <section>Story 5.2: Due Soon Notification Flags</section>
+        <snippet>Implement visual indicators for payments due within next 4 days with configurable threshold (default 4 days). Student notifications sent 36 hours before payment cutoff at 5:00 AM Brisbane time. Dashboard displays count of "due soon" installments with filtering capabilities.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pattern 3: Automated Status State Machine</title>
+        <section>Installment Status Enum and Agency Settings</section>
+        <snippet>Status transitions managed automatically. Agency settings include due_soon_threshold_days (default 4), overdue_cutoff_time (default 17:00), and timezone (default Australia/Brisbane). Status calculated query-time, not stored as enum value for temporary flags like "due soon".</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Pattern 1: Multi-Stakeholder Notification System</title>
+        <section>Notification Architecture</section>
+        <snippet>Notification rules per agency configuration with recipient types (agency_user, student, college, sales_agent). Event types include installment_due_soon and installment_overdue. Notification log prevents duplicates via unique constraint on (installment_id, recipient_type, recipient_email).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Background Jobs and Email Integration</title>
+        <section>pg_cron and Supabase Edge Functions</section>
+        <snippet>Scheduled jobs use PostgreSQL pg_cron extension calling Supabase Edge Functions. Resend API for email sending with React Email templates. Email templates in emails/ directory track notification sends in notification_log table.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>MVP Features - Automated Payment Status Tracking</title>
+        <section>The Intelligent Bot</section>
+        <snippet>Due Soon status auto-flagged N days before due date (configurable, default 5 days). System provides centralized notes, payment agreements documentation, and proactive alerts before payments become overdue.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>supabase/migrations/001_agency_domain/001_agencies_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>agencies table</symbol>
+        <lines>N/A</lines>
+        <reason>Need to add due_soon_threshold_days INT DEFAULT 4 field to agencies table for configurable threshold</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/002_entities_domain/003_students_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>students table</symbol>
+        <lines>N/A</lines>
+        <reason>Need to add contact_preference and phone_number fields for student notification delivery preferences</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/migrations/004_notifications_domain/001_notifications_schema.sql</path>
+        <kind>migration</kind>
+        <symbol>notification tables</symbol>
+        <lines>N/A</lines>
+        <reason>Create student_notifications table with unique constraint on (installment_id, notification_type) to prevent duplicate sends</reason>
+      </artifact>
+      <artifact>
+        <path>supabase/functions/notifications/send-due-soon-notifications/index.ts</path>
+        <kind>edge-function</kind>
+        <symbol>sendDueSoonNotifications</symbol>
+        <lines>N/A</lines>
+        <reason>Implement scheduled notification job querying installments due in 36 hours and sending via Resend API</reason>
+      </artifact>
+      <artifact>
+        <path>apps/dashboard/app/components/</path>
+        <kind>directory</kind>
+        <symbol>Dashboard components</symbol>
+        <lines>N/A</lines>
+        <reason>Create DueSoonWidget.tsx showing count and DueSoonBadge.tsx reusable badge component with yellow/amber styling</reason>
+      </artifact>
+      <artifact>
+        <path>apps/payments/app/plans/components/InstallmentStatusBadge.tsx</path>
+        <kind>component</kind>
+        <symbol>InstallmentStatusBadge</symbol>
+        <lines>N/A</lines>
+        <reason>Update to display "due soon" badge when is_due_soon calculation returns true</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/date-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>date helpers</symbol>
+        <lines>N/A</lines>
+        <reason>Add isDueSoon() function implementing query logic: due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL 'N days'</reason>
+      </artifact>
+      <artifact>
+        <path>packages/utils/src/notification-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>notification utilities</symbol>
+        <lines>N/A</lines>
+        <reason>Email/SMS sending utilities wrapping Resend API integration</reason>
+      </artifact>
+      <artifact>
+        <path>emails/payment-reminder.tsx</path>
+        <kind>email-template</kind>
+        <symbol>PaymentReminderEmail</symbol>
+        <lines>N/A</lines>
+        <reason>React Email template for due soon notifications including student name, amount, due date, payment instructions</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@supabase/supabase-js" version="latest" />
+        <package name="@supabase/ssr" version="latest" />
+        <package name="@tanstack/react-query" version="5.90.7" />
+        <package name="date-fns" version="4.1.0" />
+        <package name="date-fns-tz" version="latest" />
+        <package name="resend" version="6.4.2" />
+        <package name="@react-email/components" version="latest" />
+        <package name="zod" version="4.x" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - "Due soon" MUST be calculated query-time, NOT stored as distinct status enum value
+    - Installments remain in "pending" status until overdue or paid - "due soon" is a computed flag
+    - Notification job MUST run at 7:00 PM UTC (5:00 AM Brisbane next day) using pg_cron scheduler
+    - Unique constraint on student_notifications (installment_id, notification_type) prevents duplicate sends
+    - All database queries MUST respect Row-Level Security (RLS) policies filtering by agency_id
+    - Timezone handling: store UTC in database, convert to agency timezone for display/scheduling
+    - Color coding consistency: yellow/amber for "due soon", red for "overdue", green for "paid"
+    - Email templates use React Email syntax, rendered server-side before sending via Resend
+    - Scheduled jobs implement error handling and logging for failed notification sends
+    - Agency settings API requires Admin role for threshold configuration changes
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>isDueSoon Query Logic</name>
+      <kind>database-query</kind>
+      <signature>
+        SELECT * FROM installments
+        WHERE agency_id = $1
+        AND status = 'pending'
+        AND student_due_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '$2 days'
+      </signature>
+      <path>packages/utils/src/date-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>PATCH /api/agencies/[id]/settings</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        PATCH /api/agencies/[id]/settings
+        Body: { due_soon_threshold_days?: number }
+        Auth: Required (Admin only)
+        Returns: { success: boolean, data: Agency }
+      </signature>
+      <path>apps/agency/app/api/agencies/[id]/settings/route.ts</path>
+    </interface>
+    <interface>
+      <name>GET /api/dashboard/due-soon-count</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        GET /api/dashboard/due-soon-count
+        Query: { agency_id: string }
+        Auth: Required
+        Returns: { success: boolean, data: { count: number, total_amount: number } }
+      </signature>
+      <path>apps/dashboard/app/api/dashboard/due-soon-count/route.ts</path>
+    </interface>
+    <interface>
+      <name>sendNotificationEmail</name>
+      <kind>function</kind>
+      <signature>
+        async function sendNotificationEmail(params: {
+          to: string,
+          studentName: string,
+          amount: number,
+          dueDate: Date,
+          paymentInstructions: string
+        }): Promise&lt;{ success: boolean, messageId?: string, error?: string }&gt;
+      </signature>
+      <path>packages/utils/src/notification-helpers.ts</path>
+    </interface>
+    <interface>
+      <name>student_notifications Table Schema</name>
+      <kind>database-schema</kind>
+      <signature>
+        CREATE TABLE student_notifications (
+          id UUID PRIMARY KEY,
+          student_id UUID REFERENCES students(id),
+          installment_id UUID REFERENCES installments(id),
+          agency_id UUID REFERENCES agencies(id),
+          notification_type TEXT CHECK (notification_type IN ('due_soon', 'overdue')),
+          sent_at TIMESTAMPTZ DEFAULT now(),
+          delivery_status TEXT CHECK (delivery_status IN ('sent', 'failed', 'pending')),
+          error_message TEXT,
+          UNIQUE(installment_id, notification_type)
+        )
+      </signature>
+      <path>supabase/migrations/004_notifications_domain/001_notifications_schema.sql</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Tests use Vitest for unit tests, React Testing Library for component tests, and Playwright for E2E tests. Backend Edge Functions tested with Deno test framework. Database logic tested with Supabase local instance. All tests follow AAA pattern (Arrange, Act, Assert). Test files colocated with implementation or in __tests__/ directory.
+    </standards>
+    <locations>
+      - __tests__/e2e/ - End-to-end Playwright tests
+      - packages/utils/src/*.test.ts - Unit tests for utilities
+      - apps/dashboard/app/components/*.test.tsx - Component tests
+      - supabase/functions/notifications/send-due-soon-notifications/index.test.ts - Edge Function tests
+    </locations>
+    <ideas>
+      AC1: Test isDueSoon() returns true for installment due in 3 days, false for 5 days (with default 4-day threshold)
+      AC2: Test DueSoonBadge component renders with yellow/amber background color
+      AC3: Test dashboard API returns correct count of due soon installments for agency
+      AC4: Test payment plans list filters correctly when "due soon" filter applied
+      AC5: Test agency settings API updates due_soon_threshold_days and recalculates flags
+      AC6-8: Test notification job queries correct installments and sends email via Resend mock
+      AC6-8: Test notification log prevents duplicate sends with unique constraint
+      AC6-8: Test timezone conversion (7 PM UTC = 5 AM Brisbane) for job scheduling
+      Edge: Test installment paid before notification triggers - verify no email sent
+      Edge: Test email delivery failure logs error and updates delivery_status to 'failed'
+      Integration: Test full flow from installment creation to due soon flag to notification send
+    </ideas>
+  </tests>
+</story-context>

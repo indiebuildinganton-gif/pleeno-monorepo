@@ -45,37 +45,37 @@ development_status:
 
   epic-2: backlog
   2-1-agency-profile-setup: ready-for-dev
-  2-2-user-invitation-and-task-assignment-system: backlog
-  2-3-user-management-interface: backlog
-  2-4-user-profile-management: backlog
+  2-2-user-invitation-and-task-assignment-system: drafted
+  2-3-user-management-interface: ready-for-dev
+  2-4-user-profile-management: ready-for-dev
   epic-2-retrospective: optional
 
   epic-3: backlog
-  3-1-college-registry: backlog
-  3-2-student-registry: backlog
-  3-3-student-college-enrollment-linking: backlog
+  3-1-college-registry: ready-for-dev
+  3-2-student-registry: ready-for-dev
+  3-3-student-college-enrollment-linking: ready-for-dev
   epic-3-retrospective: optional
 
   epic-4: backlog
-  4-1-payment-plan-creation: backlog
-  4-2-flexible-installment-structure: backlog
-  4-3-payment-plan-list-and-detail-views: backlog
-  4-4-manual-payment-recording: backlog
-  4-5-commission-calculation-engine: backlog
+  4-1-payment-plan-creation: ready-for-dev
+  4-2-flexible-installment-structure: ready-for-dev
+  4-3-payment-plan-list-and-detail-views: ready-for-dev
+  4-4-manual-payment-recording: ready-for-dev
+  4-5-commission-calculation-engine: ready-for-dev
   epic-4-retrospective: optional
 
   epic-5: backlog
-  5-1-automated-status-detection-job: backlog
-  5-2-due-soon-notification-flags: backlog
-  5-3-overdue-payment-alerts: backlog
-  5-4-payment-status-dashboard-widget: backlog
-  5-5-automated-email-notifications-multi-stakeholder: backlog
+  5-1-automated-status-detection-job: ready-for-dev
+  5-2-due-soon-notification-flags: ready-for-dev
+  5-3-overdue-payment-alerts: ready-for-dev
+  5-4-payment-status-dashboard-widget: ready-for-dev
+  5-5-automated-email-notifications-multi-stakeholder: ready-for-dev
   epic-5-retrospective: optional
 
   epic-6: backlog
-  6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights: backlog
-  6-2-cash-flow-projection-chart: backlog
-  6-3-commission-breakdown-by-college: backlog
+  6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights: ready-for-dev
+  6-2-cash-flow-projection-chart: ready-for-dev
+  6-3-commission-breakdown-by-college: ready-for-dev
   6-4-recent-activity-feed: backlog
   6-5-overdue-payments-summary-widget: backlog
   epic-6-retrospective: optional
