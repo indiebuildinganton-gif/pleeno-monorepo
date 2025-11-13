@@ -55,10 +55,11 @@
 - [ ] Story file updated
 
 ### 8. Create update email dialog (admin only)
-- [ ] Prompt: `08-create-update-email-dialog-admin-only-.md`
-- [ ] Implementation complete
+- [x] Prompt: `08-create-update-email-dialog-admin-only-.md`
+- [x] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 9. Create request email change dialog (regular user)
 - [ ] Prompt: `09-create-request-email-change-dialog-regular-user-.md`
@@ -105,9 +106,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 4
+- Completed: 5
 - In progress: 0
-- Remaining: 11
+- Remaining: 10
 
 ## Notes
 
@@ -158,6 +159,20 @@ Add notes here as you work through the tasks:
   - Environment variables required: RESEND_API_KEY, NEXT_PUBLIC_APP_URL
   - Proper error handling: UnauthorizedError (401), ForbiddenError (403), ValidationError (400)
   - Follows architecture.md patterns for admin-only operations and email verification workflow
+- **Task 8 (2025-11-13):** Created UpdateEmailDialog component (admin-only)
+  - Created component at apps/agency/app/profile/components/UpdateEmailDialog.tsx
+  - Uses React Hook Form with zodResolver for EmailUpdateSchema validation
+  - Imports EmailUpdateSchema from @pleeno/validations package
+  - Warning message in yellow alert box about verification requirement
+  - New email address input field with validation error display
+  - Success toast displays "Verification email sent to [new email]" with 7-second duration
+  - Instructions in blue info box: "Check your new email inbox and click the verification link"
+  - Mentions 1-hour expiration for verification link
+  - Cancel and "Send Verification Email" buttons with proper loading states
+  - Calls PATCH /api/users/{userId}/email endpoint (from Task 4)
+  - Resets form and closes dialog on success
+  - Proper error handling with toast notifications
+  - Follows AC8 and AC9: Admin can update email with verification workflow
 
 ## Issues / Blockers
 
