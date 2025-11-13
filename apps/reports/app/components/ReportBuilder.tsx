@@ -3,7 +3,10 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { addDays, subDays, formatISO } from 'date-fns'
-import { reportBuilderSchema, type ReportBuilderFormData } from '../validations/report-builder.schema'
+import {
+  reportBuilderSchema,
+  type ReportBuilderFormData,
+} from '../validations/report-builder.schema'
 import { Button } from '@pleeno/ui'
 import { Input } from '@pleeno/ui'
 import { Label } from '@pleeno/ui'
@@ -12,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@plee
 import { useState, useMemo } from 'react'
 import { useColleges, useBranches, useStudents } from '../hooks/useReportLookups'
 import { useDebounce } from '../hooks/useDebounce'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 interface ReportBuilderProps {
   onGenerate: (data: ReportBuilderFormData) => void
@@ -50,6 +54,11 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
   const [studentSearchQuery, setStudentSearchQuery] = useState('')
   const debouncedStudentSearch = useDebounce(studentSearchQuery, 500)
+
+  // Mobile accordion state
+  const [isFiltersOpen, setIsFiltersOpen] = useState(true)
+  const [isExpirationOpen, setIsExpirationOpen] = useState(false)
+  const [isColumnsOpen, setIsColumnsOpen] = useState(false)
 
   const {
     register,
@@ -169,285 +178,711 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Filter Section */}
-          <section>
-            <h3 className="text-lg font-semibold mb-4">Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Date Range */}
-              <div className="space-y-2">
-                <Label htmlFor="date_from">Date From</Label>
-                <Input {...register('filters.date_from')} id="date_from" type="date" />
-                {errors.filters?.date_from && (
-                  <p className="text-sm text-destructive">{errors.filters.date_from.message}</p>
+          {/* Mobile Accordion Version */}
+          <div className="md:hidden space-y-3" role="region" aria-label="Report filters">
+            {/* Filters Accordion */}
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold hover:bg-accent rounded-t-lg"
+                aria-expanded={isFiltersOpen}
+                aria-controls="filters-section"
+              >
+                <span>Filters</span>
+                {isFiltersOpen ? (
+                  <ChevronUp className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
                 )}
-              </div>
+              </button>
+              {isFiltersOpen && (
+                <div id="filters-section" className="px-4 py-3 space-y-4 border-t">
+                  {/* Date Range */}
+                  <div className="space-y-2">
+                    <Label htmlFor="date_from_mobile">Date From</Label>
+                    <Input
+                      {...register('filters.date_from')}
+                      id="date_from_mobile"
+                      type="date"
+                      aria-label="Filter by date from"
+                    />
+                    {errors.filters?.date_from && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {errors.filters.date_from.message}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="date_to">Date To</Label>
-                <Input {...register('filters.date_to')} id="date_to" type="date" />
-                {errors.filters?.date_to && (
-                  <p className="text-sm text-destructive">{errors.filters.date_to.message}</p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="date_to_mobile">Date To</Label>
+                    <Input
+                      {...register('filters.date_to')}
+                      id="date_to_mobile"
+                      type="date"
+                      aria-label="Filter by date to"
+                    />
+                    {errors.filters?.date_to && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {errors.filters.date_to.message}
+                      </p>
+                    )}
+                  </div>
 
-              {/* College Multi-Select */}
-              <div className="space-y-2">
-                <Label htmlFor="college_ids">Colleges</Label>
-                <select
-                  id="college_ids"
-                  multiple
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={selectedCollegeIds}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value)
-                    setSelectedCollegeIds(selected)
-                  }}
-                  disabled={isLoadingColleges}
-                >
-                  {isLoadingColleges ? (
-                    <option disabled>Loading colleges...</option>
-                  ) : (
-                    colleges?.map((college) => (
-                      <option key={college.id} value={college.id}>
-                        {college.name} ({college.branch_count} branches)
-                      </option>
-                    ))
-                  )}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Hold Ctrl (Cmd on Mac) to select multiple colleges
-                </p>
-              </div>
-
-              {/* Branch Multi-Select */}
-              <div className="space-y-2">
-                <Label htmlFor="branch_ids">Branches</Label>
-                <select
-                  id="branch_ids"
-                  multiple
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={selectedBranchIds}
-                  onChange={(e) => {
-                    const selected = Array.from(e.target.selectedOptions, (option) => option.value)
-                    setSelectedBranchIds(selected)
-                  }}
-                  disabled={isLoadingBranches || filteredBranches.length === 0}
-                >
-                  {isLoadingBranches ? (
-                    <option disabled>Loading branches...</option>
-                  ) : filteredBranches.length === 0 ? (
-                    <option disabled>
-                      {selectedCollegeIds.length === 0
-                        ? 'Select colleges first'
-                        : 'No branches available'}
-                    </option>
-                  ) : (
-                    filteredBranches.map((branch) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Hold Ctrl (Cmd on Mac) to select multiple branches
-                </p>
-              </div>
-
-              {/* Student Search Typeahead */}
-              <div className="space-y-2">
-                <Label htmlFor="student_search">Students</Label>
-                <div className="relative">
-                  <Input
-                    id="student_search"
-                    type="text"
-                    placeholder="Type to search students (min 2 characters)..."
-                    value={studentSearchQuery}
-                    onChange={(e) => setStudentSearchQuery(e.target.value)}
-                  />
-                  {debouncedStudentSearch.length >= 2 && (
-                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-                      {isLoadingStudents ? (
-                        <div className="px-4 py-2 text-sm text-muted-foreground">
-                          Loading students...
-                        </div>
-                      ) : students && students.length > 0 ? (
-                        students.map((student) => (
-                          <div
-                            key={student.id}
-                            className={`cursor-pointer px-4 py-2 text-sm hover:bg-accent ${
-                              selectedStudentIds.includes(student.id) ? 'bg-accent' : ''
-                            }`}
-                            onClick={() => {
-                              if (selectedStudentIds.includes(student.id)) {
-                                setSelectedStudentIds(
-                                  selectedStudentIds.filter((id) => id !== student.id)
-                                )
-                              } else {
-                                setSelectedStudentIds([...selectedStudentIds, student.id])
-                              }
-                            }}
-                          >
-                            {student.name} - {student.college_name}
-                            {selectedStudentIds.includes(student.id) && ' ✓'}
-                          </div>
-                        ))
+                  {/* College Multi-Select */}
+                  <div className="space-y-2">
+                    <Label htmlFor="college_ids_mobile">Colleges</Label>
+                    <select
+                      id="college_ids_mobile"
+                      multiple
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={selectedCollegeIds}
+                      onChange={(e) => {
+                        const selected = Array.from(
+                          e.target.selectedOptions,
+                          (option) => option.value
+                        )
+                        setSelectedCollegeIds(selected)
+                      }}
+                      disabled={isLoadingColleges}
+                      aria-label="Select colleges"
+                    >
+                      {isLoadingColleges ? (
+                        <option disabled>Loading colleges...</option>
                       ) : (
-                        <div className="px-4 py-2 text-sm text-muted-foreground">
-                          No students found
+                        colleges?.map((college) => (
+                          <option key={college.id} value={college.id}>
+                            {college.name} ({college.branch_count} branches)
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <p className="text-xs text-muted-foreground">
+                      Hold Ctrl (Cmd on Mac) to select multiple colleges
+                    </p>
+                  </div>
+
+                  {/* Branch Multi-Select */}
+                  <div className="space-y-2">
+                    <Label htmlFor="branch_ids_mobile">Branches</Label>
+                    <select
+                      id="branch_ids_mobile"
+                      multiple
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={selectedBranchIds}
+                      onChange={(e) => {
+                        const selected = Array.from(
+                          e.target.selectedOptions,
+                          (option) => option.value
+                        )
+                        setSelectedBranchIds(selected)
+                      }}
+                      disabled={isLoadingBranches || filteredBranches.length === 0}
+                      aria-label="Select branches"
+                    >
+                      {isLoadingBranches ? (
+                        <option disabled>Loading branches...</option>
+                      ) : filteredBranches.length === 0 ? (
+                        <option disabled>
+                          {selectedCollegeIds.length === 0
+                            ? 'Select colleges first'
+                            : 'No branches available'}
+                        </option>
+                      ) : (
+                        filteredBranches.map((branch) => (
+                          <option key={branch.id} value={branch.id}>
+                            {branch.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                    <p className="text-xs text-muted-foreground">
+                      Hold Ctrl (Cmd on Mac) to select multiple branches
+                    </p>
+                  </div>
+
+                  {/* Student Search Typeahead */}
+                  <div className="space-y-2">
+                    <Label htmlFor="student_search_mobile">Students</Label>
+                    <div className="relative">
+                      <Input
+                        id="student_search_mobile"
+                        type="text"
+                        placeholder="Type to search students (min 2 characters)..."
+                        value={studentSearchQuery}
+                        onChange={(e) => setStudentSearchQuery(e.target.value)}
+                        aria-label="Search for students"
+                        aria-describedby="student-search-help-mobile"
+                      />
+                      {debouncedStudentSearch.length >= 2 && (
+                        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                          {isLoadingStudents ? (
+                            <div className="px-4 py-2 text-sm text-muted-foreground">
+                              Loading students...
+                            </div>
+                          ) : students && students.length > 0 ? (
+                            students.map((student) => (
+                              <div
+                                key={student.id}
+                                className={`cursor-pointer px-4 py-2 text-sm hover:bg-accent ${
+                                  selectedStudentIds.includes(student.id) ? 'bg-accent' : ''
+                                }`}
+                                onClick={() => {
+                                  if (selectedStudentIds.includes(student.id)) {
+                                    setSelectedStudentIds(
+                                      selectedStudentIds.filter((id) => id !== student.id)
+                                    )
+                                  } else {
+                                    setSelectedStudentIds([...selectedStudentIds, student.id])
+                                  }
+                                }}
+                                role="option"
+                                aria-selected={selectedStudentIds.includes(student.id)}
+                              >
+                                {student.name} - {student.college_name}
+                                {selectedStudentIds.includes(student.id) && ' ✓'}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-2 text-sm text-muted-foreground">
+                              No students found
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-                {selectedStudentIds.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {selectedStudentIds.map((studentId) => {
-                      const student = students?.find((s) => s.id === studentId)
-                      return student ? (
-                        <span
-                          key={studentId}
-                          className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs"
-                        >
-                          {student.name}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setSelectedStudentIds(
-                                selectedStudentIds.filter((id) => id !== studentId)
-                              )
-                            }
-                            className="hover:text-destructive"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ) : null
-                    })}
+                    {selectedStudentIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {selectedStudentIds.map((studentId) => {
+                          const student = students?.find((s) => s.id === studentId)
+                          return student ? (
+                            <span
+                              key={studentId}
+                              className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs"
+                            >
+                              {student.name}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedStudentIds(
+                                    selectedStudentIds.filter((id) => id !== studentId)
+                                  )
+                                }
+                                className="hover:text-destructive"
+                                aria-label={`Remove ${student.name}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ) : null
+                        })}
+                      </div>
+                    )}
+                    <p id="student-search-help-mobile" className="text-xs text-muted-foreground">
+                      Click on students to select/deselect them
+                    </p>
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  Click on students to select/deselect them
-                </p>
-              </div>
 
-              {/* Payment Status Multi-Select - Simplified for now */}
-              <div className="space-y-2">
-                <Label htmlFor="status">Payment Status</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {statusOptions.map((status) => (
-                    <label key={status.value} className="flex items-center gap-2 cursor-pointer">
-                      <Checkbox value={status.value} {...register('filters.status')} />
-                      <span className="text-sm">{status.label}</span>
+                  {/* Payment Status Multi-Select */}
+                  <div className="space-y-2">
+                    <Label htmlFor="status_mobile">Payment Status</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {statusOptions.map((status) => (
+                        <label
+                          key={status.value}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <Checkbox
+                            value={status.value}
+                            {...register('filters.status')}
+                            aria-label={`Filter by ${status.label} status`}
+                          />
+                          <span className="text-sm">{status.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Contract Expiration Accordion */}
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setIsExpirationOpen(!isExpirationOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold hover:bg-accent rounded-t-lg"
+                aria-expanded={isExpirationOpen}
+                aria-controls="expiration-section"
+              >
+                <span>Contract Expiration</span>
+                {isExpirationOpen ? (
+                  <ChevronUp className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+              {isExpirationOpen && (
+                <div id="expiration-section" className="px-4 py-3 space-y-4 border-t">
+                  {/* Quick Filters */}
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={activePreset === 'expiring_30' ? 'default' : 'outline'}
+                      onClick={() => handlePresetFilter('expiring_30')}
+                      aria-pressed={activePreset === 'expiring_30'}
+                      aria-label="Filter contracts expiring in 30 days"
+                    >
+                      30 days
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={activePreset === 'expiring_60' ? 'default' : 'outline'}
+                      onClick={() => handlePresetFilter('expiring_60')}
+                      aria-pressed={activePreset === 'expiring_60'}
+                      aria-label="Filter contracts expiring in 60 days"
+                    >
+                      60 days
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={activePreset === 'expiring_90' ? 'default' : 'outline'}
+                      onClick={() => handlePresetFilter('expiring_90')}
+                      aria-pressed={activePreset === 'expiring_90'}
+                      aria-label="Filter contracts expiring in 90 days"
+                    >
+                      90 days
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={activePreset === 'expired' ? 'default' : 'outline'}
+                      onClick={() => handlePresetFilter('expired')}
+                      aria-pressed={activePreset === 'expired'}
+                      aria-label="Filter already expired contracts"
+                    >
+                      Expired
+                    </Button>
+                  </div>
+
+                  {/* Custom Date Range */}
+                  <div className="space-y-2">
+                    <Label htmlFor="contract_expiration_from_mobile">Expiration From</Label>
+                    <Input
+                      {...register('filters.contract_expiration_from')}
+                      id="contract_expiration_from_mobile"
+                      type="date"
+                      aria-label="Contract expiration date from"
+                      onChange={(e) => {
+                        register('filters.contract_expiration_from').onChange(e)
+                        setActivePreset(null)
+                      }}
+                    />
+                    {errors.filters?.contract_expiration_from && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {errors.filters.contract_expiration_from.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contract_expiration_to_mobile">Expiration To</Label>
+                    <Input
+                      {...register('filters.contract_expiration_to')}
+                      id="contract_expiration_to_mobile"
+                      type="date"
+                      aria-label="Contract expiration date to"
+                      onChange={(e) => {
+                        register('filters.contract_expiration_to').onChange(e)
+                        setActivePreset(null)
+                      }}
+                    />
+                    {errors.filters?.contract_expiration_to && (
+                      <p className="text-sm text-destructive" role="alert">
+                        {errors.filters.contract_expiration_to.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Columns Accordion */}
+            <div className="border rounded-lg">
+              <button
+                type="button"
+                onClick={() => setIsColumnsOpen(!isColumnsOpen)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left font-semibold hover:bg-accent rounded-t-lg"
+                aria-expanded={isColumnsOpen}
+                aria-controls="columns-section"
+              >
+                <span>Select Columns ({selectedColumns.length})</span>
+                {isColumnsOpen ? (
+                  <ChevronUp className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+              {isColumnsOpen && (
+                <div id="columns-section" className="px-4 py-3 space-y-3 border-t">
+                  {availableColumns.map((column) => (
+                    <label
+                      key={column.value}
+                      className="flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedColumns.includes(column.value)}
+                        onCheckedChange={() => handleColumnToggle(column.value)}
+                        aria-label={`Include ${column.label} column`}
+                      />
+                      <span className="text-sm">{column.label}</span>
                     </label>
                   ))}
+                  {errors.columns && (
+                    <p className="text-sm text-destructive mt-2" role="alert">
+                      {errors.columns.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Desktop/Tablet Version */}
+          <div className="hidden md:block space-y-6">
+            {/* Filter Section */}
+            <section>
+              <h3 className="text-lg font-semibold mb-4">Filters</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Date Range */}
+                <div className="space-y-2">
+                  <Label htmlFor="date_from">Date From</Label>
+                  <Input
+                    {...register('filters.date_from')}
+                    id="date_from"
+                    type="date"
+                    aria-label="Filter by date from"
+                  />
+                  {errors.filters?.date_from && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.filters.date_from.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="date_to">Date To</Label>
+                  <Input
+                    {...register('filters.date_to')}
+                    id="date_to"
+                    type="date"
+                    aria-label="Filter by date to"
+                  />
+                  {errors.filters?.date_to && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.filters.date_to.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* College Multi-Select */}
+                <div className="space-y-2">
+                  <Label htmlFor="college_ids">Colleges</Label>
+                  <select
+                    id="college_ids"
+                    multiple
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={selectedCollegeIds}
+                    onChange={(e) => {
+                      const selected = Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value
+                      )
+                      setSelectedCollegeIds(selected)
+                    }}
+                    disabled={isLoadingColleges}
+                    aria-label="Select colleges"
+                  >
+                    {isLoadingColleges ? (
+                      <option disabled>Loading colleges...</option>
+                    ) : (
+                      colleges?.map((college) => (
+                        <option key={college.id} value={college.id}>
+                          {college.name} ({college.branch_count} branches)
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Hold Ctrl (Cmd on Mac) to select multiple colleges
+                  </p>
+                </div>
+
+                {/* Branch Multi-Select */}
+                <div className="space-y-2">
+                  <Label htmlFor="branch_ids">Branches</Label>
+                  <select
+                    id="branch_ids"
+                    multiple
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={selectedBranchIds}
+                    onChange={(e) => {
+                      const selected = Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value
+                      )
+                      setSelectedBranchIds(selected)
+                    }}
+                    disabled={isLoadingBranches || filteredBranches.length === 0}
+                    aria-label="Select branches"
+                  >
+                    {isLoadingBranches ? (
+                      <option disabled>Loading branches...</option>
+                    ) : filteredBranches.length === 0 ? (
+                      <option disabled>
+                        {selectedCollegeIds.length === 0
+                          ? 'Select colleges first'
+                          : 'No branches available'}
+                      </option>
+                    ) : (
+                      filteredBranches.map((branch) => (
+                        <option key={branch.id} value={branch.id}>
+                          {branch.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <p className="text-xs text-muted-foreground">
+                    Hold Ctrl (Cmd on Mac) to select multiple branches
+                  </p>
+                </div>
+
+                {/* Student Search Typeahead */}
+                <div className="space-y-2">
+                  <Label htmlFor="student_search">Students</Label>
+                  <div className="relative">
+                    <Input
+                      id="student_search"
+                      type="text"
+                      placeholder="Type to search students (min 2 characters)..."
+                      value={studentSearchQuery}
+                      onChange={(e) => setStudentSearchQuery(e.target.value)}
+                      aria-label="Search for students"
+                      aria-describedby="student-search-help"
+                    />
+                    {debouncedStudentSearch.length >= 2 && (
+                      <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                        {isLoadingStudents ? (
+                          <div className="px-4 py-2 text-sm text-muted-foreground">
+                            Loading students...
+                          </div>
+                        ) : students && students.length > 0 ? (
+                          students.map((student) => (
+                            <div
+                              key={student.id}
+                              className={`cursor-pointer px-4 py-2 text-sm hover:bg-accent ${
+                                selectedStudentIds.includes(student.id) ? 'bg-accent' : ''
+                              }`}
+                              onClick={() => {
+                                if (selectedStudentIds.includes(student.id)) {
+                                  setSelectedStudentIds(
+                                    selectedStudentIds.filter((id) => id !== student.id)
+                                  )
+                                } else {
+                                  setSelectedStudentIds([...selectedStudentIds, student.id])
+                                }
+                              }}
+                              role="option"
+                              aria-selected={selectedStudentIds.includes(student.id)}
+                            >
+                              {student.name} - {student.college_name}
+                              {selectedStudentIds.includes(student.id) && ' ✓'}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-sm text-muted-foreground">
+                            No students found
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {selectedStudentIds.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {selectedStudentIds.map((studentId) => {
+                        const student = students?.find((s) => s.id === studentId)
+                        return student ? (
+                          <span
+                            key={studentId}
+                            className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs"
+                          >
+                            {student.name}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSelectedStudentIds(
+                                  selectedStudentIds.filter((id) => id !== studentId)
+                                )
+                              }
+                              className="hover:text-destructive"
+                              aria-label={`Remove ${student.name}`}
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ) : null
+                      })}
+                    </div>
+                  )}
+                  <p id="student-search-help" className="text-xs text-muted-foreground">
+                    Click on students to select/deselect them
+                  </p>
+                </div>
+
+                {/* Payment Status Multi-Select - Simplified for now */}
+                <div className="space-y-2">
+                  <Label htmlFor="status">Payment Status</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {statusOptions.map((status) => (
+                      <label key={status.value} className="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                          value={status.value}
+                          {...register('filters.status')}
+                          aria-label={`Filter by ${status.label} status`}
+                        />
+                        <span className="text-sm">{status.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* Contract Expiration Quick Filters */}
-          <section>
-            <h3 className="text-lg font-semibold mb-4">Contract Expiration Quick Filters</h3>
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Button
-                type="button"
-                variant={activePreset === 'expiring_30' ? 'default' : 'outline'}
-                onClick={() => handlePresetFilter('expiring_30')}
-              >
-                Expiring in 30 days
-              </Button>
-              <Button
-                type="button"
-                variant={activePreset === 'expiring_60' ? 'default' : 'outline'}
-                onClick={() => handlePresetFilter('expiring_60')}
-              >
-                Expiring in 60 days
-              </Button>
-              <Button
-                type="button"
-                variant={activePreset === 'expiring_90' ? 'default' : 'outline'}
-                onClick={() => handlePresetFilter('expiring_90')}
-              >
-                Expiring in 90 days
-              </Button>
-              <Button
-                type="button"
-                variant={activePreset === 'expired' ? 'default' : 'outline'}
-                onClick={() => handlePresetFilter('expired')}
-              >
-                Already expired
-              </Button>
-            </div>
-
-            {/* Custom Contract Expiration Date Range */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="contract_expiration_from">Contract Expiration From</Label>
-                <Input
-                  {...register('filters.contract_expiration_from')}
-                  id="contract_expiration_from"
-                  type="date"
-                  onChange={(e) => {
-                    register('filters.contract_expiration_from').onChange(e)
-                    setActivePreset(null) // Clear preset when manually changing dates
-                  }}
-                />
-                {errors.filters?.contract_expiration_from && (
-                  <p className="text-sm text-destructive">
-                    {errors.filters.contract_expiration_from.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="contract_expiration_to">Contract Expiration To</Label>
-                <Input
-                  {...register('filters.contract_expiration_to')}
-                  id="contract_expiration_to"
-                  type="date"
-                  onChange={(e) => {
-                    register('filters.contract_expiration_to').onChange(e)
-                    setActivePreset(null) // Clear preset when manually changing dates
-                  }}
-                />
-                {errors.filters?.contract_expiration_to && (
-                  <p className="text-sm text-destructive">
-                    {errors.filters.contract_expiration_to.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Column Selection Section */}
-          <section>
-            <h3 className="text-lg font-semibold mb-4">Select Columns</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {availableColumns.map((column) => (
-                <label
-                  key={column.value}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer"
+            {/* Contract Expiration Quick Filters */}
+            <section>
+              <h3 className="text-lg font-semibold mb-4">Contract Expiration Quick Filters</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <Button
+                  type="button"
+                  variant={activePreset === 'expiring_30' ? 'default' : 'outline'}
+                  onClick={() => handlePresetFilter('expiring_30')}
+                  aria-pressed={activePreset === 'expiring_30'}
+                  aria-label="Filter contracts expiring in 30 days"
                 >
-                  <Checkbox
-                    checked={selectedColumns.includes(column.value)}
-                    onCheckedChange={() => handleColumnToggle(column.value)}
+                  Expiring in 30 days
+                </Button>
+                <Button
+                  type="button"
+                  variant={activePreset === 'expiring_60' ? 'default' : 'outline'}
+                  onClick={() => handlePresetFilter('expiring_60')}
+                  aria-pressed={activePreset === 'expiring_60'}
+                  aria-label="Filter contracts expiring in 60 days"
+                >
+                  Expiring in 60 days
+                </Button>
+                <Button
+                  type="button"
+                  variant={activePreset === 'expiring_90' ? 'default' : 'outline'}
+                  onClick={() => handlePresetFilter('expiring_90')}
+                  aria-pressed={activePreset === 'expiring_90'}
+                  aria-label="Filter contracts expiring in 90 days"
+                >
+                  Expiring in 90 days
+                </Button>
+                <Button
+                  type="button"
+                  variant={activePreset === 'expired' ? 'default' : 'outline'}
+                  onClick={() => handlePresetFilter('expired')}
+                  aria-pressed={activePreset === 'expired'}
+                  aria-label="Filter already expired contracts"
+                >
+                  Already expired
+                </Button>
+              </div>
+
+              {/* Custom Contract Expiration Date Range */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contract_expiration_from">Contract Expiration From</Label>
+                  <Input
+                    {...register('filters.contract_expiration_from')}
+                    id="contract_expiration_from"
+                    type="date"
+                    aria-label="Contract expiration date from"
+                    onChange={(e) => {
+                      register('filters.contract_expiration_from').onChange(e)
+                      setActivePreset(null) // Clear preset when manually changing dates
+                    }}
                   />
-                  <span className="text-sm">{column.label}</span>
-                </label>
-              ))}
-            </div>
-            {errors.columns && (
-              <p className="text-sm text-destructive mt-2">{errors.columns.message}</p>
-            )}
-          </section>
+                  {errors.filters?.contract_expiration_from && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.filters.contract_expiration_from.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contract_expiration_to">Contract Expiration To</Label>
+                  <Input
+                    {...register('filters.contract_expiration_to')}
+                    id="contract_expiration_to"
+                    type="date"
+                    aria-label="Contract expiration date to"
+                    onChange={(e) => {
+                      register('filters.contract_expiration_to').onChange(e)
+                      setActivePreset(null) // Clear preset when manually changing dates
+                    }}
+                  />
+                  {errors.filters?.contract_expiration_to && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {errors.filters.contract_expiration_to.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Column Selection Section */}
+            <section>
+              <h3 className="text-lg font-semibold mb-4">Select Columns</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {availableColumns.map((column) => (
+                  <label
+                    key={column.value}
+                    className="flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer"
+                  >
+                    <Checkbox
+                      checked={selectedColumns.includes(column.value)}
+                      onCheckedChange={() => handleColumnToggle(column.value)}
+                      aria-label={`Include ${column.label} column`}
+                    />
+                    <span className="text-sm">{column.label}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.columns && (
+                <p className="text-sm text-destructive mt-2" role="alert">
+                  {errors.columns.message}
+                </p>
+              )}
+            </section>
+          </div>
 
           {/* Actions Section */}
           <section className="flex gap-3 pt-4 border-t">
-            <Button type="submit" size="lg">
+            <Button type="submit" size="lg" aria-label="Generate payment plans report">
               Generate Report
             </Button>
-            <Button type="button" variant="outline" size="lg" onClick={handleReset}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleReset}
+              aria-label="Reset all filters to default values"
+            >
               Reset Filters
             </Button>
           </section>

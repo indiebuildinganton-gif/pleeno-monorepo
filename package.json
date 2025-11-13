@@ -30,6 +30,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
     "@playwright/test": "^1.56.1",
     "@supabase/supabase-js": "^2.47.10",
     "@testing-library/jest-dom": "^6.9.1",
