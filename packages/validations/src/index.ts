@@ -16,5 +16,7 @@ export * from './payment-plan.schema'
 // Export college schemas and types
 export * from './college.schema'
 
+// Export branch schemas and types
+export * from './branch.schema'
 // Export enrollment schemas and types
 export * from './enrollment.schema'
