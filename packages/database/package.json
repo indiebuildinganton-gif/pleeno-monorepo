@@ -1,5 +1,8 @@
 {
   "name": "@pleeno/database",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Supabase client and database types for Pleeno",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -11,7 +14,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "gen:types": "supabase gen types typescript --local > src/types/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
