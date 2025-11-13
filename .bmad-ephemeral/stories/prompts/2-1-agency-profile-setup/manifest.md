@@ -13,10 +13,10 @@
 - Notes: Created validation schema with Zod for agency profile updates. Includes validation for name, contact_email, contact_phone, currency (AUD, USD, EUR, GBP, NZD, CAD), and timezone (IANA timezones). Exported TypeScript types and constants for UI use.
 
 ### Task 2: Implement API Route for Agency Updates
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Created PATCH endpoint at /api/agencies/[id] with role-based access control, Zod validation, multi-tenant security enforcement, and standardized error handling. Includes agency ID isolation check and RLS integration.
 
 ### Task 3: Create Agency Settings Page and Form
 - Status: Not Started
