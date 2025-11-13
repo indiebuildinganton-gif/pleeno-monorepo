@@ -2,11 +2,16 @@
   "name": "pleeno-monorepo",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "type-check": "turbo run type-check",
     "dev:shell": "cd apps/shell && npm run dev -- --port 3000",
     "dev:dashboard": "cd apps/dashboard && npm run dev -- --port 3001",
     "dev:agency": "cd apps/agency && npm run dev -- --port 3002",
