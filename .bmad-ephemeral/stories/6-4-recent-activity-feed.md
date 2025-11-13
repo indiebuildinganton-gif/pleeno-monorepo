@@ -1,6 +1,6 @@
 # Story 6.4: Recent Activity Feed
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -578,7 +578,7 @@ function getActivityLink(activity: ActivityWithUser): string {
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- .bmad-ephemeral/stories/6-4-recent-activity-feed.context.xml
 
 ### Agent Model Used
 
