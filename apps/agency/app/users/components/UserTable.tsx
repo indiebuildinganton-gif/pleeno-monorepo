@@ -21,6 +21,7 @@ interface User {
   agency_id: string
   created_at: string
   updated_at: string
+  task_count?: number
 }
 
 interface UserTableProps {
@@ -52,6 +53,7 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Assigned Tasks</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -60,6 +62,36 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground">
                 No users found
+          {initialUsers.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell className="font-medium">
+                {user.full_name || 'N/A'}
+                {user.id === currentUserId && (
+                  <span className="ml-2 text-xs text-muted-foreground">(You)</span>
+                )}
+              </TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>
+                <Badge variant={getRoleBadgeVariant(user.role)}>
+                  {formatRole(user.role)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge variant={getStatusBadgeVariant(user.status)}>
+                  {formatStatus(user.status)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {user.task_count !== undefined ? user.task_count : 0} task
+                  {user.task_count !== 1 ? 's' : ''}
+                </span>
+              </TableCell>
+              <TableCell className="text-right">
+                <span className="text-sm text-muted-foreground">
+                  {/* Actions will be added in future tasks */}
+                  -
+                </span>
               </TableCell>
             </TableRow>
           ) : (

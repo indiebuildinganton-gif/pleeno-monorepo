@@ -13,6 +13,7 @@ export * from './components/ui/toast'
 export * from './components/ui/badge'
 export * from './components/ui/table'
 export * from './components/ui/dialog'
+export * from './components/ui/checkbox'
 
 // Auth Components
 export * from './components/auth'

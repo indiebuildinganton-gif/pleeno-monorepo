@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -12,15 +12,58 @@ import {
   Button,
   Input,
   Label,
+  Checkbox,
 } from '@pleeno/ui'
+
+interface MasterTask {
+  id: string
+  task_name: string
+  task_code: string
+  description: string | null
+}
 
 export function InviteUserModal() {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<'agency_admin' | 'agency_user'>('agency_user')
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
+  const [masterTasks, setMasterTasks] = useState<MasterTask[]>([])
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // Load master tasks when modal opens
+  useEffect(() => {
+    if (open && masterTasks.length === 0) {
+      loadMasterTasks()
+    }
+  }, [open, masterTasks.length])
+
+  const loadMasterTasks = async () => {
+    setIsLoadingTasks(true)
+    try {
+      const response = await fetch('/api/master-tasks')
+      if (!response.ok) {
+        throw new Error('Failed to load tasks')
+      }
+      const data = await response.json()
+      setMasterTasks(data.data || [])
+    } catch (err) {
+      console.error('Failed to load master tasks:', err)
+      setError('Failed to load task list')
+    } finally {
+      setIsLoadingTasks(false)
+    }
+  }
+
+  const handleTaskToggle = (taskId: string) => {
+    setSelectedTaskIds((prev) =>
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId]
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +80,7 @@ export function InviteUserModal() {
         body: JSON.stringify({
           email,
           role,
-          task_ids: [], // No tasks for now
+          task_ids: selectedTaskIds,
         }),
       })
 
@@ -50,6 +93,7 @@ export function InviteUserModal() {
       setSuccess(true)
       setEmail('')
       setRole('agency_user')
+      setSelectedTaskIds([])
 
       // Close modal after 1.5 seconds
       setTimeout(() => {
@@ -70,7 +114,7 @@ export function InviteUserModal() {
       <DialogTrigger asChild>
         <Button>Invite User</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Invite New User</DialogTitle>
           <DialogDescription>
@@ -106,6 +150,54 @@ export function InviteUserModal() {
                 <option value="agency_admin">Admin</option>
               </select>
             </div>
+
+            <div className="grid gap-2">
+              <Label>Task Assignments (Optional)</Label>
+              <div className="text-sm text-muted-foreground mb-2">
+                Select the tasks this user will be responsible for:
+              </div>
+              {isLoadingTasks ? (
+                <div className="text-sm text-muted-foreground py-4">
+                  Loading tasks...
+                </div>
+              ) : masterTasks.length === 0 ? (
+                <div className="text-sm text-muted-foreground py-4">
+                  No tasks available
+                </div>
+              ) : (
+                <div className="space-y-3 border rounded-md p-4 max-h-60 overflow-y-auto">
+                  {masterTasks.map((task) => (
+                    <div key={task.id} className="flex items-start space-x-3">
+                      <Checkbox
+                        id={`task-${task.id}`}
+                        checked={selectedTaskIds.includes(task.id)}
+                        onCheckedChange={() => handleTaskToggle(task.id)}
+                        disabled={isSubmitting}
+                      />
+                      <div className="flex-1">
+                        <Label
+                          htmlFor={`task-${task.id}`}
+                          className="font-medium cursor-pointer"
+                        >
+                          {task.task_name}
+                        </Label>
+                        {task.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {task.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {selectedTaskIds.length > 0 && (
+                <div className="text-sm text-muted-foreground">
+                  {selectedTaskIds.length} task{selectedTaskIds.length > 1 ? 's' : ''} selected
+                </div>
+              )}
+            </div>
+
             {error && (
               <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
@@ -113,7 +205,7 @@ export function InviteUserModal() {
             )}
             {success && (
               <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">
-                Invitation sent successfully!
+                Invitation sent to {email}!
               </div>
             )}
           </div>
