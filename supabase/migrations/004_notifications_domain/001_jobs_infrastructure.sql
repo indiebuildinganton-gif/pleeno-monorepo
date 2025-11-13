@@ -156,26 +156,44 @@ DECLARE
   current_time_in_zone TIMESTAMPTZ;
   updated_count INT;
 BEGIN
-  -- Loop through each agency
+  -- Loop through each agency to handle different timezones
+  -- Each agency has its own timezone and cutoff time settings
   FOR agency_record IN
     SELECT id, timezone, overdue_cutoff_time
     FROM agencies
   LOOP
-    -- Get current time in agency's timezone
+    -- Convert UTC time to agency's local timezone
+    -- Example: If UTC is 7:00 AM and agency timezone is Australia/Brisbane,
+    -- this gives us 5:00 PM Brisbane time (AEST is UTC+10)
     current_time_in_zone := (now() AT TIME ZONE agency_record.timezone);
 
-    -- Update installments past due date or past cutoff time today
+    -- Update installments to 'overdue' based on two conditions:
+    --
+    -- 1. Due date is in the past (student_due_date < CURRENT_DATE)
+    --    Example: If today is Jan 15 and due date is Jan 14, mark overdue
+    --
+    -- 2. Due date is today AND current agency local time > cutoff time
+    --    Example: If today is Jan 15, due date is Jan 15, and:
+    --    - Agency timezone: Australia/Brisbane
+    --    - Cutoff time: 17:00 (5:00 PM)
+    --    - Current Brisbane time: 18:00 (6:00 PM)
+    --    Then mark overdue (student had until 5 PM to pay)
+    --
+    -- This ensures installments become overdue at the agency's business day end,
+    -- not at midnight UTC, which provides a more user-friendly experience.
     WITH updated AS (
       UPDATE installments i
       SET status = 'overdue'
       FROM payment_plans pp
       WHERE i.payment_plan_id = pp.id
         AND pp.agency_id = agency_record.id
-        AND pp.status = 'active'
-        AND i.status = 'pending'
+        AND pp.status = 'active'          -- Only active payment plans
+        AND i.status = 'pending'           -- Only pending installments
         AND (
+          -- Condition 1: Due date is in the past
           i.student_due_date < CURRENT_DATE
           OR (
+            -- Condition 2: Due date is today AND past cutoff time
             i.student_due_date = CURRENT_DATE
             AND current_time_in_zone::TIME > agency_record.overdue_cutoff_time
           )
@@ -184,7 +202,9 @@ BEGIN
     )
     SELECT count(*) INTO updated_count FROM updated;
 
-    -- Return results for this agency
+    -- Return results for this agency showing how many were updated
+    -- The transitions JSONB allows for future expansion to track
+    -- other state transitions (pending → due_soon, etc.)
     RETURN QUERY SELECT
       agency_record.id,
       updated_count,
@@ -199,14 +219,21 @@ COMMENT ON FUNCTION update_installment_statuses IS 'Updates installment statuses
 -- SECTION 5: Alert Trigger
 -- =====================================================
 
--- Function to send notification on job failure
+-- Function to send real-time notification when a job fails
+-- This allows external monitoring systems to listen for job failures
+-- via PostgreSQL's LISTEN/NOTIFY mechanism
 CREATE OR REPLACE FUNCTION notify_job_failure()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+  -- Only notify for failed status update jobs
+  -- Future: Can extend to notify for other job types or conditions
   IF NEW.status = 'failed' AND NEW.job_name = 'update-installment-statuses' THEN
-    -- Send notification via pg_notify
+    -- Send notification via pg_notify channel
+    -- External systems can subscribe to 'job_failure' channel using:
+    --   LISTEN job_failure;
+    -- Then handle the notification in application code
     PERFORM pg_notify(
       'job_failure',
       json_build_object(
@@ -220,7 +247,9 @@ BEGIN
 END;
 $$;
 
--- Create trigger (drop first if exists)
+COMMENT ON FUNCTION notify_job_failure IS 'Sends pg_notify alert when status update job fails for real-time monitoring';
+
+-- Create trigger (drop first if exists for idempotency)
 DROP TRIGGER IF EXISTS trigger_notify_job_failure ON jobs_log;
 CREATE TRIGGER trigger_notify_job_failure
 AFTER INSERT OR UPDATE ON jobs_log

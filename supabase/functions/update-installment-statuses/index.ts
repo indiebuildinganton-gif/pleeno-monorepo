@@ -1,10 +1,28 @@
+/**
+ * Update Installment Statuses Edge Function
+ *
+ * This function is invoked daily by pg_cron to automatically update installment statuses
+ * based on due dates and agency-specific timezone settings. It calls the PostgreSQL
+ * update_installment_statuses() function and logs all executions to the jobs_log table.
+ *
+ * Security: Protected by API key authentication (X-API-Key header)
+ * Schedule: Daily at 7:00 AM UTC (5:00 PM Brisbane time)
+ *
+ * @see docs/operations/status-update-job.md for operational procedures
+ * @see docs/runbooks/status-update-job-failures.md for troubleshooting
+ */
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Environment variables - auto-provided by Supabase except FUNCTION_API_KEY
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// FUNCTION_API_KEY must be set via: supabase secrets set SUPABASE_FUNCTION_KEY="<key>"
 const FUNCTION_API_KEY = Deno.env.get("SUPABASE_FUNCTION_KEY")!;
 
+// Retry configuration: Exponential backoff for transient errors
+// Delays: 1s, 2s, 4s = max 7s additional time across 3 retries
 const MAX_RETRIES = 3;
 const INITIAL_DELAY = 1000; // 1 second
 
@@ -23,7 +41,17 @@ interface UpdateResponse {
   error?: string;
 }
 
-// Retry logic
+/**
+ * Executes a function with exponential backoff retry logic.
+ *
+ * Retries only for transient errors (network, timeouts, etc.)
+ * Retry delays: 1s, 2s, 4s (exponential backoff)
+ *
+ * @param fn - The async function to execute
+ * @param retries - Current retry attempt (internal use)
+ * @returns Result of the function execution
+ * @throws Error if max retries exceeded or non-transient error
+ */
 async function executeWithRetry<T>(
   fn: () => Promise<T>,
   retries = 0
@@ -31,17 +59,35 @@ async function executeWithRetry<T>(
   try {
     return await fn();
   } catch (error) {
+    // Don't retry if we've hit max retries or error is permanent
     if (retries >= MAX_RETRIES || !isTransientError(error)) {
       throw error;
     }
+    // Exponential backoff: 1s * 2^retries = 1s, 2s, 4s
     const delay = INITIAL_DELAY * Math.pow(2, retries);
+    console.log(`Retry ${retries + 1}/${MAX_RETRIES} after ${delay}ms`);
     await new Promise((resolve) => setTimeout(resolve, delay));
     return executeWithRetry(fn, retries + 1);
   }
 }
 
+/**
+ * Determines if an error is transient (retryable) or permanent.
+ *
+ * Transient errors include:
+ * - Network connection resets (ECONNRESET)
+ * - Timeouts (ETIMEDOUT, timeout)
+ * - Temporary connection issues (ECONNREFUSED, connection)
+ *
+ * Permanent errors (not retried):
+ * - SQL syntax errors
+ * - Permission errors
+ * - Business logic errors
+ *
+ * @param error - The error to check
+ * @returns true if error is transient/retryable, false otherwise
+ */
 function isTransientError(error: any): boolean {
-  // Network errors, timeouts, temporary database issues
   const transientPatterns = [
     "ECONNRESET",
     "ETIMEDOUT",
@@ -56,7 +102,7 @@ function isTransientError(error: any): boolean {
 }
 
 serve(async (req) => {
-  // CORS headers
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -67,7 +113,10 @@ serve(async (req) => {
     });
   }
 
-  // Validate API key
+  // API Key Authentication
+  // Only pg_cron (with database setting) and authorized admins can invoke this function
+  // Key is set via: supabase secrets set SUPABASE_FUNCTION_KEY="<key>"
+  // Database setting: ALTER DATABASE postgres SET app.supabase_function_key = '<key>';
   const apiKey = req.headers.get("X-API-Key");
   if (apiKey !== FUNCTION_API_KEY) {
     return new Response(
@@ -76,9 +125,12 @@ serve(async (req) => {
     );
   }
 
+  // Initialize Supabase client with service role key for elevated permissions
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // Log job start
+  // Log job start in jobs_log table
+  // This creates an audit trail for monitoring and troubleshooting
+  // Status transitions: running -> success/failed
   const { data: jobLog, error: insertError } = await supabase
     .from("jobs_log")
     .insert({
@@ -98,17 +150,20 @@ serve(async (req) => {
   }
 
   try {
-    // Call database function with retry
+    // Call the PostgreSQL update_installment_statuses() function with retry logic
+    // This function handles timezone-aware status updates for all agencies
+    // Returns array of results per agency showing what was updated
     const results = await executeWithRetry(async () => {
       const { data, error } = await supabase.rpc("update_installment_statuses");
       if (error) throw error;
       return data as AgencyResult[];
     });
 
-    // Calculate totals
+    // Calculate total installments updated across all agencies
     const totalUpdated = results.reduce((sum, r) => sum + r.updated_count, 0);
 
-    // Log job success
+    // Update jobs_log with success status and detailed results
+    // Metadata includes per-agency breakdown for monitoring and debugging
     await supabase
       .from("jobs_log")
       .update({
@@ -122,6 +177,7 @@ serve(async (req) => {
       })
       .eq("id", jobLog.id);
 
+    // Return success response with summary and per-agency details
     const response: UpdateResponse = {
       success: true,
       recordsUpdated: totalUpdated,
@@ -133,7 +189,8 @@ serve(async (req) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // Log job failure
+    // Log job failure with error details for troubleshooting
+    // Error stack trace stored in metadata for debugging
     await supabase
       .from("jobs_log")
       .update({
@@ -148,6 +205,7 @@ serve(async (req) => {
 
     console.error("Job failed:", error);
 
+    // Return error response - maintains consistent API contract even on failure
     return new Response(
       JSON.stringify({
         success: false,
