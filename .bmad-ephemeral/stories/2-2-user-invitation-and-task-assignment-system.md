@@ -76,18 +76,18 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Include error handling and logging
   - [x] Test email delivery in development mode
 
-- [ ] Create invitation acceptance page and flow (AC: 2, 3, 4)
-  - [ ] Create apps/shell/app/accept-invitation/[token]/page.tsx
-  - [ ] Validate token on page load (not expired, not used)
-  - [ ] Display error if token invalid or expired
-  - [ ] Show signup form pre-filled with email from invitation
-  - [ ] Form fields: full_name, password, password_confirmation
-  - [ ] On submit: create user with Supabase Auth, mark invitation as used
-  - [ ] Automatically set user's agency_id from invitation
-  - [ ] Automatically set user's role from invitation
-  - [ ] Create user_task_assignments for assigned tasks
-  - [ ] Redirect to dashboard after successful signup
-  - [ ] Add success toast: "Welcome to [Agency Name]!"
+- [x] Create invitation acceptance page and flow (AC: 2, 3, 4)
+  - [x] Create apps/shell/app/accept-invitation/[token]/page.tsx
+  - [x] Validate token on page load (not expired, not used)
+  - [x] Display error if token invalid or expired
+  - [x] Show signup form pre-filled with email from invitation
+  - [x] Form fields: full_name, password, password_confirmation
+  - [x] On submit: create user with Supabase Auth, mark invitation as used
+  - [x] Automatically set user's agency_id from invitation
+  - [x] Automatically set user's role from invitation
+  - [x] Create user_task_assignments for assigned tasks
+  - [x] Redirect to dashboard after successful signup
+  - [x] Add success toast: "Welcome to [Agency Name]!"
 
 - [ ] Create user management page with invitation capability (AC: 1, 5, 7)
   - [ ] Create apps/agency/app/users/page.tsx
@@ -930,6 +930,68 @@ N/A - No debugging required
 - Consider email delivery retry queue for production resilience
 - Add email delivery status tracking (optional enhancement)
 
+**Task 06: Create invitation acceptance page and flow - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created validation schema: `packages/validations/src/invitation.schema.ts` (updated)
+  - **InvitationAcceptanceSchema** - Validates token (UUID), full_name, password, password_confirmation with matching validation
+  - Password requirements: 8+ chars, uppercase, lowercase, number
+  - Exported type: InvitationAcceptance
+- Created API route: `apps/shell/app/api/accept-invitation/route.ts`
+  - **POST /api/accept-invitation** - Handles invitation acceptance and user signup
+  - Validates invitation token (not expired, not used)
+  - Creates user with Supabase Auth (email, password, full_name)
+  - Creates user record in public.users table with agency_id and role from invitation
+  - Marks invitation as used (sets used_at timestamp)
+  - Creates user_task_assignments for assigned tasks (from query parameter)
+  - Returns success response with user data and agency name
+  - Comprehensive error handling with ValidationError, NotFoundError
+- Created page component: `apps/shell/app/accept-invitation/[token]/page.tsx`
+  - Server Component that fetches invitation data on page load
+  - Validates token (not expired, not used)
+  - Displays error states for invalid, expired, or already-used invitations
+  - Passes invitation data to client component for signup form
+- Created client component: `apps/shell/app/accept-invitation/[token]/AcceptInvitationForm.tsx`
+  - Signup form with React Hook Form + Zod validation
+  - Pre-filled email field (disabled) from invitation
+  - Form fields: full_name, password, password_confirmation
+  - Real-time validation feedback
+  - Loading states during submission
+  - Error handling and display
+  - On success: redirects to dashboard with welcome message
+- Created dashboard page: `apps/shell/app/dashboard/page.tsx`
+  - Client Component with welcome toast notification
+  - Displays success message from query parameter
+  - Auto-hides toast after 5 seconds
+  - Close button for manual dismissal
+  - Basic dashboard layout (placeholder content)
+
+📝 **Implementation notes:**
+- Token validation happens in two places: Server Component (initial page load) and API route (during submission)
+- Email is pre-filled and disabled in form (cannot be changed by user)
+- Password validation uses same pattern as regular signup (8+ chars, uppercase, lowercase, number)
+- Task assignments are passed via URL query parameter from invitation email
+- Task assignments are optional - if none provided, user is created without task assignments
+- API route gracefully handles missing task assignments (non-critical error)
+- Welcome message passed via query parameter to dashboard (no toast library needed)
+- Dashboard shows green toast notification with checkmark icon
+- All user data (agency_id, role) automatically set from invitation record
+- Invitation marked as used immediately after user creation (prevents reuse)
+- Used TypeScript Promise types for Next.js 15 params and searchParams
+
+⚠️ **Deviations from story:**
+- Dashboard page created as a basic placeholder (not part of original task scope)
+- Welcome toast implemented using query parameters and client-side state (no toast library)
+- Toast auto-hides after 5 seconds (user-friendly enhancement)
+
+🔄 **Follow-up tasks:**
+- Add integration tests for invitation acceptance API route
+- Add E2E tests for complete invitation flow (email → signup → dashboard)
+- Test with actual Supabase instance when migrations are run
+- Consider using a toast library (react-hot-toast or sonner) for production
+- Add email verification step (optional security enhancement)
+- Add password strength meter to signup form (optional UX enhancement)
+
 ### File List
 
 **Created:**
@@ -945,6 +1007,13 @@ N/A - No debugging required
 - `packages/validations/src/index.ts` - Added export for invitation schemas
 - `packages/utils/src/index.ts` - Added export for email-helpers
 - `.env.example` - Added RESEND_FROM_EMAIL environment variable
+- `packages/validations/src/invitation.schema.ts` - Added InvitationAcceptanceSchema for invitation acceptance validation
+
+**Created (Task 06):**
+- `apps/shell/app/api/accept-invitation/route.ts` - API route for accepting invitations and creating users (POST /api/accept-invitation)
+- `apps/shell/app/accept-invitation/[token]/page.tsx` - Server Component page for invitation acceptance with token validation
+- `apps/shell/app/accept-invitation/[token]/AcceptInvitationForm.tsx` - Client Component signup form for invitation acceptance
+- `apps/shell/app/dashboard/page.tsx` - Basic dashboard page with welcome toast notification
 
 ## Change Log
 
@@ -954,3 +1023,4 @@ N/A - No debugging required
 - **2025-11-13:** Task 03 completed - Created seed data migration (008_seed_master_tasks.sql) with 6 common agency tasks for the master tasks list
 - **2025-11-13:** Task 04 completed - Implemented user invitation API route (POST /api/invitations) with validation schemas (InvitationCreateSchema, UserTaskAssignmentSchema), role enforcement, secure token generation, and comprehensive error handling
 - **2025-11-13:** Task 05 completed - Implemented email sending for invitations with React Email template (emails/invitation.tsx), Resend API integration (packages/utils/src/email-helpers.ts), and updated API route to send invitation emails with agency name, inviter name, and assigned tasks list
+- **2025-11-13:** Task 06 completed - Created invitation acceptance page and flow with token validation (apps/shell/app/accept-invitation/[token]/page.tsx), signup form component (AcceptInvitationForm.tsx), API route for user creation (POST /api/accept-invitation), automatic agency_id and role assignment, task assignments creation, and dashboard with welcome toast notification
