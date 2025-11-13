@@ -83,9 +83,9 @@ development_status:
   epic-7: backlog
   7-1-payment-plans-report-generator-with-contract-expiration-tracking: ready-for-dev
   7-2-csv-export-functionality: ready-for-dev
-  7-3-pdf-export-functionality: backlog
-  7-4-commission-report-by-college: backlog
-  7-5-student-payment-history-report: backlog
+  7-3-pdf-export-functionality: ready-for-dev
+  7-4-commission-report-by-college: ready-for-dev
+  7-5-student-payment-history-report: ready-for-dev
   epic-7-retrospective: optional
 
   epic-8: backlog

@@ -1,0 +1,238 @@
+{
+  "story": {
+    "id": "7-5",
+    "title": "Student Payment History Report",
+    "status": "ready-for-dev",
+    "generatedAt": "2025-11-13",
+    "contextFile": ".bmad-ephemeral/stories/7-5-student-payment-history-report.context.xml",
+    "storyFile": ".bmad-ephemeral/stories/7-5-student-payment-history-report.md"
+  },
+  "workflow": {
+    "name": "execute-dev-story-claude-code-web",
+    "version": "1.0"
+  },
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Add Payment History Section to Student Detail Page",
+      "description": "Add Payment History tab/section with date filters, export buttons, and loading states to student detail page",
+      "acceptanceCriteria": ["AC #1"],
+      "status": "not-started",
+      "promptFile": "task-1-prompt.md",
+      "estimatedEffort": "medium",
+      "dependencies": [],
+      "files": [
+        "apps/entities/app/students/[id]/page.tsx",
+        "apps/entities/app/students/[id]/components/PaymentHistorySection.tsx"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Implement Payment History API Route",
+      "description": "Create API route to fetch payment history with date filtering, summary calculations, and RLS enforcement",
+      "acceptanceCriteria": ["AC #1", "AC #2", "AC #3", "AC #6"],
+      "status": "not-started",
+      "promptFile": "task-2-prompt.md",
+      "estimatedEffort": "high",
+      "dependencies": [1],
+      "files": [
+        "apps/entities/app/api/students/[id]/payment-history/route.ts",
+        "apps/entities/types/payment-history.ts",
+        "supabase/migrations/XXX_create_student_payment_history_function.sql"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Display Payment History Timeline",
+      "description": "Create timeline component with collapsible payment plans, status badges, and summary cards",
+      "acceptanceCriteria": ["AC #2", "AC #3"],
+      "status": "not-started",
+      "promptFile": "task-3-prompt.md",
+      "estimatedEffort": "high",
+      "dependencies": [2],
+      "files": [
+        "apps/entities/app/students/[id]/components/PaymentHistoryTimeline.tsx",
+        "packages/utils/src/formatters.ts"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Create Student Payment Statement PDF Template",
+      "description": "Build professional PDF template with agency branding, payment tables, and summary sections",
+      "acceptanceCriteria": ["AC #4", "AC #5"],
+      "status": "not-started",
+      "promptFile": "task-4-prompt.md",
+      "estimatedEffort": "high",
+      "dependencies": [3],
+      "files": [
+        "apps/entities/app/components/StudentPaymentStatementPDF.tsx"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Implement PDF Export API Route",
+      "description": "Create API route to generate and download PDF payment statements with proper headers and filename",
+      "acceptanceCriteria": ["AC #4", "AC #5"],
+      "status": "not-started",
+      "promptFile": "task-5-prompt.md",
+      "estimatedEffort": "medium",
+      "dependencies": [4],
+      "files": [
+        "apps/entities/app/api/students/[id]/payment-history/export/route.ts"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Add Date Range Filtering",
+      "description": "Implement preset and custom date range filters with UI controls and API integration",
+      "acceptanceCriteria": ["AC #6"],
+      "status": "not-started",
+      "promptFile": "task-6-prompt.md",
+      "estimatedEffort": "medium",
+      "dependencies": [3, 5],
+      "files": [
+        "apps/entities/app/students/[id]/components/PaymentHistorySection.tsx"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Reuse Export Utilities from Story 7.2 and 7.4",
+      "description": "Refactor to use shared PDF generation and formatting utilities for consistency across reports",
+      "acceptanceCriteria": ["AC #4", "AC #5"],
+      "status": "not-started",
+      "promptFile": "task-7-prompt.md",
+      "estimatedEffort": "medium",
+      "dependencies": [5],
+      "files": [
+        "packages/utils/src/pdf-generator.ts",
+        "packages/utils/src/formatters.ts",
+        "packages/utils/src/pdf-styles.ts"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Add Payment History Link from Student List",
+      "description": "Add navigation links and breadcrumbs to access payment history from student list and detail pages",
+      "acceptanceCriteria": ["AC #1"],
+      "status": "not-started",
+      "promptFile": "task-8-prompt.md",
+      "estimatedEffort": "low",
+      "dependencies": [1],
+      "files": [
+        "apps/entities/app/students/page.tsx",
+        "apps/entities/app/students/[id]/page.tsx",
+        "apps/entities/app/components/Breadcrumb.tsx"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Testing and Validation",
+      "description": "Comprehensive testing including API routes, UI components, PDF generation, edge cases, and E2E flows",
+      "acceptanceCriteria": ["All"],
+      "status": "not-started",
+      "promptFile": "task-9-prompt.md",
+      "estimatedEffort": "high",
+      "dependencies": [1, 2, 3, 4, 5, 6, 7, 8],
+      "files": [
+        "apps/entities/app/api/students/[id]/payment-history/__tests__/route.test.ts",
+        "apps/entities/app/api/students/[id]/payment-history/export/__tests__/route.test.ts",
+        "apps/entities/app/students/[id]/components/__tests__/PaymentHistoryTimeline.test.tsx",
+        "apps/entities/app/students/[id]/components/__tests__/PaymentHistorySection.test.tsx",
+        "__tests__/e2e/student-payment-history.spec.ts"
+      ]
+    }
+  ],
+  "metadata": {
+    "totalTasks": 9,
+    "estimatedTotalEffort": "high",
+    "criticalPath": [1, 2, 3, 4, 5, 6, 7, 9],
+    "parallelizable": [
+      [1, 8],
+      [4, 6]
+    ]
+  },
+  "acceptanceCriteria": [
+    {
+      "id": 1,
+      "description": "Given I am viewing a student's detail page, When I request a payment history report, Then I see a chronological list of all payment plans and installments for that student",
+      "coveredByTasks": [1, 2]
+    },
+    {
+      "id": 2,
+      "description": "And each entry shows: date, payment plan, college/branch, amount, payment status, paid date",
+      "coveredByTasks": [3]
+    },
+    {
+      "id": 3,
+      "description": "And the report shows total paid to date and total outstanding",
+      "coveredByTasks": [2, 3]
+    },
+    {
+      "id": 4,
+      "description": "And the report is exportable to PDF for sharing with the student",
+      "coveredByTasks": [4, 5, 7]
+    },
+    {
+      "id": 5,
+      "description": "And the PDF is formatted as a clear payment statement",
+      "coveredByTasks": [4, 5, 7]
+    },
+    {
+      "id": 6,
+      "description": "And I can filter by date range (all time, this year, custom)",
+      "coveredByTasks": [2, 6]
+    }
+  ],
+  "technicalStack": {
+    "frontend": [
+      "Next.js 15",
+      "React 19",
+      "TypeScript 5.x",
+      "Tailwind CSS 4.x",
+      "lucide-react"
+    ],
+    "backend": [
+      "Next.js API Routes",
+      "Supabase PostgreSQL",
+      "Row-Level Security (RLS)"
+    ],
+    "pdfGeneration": [
+      "@react-pdf/renderer ^4.3.1"
+    ],
+    "utilities": [
+      "date-fns ^4.1.0",
+      "date-fns-tz"
+    ],
+    "testing": [
+      "Vitest",
+      "@testing-library/react",
+      "@playwright/test"
+    ]
+  },
+  "fileStructure": {
+    "apps/entities/app": {
+      "students/[id]/page.tsx": "Student detail page with Payment History section",
+      "students/[id]/components/PaymentHistorySection.tsx": "Payment History UI with filters and actions",
+      "students/[id]/components/PaymentHistoryTimeline.tsx": "Timeline display with collapsible payment plans",
+      "api/students/[id]/payment-history/route.ts": "API route for fetching payment history",
+      "api/students/[id]/payment-history/export/route.ts": "API route for PDF export",
+      "components/StudentPaymentStatementPDF.tsx": "PDF template for payment statements"
+    },
+    "packages/utils/src": {
+      "pdf-generator.ts": "PDF generation utilities",
+      "formatters.ts": "Currency and date formatters",
+      "pdf-styles.ts": "Shared PDF styles"
+    },
+    "supabase/migrations": {
+      "XXX_create_student_payment_history_function.sql": "Database function for payment history query"
+    }
+  },
+  "notes": [
+    "Task 1 creates the manifest.md file for tracking progress",
+    "Tasks can be executed sequentially in order, or some can run in parallel (see metadata.parallelizable)",
+    "Task 7 focuses on refactoring to use shared utilities - may result in changes to earlier tasks",
+    "Task 9 is comprehensive testing and must be completed after all other tasks",
+    "All tasks include their own testing checklists - Task 9 provides comprehensive coverage",
+    "Story context file provides full technical specifications and patterns"
+  ]
+}
