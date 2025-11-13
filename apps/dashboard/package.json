@@ -12,6 +12,7 @@
   "dependencies": {
     "@pleeno/auth": "workspace:*",
     "@pleeno/database": "workspace:*",
+    "@pleeno/stores": "workspace:*",
     "@pleeno/ui": "workspace:*",
     "@pleeno/utils": "workspace:*",
     "@tanstack/react-query": "5.90.7",
