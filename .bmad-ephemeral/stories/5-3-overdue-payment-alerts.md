@@ -31,12 +31,12 @@ So that **I'm immediately aware when follow-up action is needed**.
   - [ ] Add RLS policies for notifications table
   - [ ] Write unit tests for notification API routes
 
-- [ ] Task 2: Generate notifications when installments become overdue (AC: 1)
-  - [ ] Update status update job to detect newly overdue installments (status changed today)
-  - [ ] Create notification record when installment status changes to 'overdue'
-  - [ ] Set notification type = 'overdue_payment', include student name and amount in message
-  - [ ] Link notification to /payments/plans?status=overdue filtered view
-  - [ ] Test notification generation with various installment scenarios
+- [x] Task 2: Generate notifications when installments become overdue (AC: 1)
+  - [x] Update status update job to detect newly overdue installments (status changed today)
+  - [x] Create notification record when installment status changes to 'overdue'
+  - [x] Set notification type = 'overdue_payment', include student name and amount in message
+  - [x] Link notification to /payments/plans?status=overdue filtered view
+  - [x] Test notification generation with various installment scenarios
 
 - [ ] Task 3: Build notification UI components (AC: 2, 3, 4)
   - [ ] Add notification bell icon in shell/app header with unread count badge
@@ -275,4 +275,57 @@ Technical learnings:
 
 ### Completion Notes List
 
+**Task 2: Generate Notifications When Installments Become Overdue (Completed)**
+- Date: 2025-11-13
+- Agent: Claude Sonnet 4.5
+- Status: ✅ Complete - Ready for deployment
+
+**Summary:**
+Enhanced the automated status update job to generate in-app notifications when installments become overdue. Implemented comprehensive deduplication, error handling, and testing.
+
+**Key Changes:**
+1. Added metadata JSONB column to notifications table for storing installment_id (enables deduplication)
+2. Created generateOverdueNotifications() function in Edge Function to:
+   - Query for newly overdue installments (updated in last 2 minutes)
+   - Extract student information from nested payment plan relationships
+   - Check for existing notifications using metadata.installment_id
+   - Generate notification records with formatted message and link
+   - Handle errors gracefully without failing the overall job
+3. Enhanced Edge Function response to include notificationsCreated count and notificationErrors array
+4. Added 8 comprehensive unit tests covering:
+   - Single and multiple notification generation
+   - Deduplication logic
+   - Message formatting
+   - Error handling
+   - Response structure validation
+
+**Files Modified:**
+- `supabase/migrations/004_notifications_domain/002_add_metadata.sql` (new)
+- `supabase/functions/update-installment-statuses/index.ts` (enhanced)
+- `supabase/functions/update-installment-statuses/test/index.test.ts` (tests added)
+
+**Deployment Required:**
+- Apply database migration: `supabase db push`
+- Deploy Edge Function: `supabase functions deploy update-installment-statuses`
+- See deployment guide: `.bmad-ephemeral/stories/5-3-task-2-deployment-guide.md`
+
+**Integration Points:**
+- Builds on Story 5.1 (Automated Status Detection Job)
+- Connects to notifications table from Task 1
+- Feeds into notification UI (Task 3)
+
+**Next Steps:**
+- Task 3: Build notification bell icon and UI components
+- Task 4: Add overdue payments dashboard widget
+- Task 5: Integration and E2E testing
+
 ### File List
+
+**Created:**
+- `supabase/migrations/004_notifications_domain/002_add_metadata.sql`
+- `.bmad-ephemeral/stories/5-3-task-2-deployment-guide.md`
+
+**Modified:**
+- `supabase/functions/update-installment-statuses/index.ts`
+- `supabase/functions/update-installment-statuses/test/index.test.ts`
+- `.bmad-ephemeral/stories/5-3-overdue-payment-alerts.md`
