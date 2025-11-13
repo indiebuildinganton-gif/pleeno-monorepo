@@ -1,0 +1,56 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>4</storyId>
+    <title>Recent Activity Feed</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>.bmad-ephemeral/stories/6-4-recent-activity-feed.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agency User</asA>
+    <iWant>to see a feed of recent activity in the system</iWant>
+    <soThat>I'm aware of what's happening and can stay in sync with my team</soThat>
+    <tasks>
+      <task id="1" ac="1-8">Create Activity Log Database Schema</task>
+      <task id="2" ac="2-6">Implement Activity Logging in Existing API Routes</task>
+      <task id="3" ac="1,7-8">Create Activity Feed API Route</task>
+      <task id="4" ac="1,7-8">Create ActivityFeed Component</task>
+      <task id="5" ac="1">Implement Auto-Refresh for Real-Time Feel</task>
+      <task id="6" ac="1">Make Activities Clickable</task>
+      <task id="7" ac="1">Integrate into Dashboard Page</task>
+      <task id="8" ac="All">Testing</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">
+      <given>I am viewing the dashboard</given>
+      <when>the page loads</when>
+      <then>I see a chronological feed of recent activities</then>
+    </criterion>
+    <criterion id="2">Activities include: payments recorded</criterion>
+    <criterion id="3">Activities include: new payment plans created</criterion>
+    <criterion id="4">Activities include: new students added</criterion>
+    <criterion id="5">Activities include: new enrollments added</criterion>
+    <criterion id="6">Activities include: installments marked as overdue</criterion>
+    <criterion id="7">Each activity shows: timestamp, action description, user who performed it (if applicable)</criterion>
+    <criterion id="8">The feed shows the most recent 20 activities</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>{{docs_artifacts}}</docs>
+    <code>{{code_artifacts}}</code>
+    <dependencies>{{dependencies_artifacts}}</dependencies>
+  </artifacts>
+
+  <constraints>{{constraints}}</constraints>
+  <interfaces>{{interfaces}}</interfaces>
+  <tests>
+    <standards>{{test_standards}}</standards>
+    <locations>{{test_locations}}</locations>
+    <ideas>{{test_ideas}}</ideas>
+  </tests>
+</story-context>
