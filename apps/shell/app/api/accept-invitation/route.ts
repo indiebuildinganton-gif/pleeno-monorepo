@@ -17,7 +17,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@pleeno/database/server'
-import { handleApiError, ValidationError, NotFoundError } from '@pleeno/utils'
+import { handleApiError, ValidationError, NotFoundError, isInvitationExpired } from '@pleeno/utils'
 import { InvitationAcceptanceSchema } from '@pleeno/validations'
 
 export async function POST(request: NextRequest) {
@@ -40,9 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Validate invitation not expired
-    const now = new Date()
-    const expiresAt = new Date(invitation.expires_at)
-    if (expiresAt < now) {
+    if (isInvitationExpired(invitation)) {
       throw new ValidationError(
         'This invitation has expired. Please request a new invitation from your agency admin.'
       )
