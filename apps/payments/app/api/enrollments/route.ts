@@ -17,6 +17,7 @@ import {
   ForbiddenError,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { logActivity } from '@pleeno/database'
 import { requireRole } from '@pleeno/auth'
 import { EnrollmentCreateSchema } from '@pleeno/validations'
 
@@ -282,6 +283,43 @@ export async function POST(request: NextRequest) {
         branch_id: enrollment.branch_id,
         program_name: enrollment.program_name,
         status: enrollment.status,
+      },
+    })
+
+    // Fetch student and college details for activity logging
+    const { data: enrollmentDetails } = await supabase
+      .from('enrollments')
+      .select(
+        `
+        student:students (
+          full_name
+        ),
+        branch:branches (
+          college:colleges (
+            name
+          )
+        )
+      `
+      )
+      .eq('id', enrollment.id)
+      .single()
+
+    const studentName = enrollmentDetails?.student?.full_name || 'Unknown Student'
+    const collegeName = enrollmentDetails?.branch?.college?.name || 'Unknown College'
+
+    // Log activity for Recent Activity Feed (Story 6.4)
+    await logActivity(supabase, {
+      agencyId: userAgencyId,
+      userId: user.id,
+      entityType: 'enrollment',
+      entityId: enrollment.id,
+      action: 'created',
+      description: `enrolled ${studentName} at ${collegeName}`,
+      metadata: {
+        student_name: studentName,
+        college_name: collegeName,
+        enrollment_id: enrollment.id,
+        program_name: enrollment.program_name,
       },
     })
 

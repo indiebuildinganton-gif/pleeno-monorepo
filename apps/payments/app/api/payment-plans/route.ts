@@ -18,6 +18,7 @@ import {
   logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { logActivity } from '@pleeno/database'
 import { requireRole } from '@pleeno/auth'
 import { PaymentPlanCreateSchema } from '@pleeno/validations'
 
@@ -234,6 +235,28 @@ export async function POST(request: NextRequest) {
           branch_city: enrollment.branch?.city || 'Unknown',
           program_name: enrollment.program_name || 'Unknown',
         },
+      },
+    })
+
+    // Log activity for Recent Activity Feed (Story 6.4)
+    const studentName = enrollment.student
+      ? `${enrollment.student.first_name} ${enrollment.student.last_name}`
+      : 'Unknown Student'
+    const collegeName = enrollment.branch?.college?.name || 'Unknown College'
+
+    await logActivity(supabase, {
+      agencyId: userAgencyId,
+      userId: user.id,
+      entityType: 'payment_plan',
+      entityId: paymentPlan.id,
+      action: 'created',
+      description: `created payment plan for ${studentName} at ${collegeName}`,
+      metadata: {
+        student_name: studentName,
+        college_name: collegeName,
+        plan_id: paymentPlan.id,
+        total_amount: paymentPlan.total_amount,
+        currency: paymentPlan.currency,
       },
     })
 
