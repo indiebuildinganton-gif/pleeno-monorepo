@@ -23,10 +23,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 3. Implement password change API endpoint
-- [ ] Prompt: `03-implement-password-change-api-endpoint.md`
-- [ ] Implementation complete
+- [x] Prompt: `03-implement-password-change-api-endpoint.md`
+- [x] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 4. Implement admin email change API endpoint
 - [ ] Prompt: `04-implement-admin-email-change-api-endpoint.md`
@@ -103,9 +104,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 2
+- Completed: 3
 - In progress: 0
-- Remaining: 13
+- Remaining: 12
 
 ## Notes
 
@@ -129,6 +130,17 @@ Add notes here as you work through the tasks:
   - Proper error handling with handleApiError() utility
   - RLS policies ensure users can only update their own profile
   - Follows architecture.md API route patterns and security guidelines
+- **Task 3 (2025-11-13):** Implemented password change API endpoint
+  - Created PasswordChangeSchema in packages/validations/src/user.schema.ts with comprehensive password validation
+  - Password requirements: min 8 chars, uppercase, lowercase, number, special character
+  - Added confirm_password field with refine() validation to ensure passwords match
+  - Created PATCH /api/users/me/password endpoint at apps/agency/app/api/users/me/password/route.ts
+  - Verifies current password using supabase.auth.signInWithPassword() before allowing change
+  - Updates password using supabase.auth.updateUser() (Supabase handles bcrypt hashing)
+  - Logs password change to audit_log table with action 'password_changed' (NO password values logged)
+  - Returns success message on completion
+  - Proper error handling: UnauthorizedError for auth failures, ValidationError for incorrect current password
+  - Follows architecture.md security patterns and audit trail requirements
 
 ## Issues / Blockers
 
