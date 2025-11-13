@@ -6,6 +6,9 @@ import {
   DateFormatPresets,
   formatDateWithPreset,
   isDueSoon,
+  calculateStudentDueDate,
+  calculateCollegeDueDate,
+  generateInstallmentDueDates,
 } from '../date-helpers'
 
 describe('Date Helpers', () => {
@@ -355,6 +358,308 @@ describe('Date Helpers', () => {
       const farFuture = new Date('2024-02-01T00:00:00Z') // 31 days away
       expect(isDueSoon(farFuture, 30)).toBe(false)
       expect(isDueSoon(farFuture, 31)).toBe(true)
+    })
+  })
+
+  describe('calculateStudentDueDate', () => {
+    it('calculates student due date with 7 days lead time', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 7)
+      expect(result.toISOString()).toBe('2025-03-08T00:00:00.000Z')
+    })
+
+    it('calculates student due date with 14 days lead time', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 14)
+      expect(result.toISOString()).toBe('2025-03-01T00:00:00.000Z')
+    })
+
+    it('calculates student due date with 30 days lead time', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 30)
+      expect(result.toISOString()).toBe('2025-02-13T00:00:00.000Z')
+    })
+
+    it('handles lead time of 0 days (returns same date)', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 0)
+      expect(result.toISOString()).toBe('2025-03-15T00:00:00.000Z')
+    })
+
+    it('throws error for invalid college due date', () => {
+      expect(() => calculateStudentDueDate(null as any, 7)).toThrow(
+        'Invalid college due date: must be a valid Date object'
+      )
+      expect(() => calculateStudentDueDate(new Date('invalid'), 7)).toThrow(
+        'Invalid college due date: must be a valid Date object'
+      )
+    })
+
+    it('throws error for negative lead time', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      expect(() => calculateStudentDueDate(collegeDueDate, -7)).toThrow(
+        'Invalid student lead time: must be a non-negative number'
+      )
+    })
+
+    it('throws error for non-number lead time', () => {
+      const collegeDueDate = new Date('2025-03-15T00:00:00Z')
+      expect(() => calculateStudentDueDate(collegeDueDate, '7' as any)).toThrow(
+        'Invalid student lead time: must be a non-negative number'
+      )
+    })
+
+    it('handles month boundaries correctly', () => {
+      // Jan 31 - 7 days = Jan 24
+      const collegeDueDate = new Date('2025-01-31T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 7)
+      expect(result.toISOString()).toBe('2025-01-24T00:00:00.000Z')
+    })
+
+    it('handles year boundaries correctly', () => {
+      // Jan 5, 2025 - 10 days = Dec 26, 2024
+      const collegeDueDate = new Date('2025-01-05T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 10)
+      expect(result.toISOString()).toBe('2024-12-26T00:00:00.000Z')
+    })
+
+    it('handles leap year dates correctly', () => {
+      // March 1, 2024 - 7 days = Feb 23, 2024 (2024 is a leap year)
+      const collegeDueDate = new Date('2024-03-01T00:00:00Z')
+      const result = calculateStudentDueDate(collegeDueDate, 7)
+      expect(result.toISOString()).toBe('2024-02-23T00:00:00.000Z')
+    })
+  })
+
+  describe('calculateCollegeDueDate', () => {
+    it('calculates college due date with 7 days lead time', () => {
+      const studentDueDate = new Date('2025-03-08T00:00:00Z')
+      const result = calculateCollegeDueDate(studentDueDate, 7)
+      expect(result.toISOString()).toBe('2025-03-15T00:00:00.000Z')
+    })
+
+    it('verifies reverse calculation (roundtrip)', () => {
+      const originalCollegeDueDate = new Date('2025-03-15T00:00:00Z')
+      const leadTime = 7
+
+      const studentDueDate = calculateStudentDueDate(originalCollegeDueDate, leadTime)
+      const calculatedCollegeDueDate = calculateCollegeDueDate(studentDueDate, leadTime)
+
+      expect(calculatedCollegeDueDate.toISOString()).toBe(originalCollegeDueDate.toISOString())
+    })
+
+    it('handles lead time of 0 days (returns same date)', () => {
+      const studentDueDate = new Date('2025-03-15T00:00:00Z')
+      const result = calculateCollegeDueDate(studentDueDate, 0)
+      expect(result.toISOString()).toBe('2025-03-15T00:00:00.000Z')
+    })
+
+    it('throws error for invalid student due date', () => {
+      expect(() => calculateCollegeDueDate(null as any, 7)).toThrow(
+        'Invalid student due date: must be a valid Date object'
+      )
+      expect(() => calculateCollegeDueDate(new Date('invalid'), 7)).toThrow(
+        'Invalid student due date: must be a valid Date object'
+      )
+    })
+
+    it('throws error for negative lead time', () => {
+      const studentDueDate = new Date('2025-03-08T00:00:00Z')
+      expect(() => calculateCollegeDueDate(studentDueDate, -7)).toThrow(
+        'Invalid student lead time: must be a non-negative number'
+      )
+    })
+
+    it('throws error for non-number lead time', () => {
+      const studentDueDate = new Date('2025-03-08T00:00:00Z')
+      expect(() => calculateCollegeDueDate(studentDueDate, '7' as any)).toThrow(
+        'Invalid student lead time: must be a non-negative number'
+      )
+    })
+
+    it('handles month boundaries correctly', () => {
+      // Jan 24 + 7 days = Jan 31
+      const studentDueDate = new Date('2025-01-24T00:00:00Z')
+      const result = calculateCollegeDueDate(studentDueDate, 7)
+      expect(result.toISOString()).toBe('2025-01-31T00:00:00.000Z')
+    })
+
+    it('handles year boundaries correctly', () => {
+      // Dec 26, 2024 + 10 days = Jan 5, 2025
+      const studentDueDate = new Date('2024-12-26T00:00:00Z')
+      const result = calculateCollegeDueDate(studentDueDate, 10)
+      expect(result.toISOString()).toBe('2025-01-05T00:00:00.000Z')
+    })
+  })
+
+  describe('generateInstallmentDueDates', () => {
+    describe('monthly frequency', () => {
+      it('generates single installment (count = 1)', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 1, 'monthly')
+
+        expect(result).toHaveLength(1)
+        expect(result[0].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+      })
+
+      it('generates 3 monthly installments', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'monthly')
+
+        expect(result).toHaveLength(3)
+        expect(result[0].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-03-01T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-04-01T00:00:00.000Z')
+      })
+
+      it('generates 11 monthly installments (typical case)', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 11, 'monthly')
+
+        expect(result).toHaveLength(11)
+        expect(result[0].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+        expect(result[10].toISOString()).toBe('2025-12-01T00:00:00.000Z')
+      })
+
+      it('verifies dates are exactly 1 month apart', () => {
+        const firstDueDate = new Date('2025-02-15T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'monthly')
+
+        expect(result[0].toISOString()).toBe('2025-02-15T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-03-15T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-04-15T00:00:00.000Z')
+      })
+
+      it('handles month boundaries (Jan 31 edge case)', () => {
+        // Jan 31 + 1 month = Feb 28/29 (date-fns handles this)
+        const firstDueDate = new Date('2025-01-31T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'monthly')
+
+        expect(result[0].toISOString()).toBe('2025-01-31T00:00:00.000Z')
+        // date-fns addMonths handles this: Jan 31 + 1 month = Feb 28
+        expect(result[1].toISOString()).toBe('2025-02-28T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-03-31T00:00:00.000Z')
+      })
+
+      it('handles leap year dates', () => {
+        // 2024 is a leap year
+        const firstDueDate = new Date('2024-01-31T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'monthly')
+
+        expect(result[0].toISOString()).toBe('2024-01-31T00:00:00.000Z')
+        // Jan 31 + 1 month in leap year = Feb 29
+        expect(result[1].toISOString()).toBe('2024-02-29T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2024-03-31T00:00:00.000Z')
+      })
+
+      it('handles year transitions', () => {
+        const firstDueDate = new Date('2024-11-15T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 4, 'monthly')
+
+        expect(result[0].toISOString()).toBe('2024-11-15T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2024-12-15T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-01-15T00:00:00.000Z')
+        expect(result[3].toISOString()).toBe('2025-02-15T00:00:00.000Z')
+      })
+    })
+
+    describe('quarterly frequency', () => {
+      it('generates single installment (count = 1)', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 1, 'quarterly')
+
+        expect(result).toHaveLength(1)
+        expect(result[0].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+      })
+
+      it('generates 4 quarterly installments', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 4, 'quarterly')
+
+        expect(result).toHaveLength(4)
+        expect(result[0].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-05-01T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-08-01T00:00:00.000Z')
+        expect(result[3].toISOString()).toBe('2025-11-01T00:00:00.000Z')
+      })
+
+      it('verifies dates are exactly 3 months apart', () => {
+        const firstDueDate = new Date('2025-02-15T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'quarterly')
+
+        expect(result[0].toISOString()).toBe('2025-02-15T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-05-15T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-08-15T00:00:00.000Z')
+      })
+
+      it('handles year transitions', () => {
+        const firstDueDate = new Date('2024-11-01T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'quarterly')
+
+        expect(result[0].toISOString()).toBe('2024-11-01T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-02-01T00:00:00.000Z')
+        expect(result[2].toISOString()).toBe('2025-05-01T00:00:00.000Z')
+      })
+
+      it('handles month boundaries with quarterly', () => {
+        // May 31 + 3 months = Aug 31
+        const firstDueDate = new Date('2025-05-31T00:00:00Z')
+        const result = generateInstallmentDueDates(firstDueDate, 3, 'quarterly')
+
+        expect(result[0].toISOString()).toBe('2025-05-31T00:00:00.000Z')
+        expect(result[1].toISOString()).toBe('2025-08-31T00:00:00.000Z')
+        // Aug 31 + 3 months = Nov 30 (date-fns handles this)
+        expect(result[2].toISOString()).toBe('2025-11-30T00:00:00.000Z')
+      })
+    })
+
+    describe('input validation', () => {
+      it('throws error for invalid first due date', () => {
+        expect(() => generateInstallmentDueDates(null as any, 3, 'monthly')).toThrow(
+          'Invalid first due date: must be a valid Date object'
+        )
+        expect(() => generateInstallmentDueDates(new Date('invalid'), 3, 'monthly')).toThrow(
+          'Invalid first due date: must be a valid Date object'
+        )
+      })
+
+      it('throws error for count = 0', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        expect(() => generateInstallmentDueDates(firstDueDate, 0, 'monthly')).toThrow(
+          'Invalid count: must be a positive integer'
+        )
+      })
+
+      it('throws error for negative count', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        expect(() => generateInstallmentDueDates(firstDueDate, -1, 'monthly')).toThrow(
+          'Invalid count: must be a positive integer'
+        )
+      })
+
+      it('throws error for non-integer count', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        expect(() => generateInstallmentDueDates(firstDueDate, 3.5, 'monthly')).toThrow(
+          'Invalid count: must be a positive integer'
+        )
+      })
+
+      it('throws error for invalid frequency', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        expect(() => generateInstallmentDueDates(firstDueDate, 3, 'weekly' as any)).toThrow(
+          "Invalid frequency: must be 'monthly' or 'quarterly'"
+        )
+        expect(() => generateInstallmentDueDates(firstDueDate, 3, 'yearly' as any)).toThrow(
+          "Invalid frequency: must be 'monthly' or 'quarterly'"
+        )
+      })
+
+      it('throws error for non-string frequency', () => {
+        const firstDueDate = new Date('2025-02-01T00:00:00Z')
+        expect(() => generateInstallmentDueDates(firstDueDate, 3, 123 as any)).toThrow(
+          "Invalid frequency: must be 'monthly' or 'quarterly'"
+        )
+      })
     })
   })
 })
