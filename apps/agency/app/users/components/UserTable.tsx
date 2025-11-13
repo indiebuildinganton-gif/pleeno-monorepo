@@ -60,44 +60,19 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
         <TableBody>
           {users.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center text-muted-foreground">
+              <TableCell colSpan={6} className="text-center text-muted-foreground">
                 No users found
-          {initialUsers.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">
-                {user.full_name || 'N/A'}
-                {user.id === currentUserId && (
-                  <span className="ml-2 text-xs text-muted-foreground">(You)</span>
-                )}
-              </TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <Badge variant={getRoleBadgeVariant(user.role)}>
-                  {formatRole(user.role)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge variant={getStatusBadgeVariant(user.status)}>
-                  {formatStatus(user.status)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <span className="text-sm text-muted-foreground">
-                  {user.task_count !== undefined ? user.task_count : 0} task
-                  {user.task_count !== 1 ? 's' : ''}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <span className="text-sm text-muted-foreground">
-                  {/* Actions will be added in future tasks */}
-                  -
-                </span>
               </TableCell>
             </TableRow>
           ) : (
             users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.full_name}</TableCell>
+                <TableCell className="font-medium">
+                  {user.full_name || 'N/A'}
+                  {user.id === currentUserId && (
+                    <span className="ml-2 text-xs text-muted-foreground">(You)</span>
+                  )}
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge
@@ -112,6 +87,12 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
                   >
                     {user.status === 'active' ? 'Active' : 'Inactive'}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-muted-foreground">
+                    {user.task_count !== undefined ? user.task_count : 0} task
+                    {user.task_count !== 1 ? 's' : ''}
+                  </span>
                 </TableCell>
                 <TableCell className="text-right">
                   <UserActionsMenu
