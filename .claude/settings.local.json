@@ -4,7 +4,9 @@
       "Bash(mkdir:*)",
       "Bash(test:*)",
       "SlashCommand(/bmad:core:workflows:brainstorming)",
-      "SlashCommand(/execute-dev-story-claude-code-web)"
+      "SlashCommand(/execute-dev-story-claude-code-web)",
+      "Bash(cat:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
