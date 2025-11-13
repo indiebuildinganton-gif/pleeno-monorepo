@@ -164,11 +164,30 @@
     ✅ Security best practices: no version control, cryptographically secure generation, per-environment keys
 
 ### Task 6: Add Agency Timezone and Cutoff Time Fields
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/drafts/add_agency_timezone_fields.sql
+  - supabase/migrations/drafts/test_add_agency_timezone_fields.sql
+  - supabase/migrations/drafts/agency_timezone_fields_guide.md
 - Notes:
+  - Added overdue_cutoff_time column (TIME, default '17:00:00') to agencies table
+  - Added due_soon_threshold_days column (INT, default 4) to agencies table for future Story 5.2
+  - timezone column already exists from initial schema; added comprehensive check constraint validation
+  - Added check constraint for IANA timezone names (50+ supported timezones including Australia, Americas, Europe, Asia)
+  - Added check constraint for cutoff time validation (00:00:00 to 23:59:59)
+  - Added check constraint for due soon days validation (1 to 30 days)
+  - Updated timezone column comment and added comments for new columns
+  - Migration is idempotent using IF NOT EXISTS for safe re-runs
+  - Comprehensive test suite with 15 tests covering schema, constraints, backfill, timezone conversion, and integration
+  - Test categories: Schema Verification (3 tests), Check Constraints (6 tests), Data Backfill (1 test), Timezone Conversion (3 tests), Documentation (1 test), Idempotency (1 test)
+  - All existing agencies automatically backfilled with default values
+  - Created comprehensive guide documenting migration application, testing procedures, and troubleshooting
+  - Migration supports multiple agencies with different timezones and cutoff times (AC 1)
+  - Timezone-aware logic enables accurate overdue detection per agency's local time
+  - Includes rollback instructions and production deployment checklist
+  - Ready for integration with update_installment_statuses() function from Task 1
 
 ### Task 7: Testing
 - Status: Not Started
@@ -241,4 +260,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Tasks 1-5 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-6 completed)
