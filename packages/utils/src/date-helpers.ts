@@ -2,6 +2,8 @@ import {
   format,
   formatDistanceToNow,
   addDays,
+  subDays,
+  addMonths,
   isAfter,
   isBefore,
   startOfDay,
@@ -186,4 +188,107 @@ export function isDueSoon(
     isSameDay(agencyDueDateStartOfDay, thresholdDate)
 
   return isNotPast && isWithinThreshold
+}
+
+/**
+ * Calculates when student must pay based on college due date and lead time buffer.
+ *
+ * @param collegeDueDate - Date when agency must pay college
+ * @param studentLeadTimeDays - Number of days before college due date
+ * @returns Date when student must pay agency
+ *
+ * @example
+ * calculateStudentDueDate(new Date('2025-03-15'), 7)
+ * // Returns: Date('2025-03-08') - student pays 7 days before college due date
+ */
+export function calculateStudentDueDate(collegeDueDate: Date, studentLeadTimeDays: number): Date {
+  // Input validation
+  if (!(collegeDueDate instanceof Date) || isNaN(collegeDueDate.getTime())) {
+    throw new Error('Invalid college due date: must be a valid Date object')
+  }
+
+  if (typeof studentLeadTimeDays !== 'number' || studentLeadTimeDays < 0) {
+    throw new Error('Invalid student lead time: must be a non-negative number')
+  }
+
+  return subDays(collegeDueDate, studentLeadTimeDays)
+}
+
+/**
+ * Calculates when agency must pay college based on student payment date and lead time.
+ *
+ * @param studentDueDate - Date when student must pay agency
+ * @param studentLeadTimeDays - Number of days buffer for agency
+ * @returns Date when agency must pay college
+ *
+ * @example
+ * calculateCollegeDueDate(new Date('2025-03-08'), 7)
+ * // Returns: Date('2025-03-15') - agency pays 7 days after student pays
+ */
+export function calculateCollegeDueDate(studentDueDate: Date, studentLeadTimeDays: number): Date {
+  // Input validation
+  if (!(studentDueDate instanceof Date) || isNaN(studentDueDate.getTime())) {
+    throw new Error('Invalid student due date: must be a valid Date object')
+  }
+
+  if (typeof studentLeadTimeDays !== 'number' || studentLeadTimeDays < 0) {
+    throw new Error('Invalid student lead time: must be a non-negative number')
+  }
+
+  return addDays(studentDueDate, studentLeadTimeDays)
+}
+
+/**
+ * Generates an array of due dates for installments based on frequency.
+ *
+ * @param firstDueDate - The first installment due date
+ * @param count - Number of installments (excluding initial payment)
+ * @param frequency - 'monthly' or 'quarterly'
+ * @returns Array of Date objects for each installment
+ *
+ * @example
+ * generateInstallmentDueDates(new Date('2025-02-01'), 3, 'monthly')
+ * // Returns: [
+ * //   Date('2025-02-01'),  // Installment 1
+ * //   Date('2025-03-01'),  // Installment 2
+ * //   Date('2025-04-01')   // Installment 3
+ * // ]
+ *
+ * @example
+ * generateInstallmentDueDates(new Date('2025-02-01'), 3, 'quarterly')
+ * // Returns: [
+ * //   Date('2025-02-01'),  // Installment 1
+ * //   Date('2025-05-01'),  // Installment 2 (3 months later)
+ * //   Date('2025-08-01')   // Installment 3 (3 months later)
+ * // ]
+ */
+export function generateInstallmentDueDates(
+  firstDueDate: Date,
+  count: number,
+  frequency: 'monthly' | 'quarterly'
+): Date[] {
+  // Input validation
+  if (!(firstDueDate instanceof Date) || isNaN(firstDueDate.getTime())) {
+    throw new Error('Invalid first due date: must be a valid Date object')
+  }
+
+  if (typeof count !== 'number' || count <= 0 || !Number.isInteger(count)) {
+    throw new Error('Invalid count: must be a positive integer')
+  }
+
+  if (frequency !== 'monthly' && frequency !== 'quarterly') {
+    throw new Error("Invalid frequency: must be 'monthly' or 'quarterly'")
+  }
+
+  // Calculate month increment based on frequency
+  const monthIncrement = frequency === 'monthly' ? 1 : 3
+
+  // Generate array of due dates
+  const dueDates: Date[] = []
+  for (let i = 0; i < count; i++) {
+    const dueDate = addMonths(firstDueDate, i * monthIncrement)
+    dueDates.push(dueDate)
+  }
+
+  return dueDates
 }
