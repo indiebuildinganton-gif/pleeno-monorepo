@@ -66,7 +66,8 @@ export function calculateCommissionableValue(
   const validOtherFees = otherFees && otherFees >= 0 ? otherFees : 0
 
   // Calculate commissionable value
-  const commissionableValue = totalCourseValue - validMaterialsCost - validAdminFees - validOtherFees
+  const commissionableValue =
+    totalCourseValue - validMaterialsCost - validAdminFees - validOtherFees
 
   // Ensure result is not negative and round to 2 decimal places
   const result = Math.max(commissionableValue, 0)
@@ -132,7 +133,7 @@ export function calculateExpectedCommission(
     base = commissionableValue
   } else {
     // GST is exclusive, remove 10% GST (divide by 1.10)
-    base = commissionableValue / 1.10
+    base = commissionableValue / 1.1
   }
 
   // Calculate commission and round to 2 decimal places
@@ -167,4 +168,116 @@ export function calculateExpectedCommissionLegacy(
   // Calculate commission and round to 2 decimal places
   // Using Math.round with * 100 / 100 to avoid floating point precision issues
   return Math.round(totalAmount * (commissionRatePercent / 100) * 100) / 100
+}
+
+/**
+ * Commission and GST calculation utilities
+ *
+ * These functions handle commission calculations including GST (Goods and Services Tax)
+ * in both inclusive and exclusive modes, as well as earned commission calculations
+ * based on payment progress.
+ */
+
+/**
+ * Calculate GST amount based on commission and GST configuration
+ *
+ * @param commissionAmount - The commission amount (before or including GST)
+ * @param gstRate - GST rate as decimal (e.g., 0.1 for 10%)
+ * @param gstInclusive - Whether commission amount already includes GST
+ * @returns GST amount
+ *
+ * @example
+ * // GST inclusive: Extract GST from total
+ * calculateGST(1100, 0.1, true) // Returns 100
+ *
+ * // GST exclusive: Calculate GST to add
+ * calculateGST(1000, 0.1, false) // Returns 100
+ */
+export function calculateGST(
+  commissionAmount: number,
+  gstRate: number,
+  gstInclusive: boolean
+): number {
+  if (commissionAmount === 0) return 0
+
+  if (gstInclusive) {
+    // GST inclusive: GST = commission / (1 + rate) * rate
+    return (commissionAmount / (1 + gstRate)) * gstRate
+  } else {
+    // GST exclusive: GST = commission * rate
+    return commissionAmount * gstRate
+  }
+}
+
+/**
+ * Calculate total amount including GST
+ *
+ * @param commissionAmount - The commission amount
+ * @param gstRate - GST rate as decimal (e.g., 0.1 for 10%)
+ * @param gstInclusive - Whether commission amount already includes GST
+ * @returns Total amount including GST
+ *
+ * @example
+ * // GST inclusive: Amount already includes GST
+ * calculateTotalWithGST(1100, 0.1, true) // Returns 1100
+ *
+ * // GST exclusive: Add GST to amount
+ * calculateTotalWithGST(1000, 0.1, false) // Returns 1100
+ */
+export function calculateTotalWithGST(
+  commissionAmount: number,
+  gstRate: number,
+  gstInclusive: boolean
+): number {
+  if (gstInclusive) {
+    // Commission already includes GST, no adjustment needed
+    return commissionAmount
+  } else {
+    // Add GST to commission
+    return commissionAmount + commissionAmount * gstRate
+  }
+}
+
+/**
+ * Calculate earned commission from paid installments
+ *
+ * Calculates commission earned proportionally based on payment progress.
+ * If 50% of the payment plan is paid, 50% of expected commission is earned.
+ *
+ * @param totalPaid - Total amount paid so far (SUM of paid installments)
+ * @param totalAmount - Total payment plan amount
+ * @param expectedCommission - Expected commission for the full payment plan
+ * @returns Earned commission amount
+ *
+ * @example
+ * // 50% paid
+ * calculateEarnedCommission(5000, 10000, 1500) // Returns 750
+ *
+ * // 100% paid
+ * calculateEarnedCommission(10000, 10000, 1500) // Returns 1500
+ *
+ * // Nothing paid
+ * calculateEarnedCommission(0, 10000, 1500) // Returns 0
+ */
+export function calculateEarnedCommission(
+  totalPaid: number,
+  totalAmount: number,
+  expectedCommission: number
+): number {
+  if (totalAmount === 0) return 0
+  return (totalPaid / totalAmount) * expectedCommission
+}
+
+/**
+ * Calculate outstanding commission
+ *
+ * @param expectedCommission - Total expected commission
+ * @param earnedCommission - Commission earned so far
+ * @returns Outstanding commission amount
+ */
+export function calculateOutstandingCommission(
+  expectedCommission: number,
+  earnedCommission: number
+): number {
+  return Math.max(0, expectedCommission - earnedCommission)
 }
