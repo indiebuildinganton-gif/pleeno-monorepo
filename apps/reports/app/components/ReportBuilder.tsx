@@ -9,7 +9,9 @@ import { Input } from '@pleeno/ui'
 import { Label } from '@pleeno/ui'
 import { Checkbox } from '@pleeno/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pleeno/ui'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useColleges, useBranches, useStudents } from '../hooks/useReportLookups'
+import { useDebounce } from '../hooks/useDebounce'
 
 interface ReportBuilderProps {
   onGenerate: (data: ReportBuilderFormData) => void
@@ -43,6 +45,11 @@ type PresetType = 'expiring_30' | 'expiring_60' | 'expiring_90' | 'expired'
 
 export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
   const [activePreset, setActivePreset] = useState<PresetType | null>(null)
+  const [selectedCollegeIds, setSelectedCollegeIds] = useState<string[]>([])
+  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([])
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
+  const [studentSearchQuery, setStudentSearchQuery] = useState('')
+  const debouncedStudentSearch = useDebounce(studentSearchQuery, 500)
 
   const {
     register,
@@ -61,6 +68,20 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
   })
 
   const selectedColumns = watch('columns') || []
+
+  // Fetch lookup data using custom hooks
+  const { data: colleges, isLoading: isLoadingColleges } = useColleges()
+  const { data: branches, isLoading: isLoadingBranches } = useBranches(
+    selectedCollegeIds.length > 0 ? selectedCollegeIds : undefined
+  )
+  const { data: students, isLoading: isLoadingStudents } = useStudents(debouncedStudentSearch)
+
+  // Filter branches based on selected colleges
+  const filteredBranches = useMemo(() => {
+    if (!branches) return []
+    if (selectedCollegeIds.length === 0) return branches
+    return branches.filter((branch) => selectedCollegeIds.includes(branch.college_id))
+  }, [branches, selectedCollegeIds])
 
   const handlePresetFilter = (preset: PresetType) => {
     const today = new Date()
@@ -117,10 +138,24 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
       pagination: { page: 1, page_size: 25 },
     })
     setActivePreset(null)
+    setSelectedCollegeIds([])
+    setSelectedBranchIds([])
+    setSelectedStudentIds([])
+    setStudentSearchQuery('')
   }
 
   const onSubmit = (data: ReportBuilderFormData) => {
-    onGenerate(data)
+    // Add the selected lookup values to the filters
+    const enhancedData: ReportBuilderFormData = {
+      ...data,
+      filters: {
+        ...data.filters,
+        college_ids: selectedCollegeIds.length > 0 ? selectedCollegeIds : undefined,
+        branch_ids: selectedBranchIds.length > 0 ? selectedBranchIds : undefined,
+        student_ids: selectedStudentIds.length > 0 ? selectedStudentIds : undefined,
+      },
+    }
+    onGenerate(enhancedData)
   }
 
   return (
@@ -155,37 +190,144 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                 )}
               </div>
 
-              {/* College/Branch Multi-Select - Placeholder for now */}
+              {/* College Multi-Select */}
               <div className="space-y-2">
                 <Label htmlFor="college_ids">Colleges</Label>
-                <Input
+                <select
                   id="college_ids"
-                  placeholder="Select colleges (feature coming soon)"
-                  disabled
-                />
+                  multiple
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={selectedCollegeIds}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, (option) => option.value)
+                    setSelectedCollegeIds(selected)
+                  }}
+                  disabled={isLoadingColleges}
+                >
+                  {isLoadingColleges ? (
+                    <option disabled>Loading colleges...</option>
+                  ) : (
+                    colleges?.map((college) => (
+                      <option key={college.id} value={college.id}>
+                        {college.name} ({college.branch_count} branches)
+                      </option>
+                    ))
+                  )}
+                </select>
                 <p className="text-xs text-muted-foreground">
-                  Multi-select will be implemented with lookup API
+                  Hold Ctrl (Cmd on Mac) to select multiple colleges
                 </p>
               </div>
 
+              {/* Branch Multi-Select */}
               <div className="space-y-2">
                 <Label htmlFor="branch_ids">Branches</Label>
-                <Input id="branch_ids" placeholder="Select branches (feature coming soon)" disabled />
+                <select
+                  id="branch_ids"
+                  multiple
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={selectedBranchIds}
+                  onChange={(e) => {
+                    const selected = Array.from(e.target.selectedOptions, (option) => option.value)
+                    setSelectedBranchIds(selected)
+                  }}
+                  disabled={isLoadingBranches || filteredBranches.length === 0}
+                >
+                  {isLoadingBranches ? (
+                    <option disabled>Loading branches...</option>
+                  ) : filteredBranches.length === 0 ? (
+                    <option disabled>
+                      {selectedCollegeIds.length === 0
+                        ? 'Select colleges first'
+                        : 'No branches available'}
+                    </option>
+                  ) : (
+                    filteredBranches.map((branch) => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))
+                  )}
+                </select>
                 <p className="text-xs text-muted-foreground">
-                  Multi-select will be implemented with lookup API
+                  Hold Ctrl (Cmd on Mac) to select multiple branches
                 </p>
               </div>
 
-              {/* Student Search - Placeholder for now */}
+              {/* Student Search Typeahead */}
               <div className="space-y-2">
-                <Label htmlFor="student_ids">Students</Label>
-                <Input
-                  id="student_ids"
-                  placeholder="Search students (feature coming soon)"
-                  disabled
-                />
+                <Label htmlFor="student_search">Students</Label>
+                <div className="relative">
+                  <Input
+                    id="student_search"
+                    type="text"
+                    placeholder="Type to search students (min 2 characters)..."
+                    value={studentSearchQuery}
+                    onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  />
+                  {debouncedStudentSearch.length >= 2 && (
+                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
+                      {isLoadingStudents ? (
+                        <div className="px-4 py-2 text-sm text-muted-foreground">
+                          Loading students...
+                        </div>
+                      ) : students && students.length > 0 ? (
+                        students.map((student) => (
+                          <div
+                            key={student.id}
+                            className={`cursor-pointer px-4 py-2 text-sm hover:bg-accent ${
+                              selectedStudentIds.includes(student.id) ? 'bg-accent' : ''
+                            }`}
+                            onClick={() => {
+                              if (selectedStudentIds.includes(student.id)) {
+                                setSelectedStudentIds(
+                                  selectedStudentIds.filter((id) => id !== student.id)
+                                )
+                              } else {
+                                setSelectedStudentIds([...selectedStudentIds, student.id])
+                              }
+                            }}
+                          >
+                            {student.name} - {student.college_name}
+                            {selectedStudentIds.includes(student.id) && ' ✓'}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-sm text-muted-foreground">
+                          No students found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {selectedStudentIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedStudentIds.map((studentId) => {
+                      const student = students?.find((s) => s.id === studentId)
+                      return student ? (
+                        <span
+                          key={studentId}
+                          className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-1 text-xs"
+                        >
+                          {student.name}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedStudentIds(
+                                selectedStudentIds.filter((id) => id !== studentId)
+                              )
+                            }
+                            className="hover:text-destructive"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ) : null
+                    })}
+                  </div>
+                )}
                 <p className="text-xs text-muted-foreground">
-                  Typeahead search will be implemented with lookup API
+                  Click on students to select/deselect them
                 </p>
               </div>
 
