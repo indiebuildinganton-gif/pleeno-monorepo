@@ -49,8 +49,9 @@ import {
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const supabase = await createServerClient()
 
@@ -76,7 +77,7 @@ export async function DELETE(
     const { data: invitation, error: invitationError } = await supabase
       .from('invitations')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('agency_id', currentUser.agency_id) // Explicit agency check
       .single()
 
@@ -93,7 +94,7 @@ export async function DELETE(
     // This creates an immutable audit trail of the deletion
     await supabase.from('audit_log').insert({
       entity_type: 'invitation',
-      entity_id: params.id,
+      entity_id: id,
       user_id: user.id,
       action: 'delete',
       changes_json: {
@@ -108,7 +109,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('invitations')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Failed to delete invitation:', deleteError)

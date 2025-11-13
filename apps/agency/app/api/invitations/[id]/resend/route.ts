@@ -5,8 +5,8 @@
  * an extended expiration date (7 days from current time).
  *
  * Epic 2: Agency Configuration & User Management
- * Story 2.3: User Management Interface
- * Task 05: Implement Invitation Management APIs (AC: 5)
+ * Story 2.2: User Invitation and Task Assignment System
+ * Task 11: Display pending invitations in user management (AC: 1)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -15,7 +15,8 @@ import {
   handleApiError,
   UnauthorizedError,
   ForbiddenError,
-  ValidationError
+  ValidationError,
+  sendInvitationEmail,
 } from '@pleeno/utils'
 
 /**
@@ -48,7 +49,10 @@ import {
  * - 403: Not an admin
  * - 400: Invitation not found or already used
  *
- * TODO: Implement email sending with sendInvitationEmail() when email utility is available
+ * Email Integration:
+ * - Sends invitation email via Resend API with same task assignments as original
+ * - Email includes agency name, inviter name, and assigned tasks
+ * - Link includes token and task IDs as URL parameters
  *
  * @param request - Next.js request object
  * @param params - Route parameters containing invitation ID
@@ -56,8 +60,9 @@ import {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   try {
     const supabase = await createServerClient()
 
@@ -78,12 +83,12 @@ export async function POST(
       throw new ForbiddenError('Admin access required')
     }
 
-    // Fetch the invitation
+    // Fetch the invitation with invited_by user details
     // RLS policies automatically filter by agency_id for additional security
     const { data: invitation, error: invitationError } = await supabase
       .from('invitations')
-      .select('*')
-      .eq('id', params.id)
+      .select('*, invited_by_user:users!invitations_invited_by_fkey(full_name)')
+      .eq('id', id)
       .eq('agency_id', currentUser.agency_id) // Explicit agency check
       .single()
 
@@ -104,7 +109,7 @@ export async function POST(
     const { data: updatedInvitation, error: updateError } = await supabase
       .from('invitations')
       .update({ expires_at: newExpiresAt.toISOString() })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -113,19 +118,59 @@ export async function POST(
       throw new Error('Failed to update invitation expiration')
     }
 
-    // TODO: Resend invitation email when email utility is available
-    // await sendInvitationEmail({
-    //   email: invitation.email,
-    //   invitationToken: invitation.token,
-    //   agencyName: invitation.agency_name,
-    //   expiresAt: newExpiresAt
-    // })
+    // Get agency name for email
+    const { data: agency, error: agencyError } = await supabase
+      .from('agencies')
+      .select('name')
+      .eq('id', currentUser.agency_id)
+      .single()
+
+    if (agencyError) {
+      console.error('Failed to fetch agency data:', agencyError)
+      throw new Error('Failed to fetch agency data')
+    }
+
+    // Get task details if tasks were assigned
+    let assignedTasks: Array<{ task_name: string; description: string }> = []
+    const taskIds = (invitation.task_ids as string[]) || []
+
+    if (taskIds.length > 0) {
+      const { data: tasks, error: tasksDetailError } = await supabase
+        .from('master_tasks')
+        .select('task_name, description')
+        .in('id', taskIds)
+
+      if (tasksDetailError) {
+        console.error('Failed to fetch task details:', tasksDetailError)
+        // Don't fail the resend, just log the error
+      } else {
+        assignedTasks = tasks || []
+      }
+    }
+
+    // Resend invitation email
+    try {
+      await sendInvitationEmail({
+        to: invitation.email,
+        token: invitation.token,
+        agencyName: agency?.name || 'Unknown Agency',
+        inviterName: (invitation.invited_by_user as any)?.full_name || 'Your colleague',
+        assignedTasks,
+        taskIds,
+      })
+    } catch (emailError) {
+      // Log email error but don't fail the resend
+      console.error('Failed to send invitation email:', emailError)
+      console.warn(
+        `Invitation resent for ${invitation.email} but email failed to send. Token: ${invitation.token}`
+      )
+    }
 
     // Log resend action in audit trail
     // This creates an immutable record for security auditing
     await supabase.from('audit_log').insert({
       entity_type: 'invitation',
-      entity_id: params.id,
+      entity_id: id,
       user_id: user.id,
       action: 'resend',
       changes_json: {
