@@ -7,3 +7,4 @@
 
 export * from './EnrollmentStatusBadge'
 export * from './DocumentViewer'
+export * from './EnrollmentStatusMenu'
