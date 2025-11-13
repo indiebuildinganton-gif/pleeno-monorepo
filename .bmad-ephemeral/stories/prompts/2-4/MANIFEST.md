@@ -9,10 +9,11 @@
 ## Task Prompts
 
 ### 1. Create email verification schema for admin email changes
-- [ ] Prompt: `01-create-email-verification-schema-for-admin-email-c.md`
+- [x] Prompt: `01-create-email-verification-schema-for-admin-email-c.md`
 - [ ] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** In Progress (Started: 2025-11-13)
 
 ### 2. Implement profile update API endpoint
 - [ ] Prompt: `02-implement-profile-update-api-endpoint.md`
