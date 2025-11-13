@@ -9,3 +9,6 @@ export * from './invitation.schema'
 
 // Export student schemas and types
 export * from './student.schema'
+
+// Export payment plan schemas and types
+export * from './payment-plan.schema'
