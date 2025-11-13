@@ -12,7 +12,15 @@
   "dependencies": {
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.6"
+    "next": "15.5.6",
+    "@pleeno/ui": "workspace:*",
+    "@pleeno/database": "workspace:*",
+    "@pleeno/auth": "workspace:*",
+    "@pleeno/utils": "workspace:*",
+    "@pleeno/validations": "workspace:*",
+    "react-hook-form": "7.66.0",
+    "@hookform/resolvers": "^3.3.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "typescript": "^5",
