@@ -1,11 +1,13 @@
 /**
  * CommissionBreakdownTable Component Tests
  *
- * Tests for the commission breakdown table component with filter controls
+ * Tests for the commission breakdown table component with filter controls,
+ * drill-down links, and summary metrics cards
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.3: Commission Breakdown by College
  * Task 3: Implement Filter Controls
  * Task 4: Implement Drill-Down to Payment Plans
+ * Task 5: Add Summary Metrics Cards
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -800,6 +802,347 @@ describe('CommissionBreakdownTable', () => {
         expect(collegeLink).toHaveAttribute('href', '/entities/colleges/1')
         expect(branchLink).toHaveAttribute('href', '/entities/colleges/1?branch=b1')
         expect(viewPlansButtons.length).toBeGreaterThan(0)
+      })
+    })
+  })
+
+  describe('Summary Metrics Cards - Task 5', () => {
+    it('should render all 4 summary cards with correct titles', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Total Commissions Earned')).toBeInTheDocument()
+        expect(screen.getByText('Total GST')).toBeInTheDocument()
+        expect(screen.getByText('Total Amount (Commission + GST)')).toBeInTheDocument()
+        expect(screen.getByText('Outstanding Commission')).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate total commissions correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Expected: 15000 + 12000 = 27000
+      await waitFor(() => {
+        // Check if the formatted value appears (may include currency symbol)
+        expect(screen.getByText(/27,000/)).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate total GST correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Expected: 1500 + 1200 = 2700
+      await waitFor(() => {
+        expect(screen.getByText(/2,700/)).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate total amount (commission + GST) correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Expected: 27000 + 2700 = 29700
+      await waitFor(() => {
+        expect(screen.getByText(/29,700/)).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate outstanding commission correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Expected: 5000 + 3000 = 8000
+      await waitFor(() => {
+        expect(screen.getByText(/8,000/)).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate commission percentage correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Commission percentage: (27000 / 29700) * 100 = 90.9%
+      await waitFor(() => {
+        expect(screen.getByText(/90.9% of total/)).toBeInTheDocument()
+      })
+    })
+
+    it('should calculate GST percentage correctly', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // GST percentage: (2700 / 29700) * 100 = 9.1%
+      await waitFor(() => {
+        expect(screen.getByText(/9.1% of total/)).toBeInTheDocument()
+      })
+    })
+
+    it('should display percentage breakdown in Total Amount card', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Should show "91% + 9%" (rounded)
+      await waitFor(() => {
+        expect(screen.getByText(/91% \+ 9%/)).toBeInTheDocument()
+      })
+    })
+
+    it('should display "Not yet received" subtitle for Outstanding Commission', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Not yet received')).toBeInTheDocument()
+      })
+    })
+
+    it('should update summary metrics when filters change', async () => {
+      const yearFilterData = {
+        success: true,
+        data: [
+          {
+            college_id: '1',
+            college_name: 'University of Sydney',
+            branch_id: 'b1',
+            branch_name: 'Sydney Campus',
+            branch_city: 'Sydney',
+            total_commissions: 20000,
+            total_gst: 2000,
+            total_with_gst: 22000,
+            total_expected_commission: 25000,
+            total_earned_commission: 20000,
+            outstanding_commission: 5000,
+            payment_plan_count: 8,
+          },
+        ],
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          // Return different data when year filter is applied
+          if (url.includes('period=year')) {
+            return Promise.resolve({
+              ok: true,
+              json: async () => yearFilterData,
+            })
+          }
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockCommissionData,
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Wait for initial data to load (27000 commissions)
+      await waitFor(() => {
+        expect(screen.getByText(/27,000/)).toBeInTheDocument()
+      })
+
+      // Apply year filter
+      const periodDropdown = screen.getByLabelText('Time Period') as HTMLSelectElement
+      fireEvent.change(periodDropdown, { target: { value: 'year' } })
+
+      // Summary should update to show 20000
+      await waitFor(() => {
+        expect(screen.getByText(/20,000/)).toBeInTheDocument()
+      })
+    })
+
+    it('should display skeleton placeholders during loading', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      )
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Should show 4 skeleton placeholders
+      const skeletons = document.querySelectorAll('.animate-pulse')
+      expect(skeletons.length).toBeGreaterThanOrEqual(4)
+    })
+
+    it('should display zero values with "No data available" when no data', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({ success: true, data: [] }),
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // Should show multiple "No data available" subtitles (4 cards)
+        const noDataTexts = screen.getAllByText('No data available')
+        expect(noDataTexts).toHaveLength(4)
+      })
+    })
+
+    it('should display zero values when API returns error', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockRejectedValueOnce(new Error('API Error'))
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // Should show "No data available" subtitles even in error state
+        const noDataTexts = screen.getAllByText('No data available')
+        expect(noDataTexts).toHaveLength(4)
+      })
+    })
+
+    it('should use responsive grid classes for summary cards', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const summaryGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4')
+        expect(summaryGrid).toBeInTheDocument()
+      })
+    })
+
+    it('should apply correct color classes to each summary card', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // Total Commissions - green
+        const commissionCard = screen.getByText('Total Commissions Earned').closest('div')
+        expect(commissionCard).toHaveClass('bg-green-50')
+
+        // Total GST - blue
+        const gstCard = screen.getByText('Total GST').closest('div')
+        expect(gstCard).toHaveClass('bg-blue-50')
+
+        // Total Amount - gray
+        const totalCard = screen.getByText('Total Amount (Commission + GST)').closest('div')
+        expect(totalCard).toHaveClass('bg-gray-50')
+
+        // Outstanding - red
+        const outstandingCard = screen.getByText('Outstanding Commission').closest('div')
+        expect(outstandingCard).toHaveClass('bg-red-50')
+      })
+    })
+
+    it('should render icons for each summary card', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const summaryCards = document.querySelectorAll('.grid > div')
+        // Each card should have an svg icon
+        summaryCards.forEach((card) => {
+          const icon = card.querySelector('svg')
+          expect(icon).toBeInTheDocument()
+        })
+      })
+    })
+
+    it('should handle zero division when calculating percentages', async () => {
+      const zeroData = {
+        success: true,
+        data: [
+          {
+            college_id: '1',
+            college_name: 'Test College',
+            branch_id: 'b1',
+            branch_name: 'Test Campus',
+            branch_city: null,
+            total_commissions: 0,
+            total_gst: 0,
+            total_with_gst: 0,
+            total_expected_commission: 0,
+            total_earned_commission: 0,
+            outstanding_commission: 0,
+            payment_plan_count: 0,
+          },
+        ],
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => zeroData,
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      // Should show 0.0% instead of NaN or undefined
+      await waitFor(() => {
+        expect(screen.getByText(/0.0% of total/)).toBeInTheDocument()
+      })
+    })
+
+    it('should format currency amounts with correct symbols and separators', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // Check that currency formatting includes currency symbol (likely $)
+        // and thousands separator (comma)
+        const formattedAmounts = screen.getAllByText(/\$.*,/)
+        expect(formattedAmounts.length).toBeGreaterThan(0)
+      })
+    })
+
+    it('should maintain summary cards position above filter controls', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const summaryCards = screen.getByText('Total Commissions Earned').closest('.grid')
+        const filterControls = screen.getByLabelText('Time Period').closest('.space-y-3')
+
+        // Summary cards should appear before filter controls in the DOM
+        expect(summaryCards?.compareDocumentPosition(filterControls!)).toBe(
+          Node.DOCUMENT_POSITION_FOLLOWING
+        )
       })
     })
   })
