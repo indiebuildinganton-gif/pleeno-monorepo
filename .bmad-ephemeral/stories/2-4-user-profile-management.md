@@ -72,16 +72,16 @@ so that **my account information is accurate and I can change my password**.
   - [ ] Return success response: "Verification email sent"
   - [ ] Log email change request in audit trail
 
-- [ ] Implement email verification confirmation endpoint (AC: 9)
-  - [ ] Create apps/agency/app/api/users/verify-email/route.ts
-  - [ ] POST /api/users/verify-email?token=... endpoint
-  - [ ] Validate token exists and is not expired (1 hour expiration)
-  - [ ] Update users.email = pending_email
-  - [ ] Set users.email_verified_at = now()
-  - [ ] Clear pending_email and email_verification_token
-  - [ ] Update Supabase Auth email via Admin API
-  - [ ] Log completed email change in audit trail
-  - [ ] Return success response with redirect to /profile
+- [x] Implement email verification confirmation endpoint (AC: 9)
+  - [x] Create apps/agency/app/api/users/verify-email/route.ts
+  - [x] POST /api/users/verify-email?token=... endpoint
+  - [x] Validate token exists and is not expired (1 hour expiration)
+  - [x] Update users.email = pending_email
+  - [x] Set users.email_verified_at = now()
+  - [x] Clear pending_email and email_verification_token
+  - [x] Update Supabase Auth email via Admin API
+  - [x] Log completed email change in audit trail
+  - [x] Return success response with redirect to /profile
 
 - [ ] Create user profile page (AC: 1, 4, 5)
   - [ ] Create apps/agency/app/profile/page.tsx
