@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -16,6 +15,7 @@ import {
   Textarea,
 } from '@pleeno/ui'
 import { calculateExpectedCommission } from '@pleeno/utils'
+import { useCreatePaymentPlan } from '@/hooks/useCreatePaymentPlan'
 import { EnrollmentSelect } from './EnrollmentSelect'
 import { PaymentPlanSummary } from './PaymentPlanSummary'
 
@@ -57,8 +57,7 @@ type PaymentPlanFormData = z.infer<typeof paymentPlanFormSchema>
  */
 export function PaymentPlanForm() {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const createPaymentPlan = useCreatePaymentPlan()
 
   const {
     register,
@@ -91,42 +90,18 @@ export function PaymentPlanForm() {
     setValue('commission_rate', commissionRate, { shouldValidate: true })
   }
 
-  const onSubmit = async (data: PaymentPlanFormData) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Prepare data for API (exclude commission_rate as it's auto-populated server-side)
-      const apiData = {
-        enrollment_id: data.enrollment_id,
-        total_amount: data.total_amount,
-        start_date: data.start_date,
-        notes: data.notes || null,
-        reference_number: data.reference_number || null,
-      }
-
-      const response = await fetch('/api/payment-plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(apiData),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to create payment plan')
-      }
-
-      // Redirect to payment plan detail page
-      router.push(`/plans/${result.data.id}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create payment plan')
-      console.error('Payment plan creation error:', err)
-    } finally {
-      setLoading(false)
+  const onSubmit = (data: PaymentPlanFormData) => {
+    // Prepare data for API (exclude commission_rate as it's auto-populated server-side)
+    const apiData = {
+      enrollment_id: data.enrollment_id,
+      total_amount: data.total_amount,
+      start_date: data.start_date,
+      notes: data.notes || null,
+      reference_number: data.reference_number || null,
     }
+
+    // Use TanStack Query mutation
+    createPaymentPlan.mutate(apiData)
   }
 
   return (
@@ -137,10 +112,6 @@ export function PaymentPlanForm() {
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-6">
-          {error && (
-            <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">{error}</div>
-          )}
-
           {/* Enrollment Selection */}
           <EnrollmentSelect
             value={watchedEnrollment}
@@ -158,7 +129,7 @@ export function PaymentPlanForm() {
               type="number"
               step="0.01"
               placeholder="Enter total amount"
-              disabled={loading}
+              disabled={createPaymentPlan.isPending}
               {...register('total_amount', { valueAsNumber: true })}
             />
             {errors.total_amount && (
@@ -171,7 +142,12 @@ export function PaymentPlanForm() {
             <Label htmlFor="start_date">
               Start Date <span className="text-destructive">*</span>
             </Label>
-            <Input id="start_date" type="date" disabled={loading} {...register('start_date')} />
+            <Input
+              id="start_date"
+              type="date"
+              disabled={createPaymentPlan.isPending}
+              {...register('start_date')}
+            />
             {errors.start_date && (
               <p className="text-sm text-destructive">{errors.start_date.message}</p>
             )}
@@ -184,7 +160,7 @@ export function PaymentPlanForm() {
               id="notes"
               placeholder="Add any notes or comments about this payment plan"
               rows={4}
-              disabled={loading}
+              disabled={createPaymentPlan.isPending}
               {...register('notes')}
             />
             {errors.notes && <p className="text-sm text-destructive">{errors.notes.message}</p>}
@@ -197,7 +173,7 @@ export function PaymentPlanForm() {
               id="reference_number"
               type="text"
               placeholder="Invoice #, PO #, etc."
-              disabled={loading}
+              disabled={createPaymentPlan.isPending}
               {...register('reference_number')}
             />
             {errors.reference_number && (
@@ -221,12 +197,12 @@ export function PaymentPlanForm() {
               type="button"
               variant="outline"
               onClick={() => router.back()}
-              disabled={loading}
+              disabled={createPaymentPlan.isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Payment Plan'}
+            <Button type="submit" disabled={createPaymentPlan.isPending}>
+              {createPaymentPlan.isPending ? 'Creating...' : 'Create Payment Plan'}
             </Button>
           </div>
         </CardContent>
