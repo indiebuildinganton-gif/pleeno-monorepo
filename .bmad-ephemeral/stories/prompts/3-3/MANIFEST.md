@@ -41,16 +41,33 @@
   - All routes include comprehensive documentation
 
 ### Task 3: Offer Letter Upload API
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Implemented POST /api/enrollments/[id]/offer-letter endpoint (apps/entities/app/api/enrollments/[id]/offer-letter/route.ts)
+  - Added file upload validation (max 10MB, PDF/JPEG/PNG only)
+  - Integrated Supabase Storage with proper file handling
+  - Implemented automatic deletion of old offer letters when uploading new ones
+  - Updates enrollment record with offer_letter_url and offer_letter_filename
+  - Includes proper error handling and RLS enforcement
+  - Validates enrollment exists before allowing upload
 
 ### Task 4: Offer Letter Download API
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Implemented GET /api/enrollments/[id]/offer-letter endpoint (apps/entities/app/api/enrollments/[id]/offer-letter/route.ts)
+  - Downloads and serves offer letter documents from Supabase Storage
+  - Sets proper Content-Type header based on file extension (PDF, JPEG, PNG)
+  - Sets Content-Disposition header based on query parameter (download=true for attachment, inline for viewing)
+  - Implements RLS enforcement via agency_id filtering
+  - Returns 404 when enrollment not found or no offer letter exists
+  - Returns 403 when user tries to access another agency's offer letter
+  - Handles storage errors with proper error messages
+  - Includes file streaming with appropriate headers (Content-Length, Cache-Control)
+  - Supports both inline viewing and forced download via query parameter
 
 ### Task 5: Payment Plan Creation Integration
 - Status: Not Started
