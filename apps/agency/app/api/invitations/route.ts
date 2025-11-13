@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 7)
 
-    // Create invitation record
+    // Create invitation record with task_ids
     // RLS policies will enforce agency_id filtering as additional security layer
     const { data: invitation, error: insertError } = await supabase
       .from('invitations')
@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
         token,
         invited_by: user.id,
         expires_at: expiresAt.toISOString(),
+        task_ids: validatedData.task_ids || [],
       })
       .select()
       .single()

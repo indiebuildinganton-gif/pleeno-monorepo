@@ -4,6 +4,7 @@ import { ToastProvider } from '@pleeno/ui'
 import { createServerClient } from '@pleeno/database/server'
 import { isAgencyAdmin } from '@pleeno/auth'
 import { Navigation } from './components/Navigation'
+import { AppHeader } from './components/AppHeader'
 import './globals.css'
 
 const geistSans = Geist({
@@ -18,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Pleeno Agency',
-  description: 'Agency management portal',
+  description: 'Agency management platform',
 }
 
 export default async function RootLayout({

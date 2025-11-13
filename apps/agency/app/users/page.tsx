@@ -54,7 +54,7 @@ export default async function UsersPage() {
       : 0,
   })) || []
 
-  // Fetch pending invitations
+  // Fetch pending invitations with task details
   const { data: invitations, error: invitationsError } = await supabase
     .from('invitations')
     .select(
@@ -67,7 +67,24 @@ export default async function UsersPage() {
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
 
-  const pendingInvitations = invitationsError ? [] : invitations
+  // Fetch all master tasks to map task_ids to task details
+  const { data: masterTasks } = await supabase
+    .from('master_tasks')
+    .select('id, task_name, task_code, description')
+
+  // Transform invitations to include task details
+  const pendingInvitations = invitationsError
+    ? []
+    : invitations?.map((invitation) => {
+        const taskIds = (invitation.task_ids as string[]) || []
+        const assignedTasks = taskIds
+          .map((taskId) => masterTasks?.find((task) => task.id === taskId))
+          .filter(Boolean)
+        return {
+          ...invitation,
+          assigned_tasks: assignedTasks,
+        }
+      }) || []
 
   return (
     <div className="container mx-auto py-8">
