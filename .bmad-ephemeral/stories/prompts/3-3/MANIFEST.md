@@ -70,10 +70,39 @@
   - Supports both inline viewing and forced download via query parameter
 
 ### Task 5: Payment Plan Creation Integration
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Created enrollment-helpers utility (packages/utils/src/enrollment-helpers.ts)
+    - Implemented findOrCreateEnrollment() function
+    - Implemented uploadOfferLetter() function
+    - Implemented createEnrollmentWithOfferLetter() convenience function
+  - ✅ Created OfferLetterUpload component (apps/payments/app/plans/new/components/OfferLetterUpload.tsx)
+    - Drag-and-drop file upload support
+    - Client-side validation (PDF/JPEG/PNG, max 10MB)
+    - Image preview for uploaded files
+  - ✅ Created data fetching hooks
+    - useStudents hook (apps/payments/hooks/useStudents.ts)
+    - useColleges hook (apps/payments/hooks/useColleges.ts)
+    - useBranches hook (apps/payments/hooks/useBranches.ts)
+  - ✅ Created selection components
+    - StudentSelect component with search functionality
+    - CollegeBranchSelect component with cascading dropdowns (college → branch)
+  - ✅ Updated PaymentPlanForm component (apps/payments/app/plans/new/components/PaymentPlanForm.tsx)
+    - Replaced EnrollmentSelect with inline enrollment creation
+    - Added student, college/branch, program name, and offer letter fields
+    - Updated form schema to include enrollment fields
+    - Modified submit handler to create enrollment first, then payment plan
+    - Handles duplicate enrollments (reuses existing active enrollments)
+    - Shows toast notification when existing enrollment is found
+    - Proper error handling for enrollment creation failures
+  - Key Implementation Details:
+    - Form now creates enrollments on-the-fly during payment plan creation
+    - Duplicate enrollment logic handled server-side via POST /api/enrollments
+    - Offer letter upload integrated with enrollment creation
+    - Commission rate automatically populated from selected branch
+    - Form organized into two sections: "Enrollment Information" and "Payment Details"
 
 ### Task 6: Student Detail Page - Enrollments Section
 - Status: Not Started
