@@ -1,18 +1,27 @@
 # Story 5-1 Implementation Manifest
 
 **Story**: Automated Status Detection Job
-**Status**: Not Started
-**Started**:
+**Status**: In Progress
+**Started**: 2025-11-13
 **Completed**:
 
 ## Task Progress
 
 ### Task 1: Create Status Update Database Function
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/drafts/update_installment_statuses.sql
+  - supabase/migrations/drafts/test_update_installment_statuses.sql
 - Notes:
+  - Function implements timezone-aware status transitions from pending to overdue
+  - Only processes installments linked to active payment plans
+  - Returns structured results with agency_id, updated_count, and transitions JSONB
+  - Includes comprehensive test script with 9 test scenarios covering various edge cases
+  - Function uses SECURITY DEFINER for elevated privileges while respecting RLS policies
+  - Performance optimizations: loops by agency (not installments), single UPDATE per agency
+  - Recommended indexes documented in SQL comments for optimal performance
 
 ### Task 2: Create Jobs Log Table
 - Status: Not Started
@@ -120,4 +129,4 @@
 
 ---
 
-**Last Updated**: [Date will be updated as tasks progress]
+**Last Updated**: 2025-11-13 (Task 1 completed)
