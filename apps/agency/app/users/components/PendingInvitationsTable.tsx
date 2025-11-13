@@ -1,16 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { formatDistanceToNow } from 'date-fns'
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
   TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
   Badge,
   Button,
+  useToast,
 } from '@pleeno/ui'
+import { RefreshCw, Trash2 } from 'lucide-react'
 
 interface Task {
   id: string
@@ -29,6 +32,8 @@ interface Invitation {
     full_name: string | null
   } | null
   assigned_tasks?: Task[]
+    full_name: string
+  }
 }
 
 interface PendingInvitationsTableProps {
@@ -111,29 +116,83 @@ export function PendingInvitationsTable({
     if (!confirm('Are you sure you want to revoke this invitation?')) {
       return
     }
+  const queryClient = useQueryClient()
+  const { addToast } = useToast()
 
-    setDeletingId(invitationId)
+  const { data: invitations } = useQuery({
+    queryKey: ['invitations', 'pending'],
+    queryFn: async () => {
+      const response = await fetch('/api/invitations?status=pending')
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to fetch invitations')
+      }
+      return result.data as Invitation[]
+    },
+    initialData: initialInvitations,
+    staleTime: 30000,
+  })
 
-    try {
+  const resendMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
+      const response = await fetch(`/api/invitations/${invitationId}/resend`, {
+        method: 'POST',
+      })
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to resend invitation')
+      }
+      return result.data
+    },
+    onSuccess: (data, invitationId) => {
+      queryClient.invalidateQueries({ queryKey: ['invitations', 'pending'] })
+      const invitation = invitations.find((inv) => inv.id === invitationId)
+      addToast({
+        title: 'Invitation resent',
+        description: `Invitation resent to ${invitation?.email}`,
+        variant: 'success',
+      })
+    },
+    onError: (error: Error) => {
+      addToast({
+        title: 'Error',
+        description: error.message,
+        variant: 'error',
+      })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async (invitationId: string) => {
       const response = await fetch(`/api/invitations/${invitationId}`, {
         method: 'DELETE',
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to revoke invitation')
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error?.message || 'Failed to delete invitation')
       }
+      return result
+    },
+    onSuccess: (data, invitationId) => {
+      queryClient.invalidateQueries({ queryKey: ['invitations', 'pending'] })
+      const invitation = invitations.find((inv) => inv.id === invitationId)
+      addToast({
+        title: 'Invitation deleted',
+        description: `Invitation for ${invitation?.email} has been deleted`,
+        variant: 'success',
+      })
+    },
+    onError: (error: Error) => {
+      addToast({
+        title: 'Error',
+        description: error.message,
+        variant: 'error',
+      })
+    },
+  })
 
-      // Remove the invitation from the list
-      setInvitations((prev) => prev.filter((inv) => inv.id !== invitationId))
-    } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred while revoking the invitation'
-      )
-    } finally {
-      setDeletingId(null)
-    }
+  const getExpiresIn = (expiresAt: string) => {
+    return formatDistanceToNow(new Date(expiresAt), { addSuffix: true })
   }
 
   if (invitations.length === 0) {
@@ -158,8 +217,10 @@ export function PendingInvitationsTable({
             <TableRow key={invitation.id}>
               <TableCell className="font-medium">{invitation.email}</TableCell>
               <TableCell>
-                <Badge variant={getRoleBadgeVariant(invitation.role)}>
-                  {formatRole(invitation.role)}
+                <Badge
+                  variant={invitation.role === 'agency_admin' ? 'default' : 'secondary'}
+                >
+                  {invitation.role === 'agency_admin' ? 'Admin' : 'User'}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -200,6 +261,29 @@ export function PendingInvitationsTable({
                     {deletingId === invitation.id ? 'Canceling...' : 'Cancel'}
                   </Button>
                 </div>
+              <TableCell>{invitation.invited_by.full_name}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {getExpiresIn(invitation.expires_at)}
+              </TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => resendMutation.mutate(invitation.id)}
+                  disabled={resendMutation.isPending}
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Resend
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => deleteMutation.mutate(invitation.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}

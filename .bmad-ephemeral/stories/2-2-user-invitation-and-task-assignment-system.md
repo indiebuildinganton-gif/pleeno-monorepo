@@ -101,16 +101,16 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Show success message with "Invitation sent to [email]"
   - [x] Refresh user list after invitation sent
 
-- [ ] Implement task assignment management for existing users (AC: 5, 7, 8)
-  - [ ] Create apps/agency/app/api/users/[id]/tasks/route.ts
-  - [ ] POST /api/users/[id]/tasks endpoint to assign/revoke tasks
-  - [ ] Request body: { task_ids: string[] } (replaces all assignments)
-  - [ ] Validate user role = 'agency_admin'
-  - [ ] Delete existing task assignments for user
-  - [ ] Insert new task assignments with assigned_by = current_user_id
-  - [ ] Log changes to audit_log table
-  - [ ] Return updated list of assigned tasks
-  - [ ] Add error handling
+- [x] Implement task assignment management for existing users (AC: 5, 7, 8)
+  - [x] Create apps/agency/app/api/users/[id]/tasks/route.ts
+  - [x] POST /api/users/[id]/tasks endpoint to assign/revoke tasks
+  - [x] Request body: { task_ids: string[] } (replaces all assignments)
+  - [x] Validate user role = 'agency_admin'
+  - [x] Delete existing task assignments for user
+  - [x] Insert new task assignments with assigned_by = current_user_id
+  - [x] Log changes to audit_log table
+  - [x] Return updated list of assigned tasks
+  - [x] Add error handling
 
 - [ ] Create task assignment UI for existing users (AC: 7, 8)
   - [ ] Create apps/agency/app/users/[id]/page.tsx user detail page
@@ -1118,6 +1118,44 @@ N/A - No debugging required
 - Add integration tests for resend endpoint
 - Add E2E tests for pending invitations display and actions
 - Consider adding toast notifications instead of browser alerts (UX enhancement)
+**Task 08: Implement task assignment management for existing users - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created API route: `apps/agency/app/api/users/[id]/tasks/route.ts`
+  - **POST /api/users/[id]/tasks** - Updates task assignments for existing users
+  - Enforces agency_admin role using requireRole() middleware
+  - Validates request body with UserTaskAssignmentSchema (task_ids array)
+  - Validates all task_ids exist in master_tasks table
+  - Verifies target user exists and belongs to same agency
+  - Atomically replaces all task assignments (delete existing + insert new)
+  - Inserts new assignments with assigned_by = current_user_id
+  - Creates audit log entry capturing before/after state with added/removed task IDs
+  - Returns updated task list with full task details (name, code, description)
+  - Comprehensive error handling with ValidationError, NotFoundError, ForbiddenError
+  - Database-level audit logging via triggers (automatic INSERT/DELETE capture)
+  - Manual summary audit log for complete operation tracking
+
+📝 **Implementation notes:**
+- Task assignment replacement is atomic - deletes all existing assignments before inserting new ones
+- Empty task_ids array allowed - removes all task assignments from user
+- Audit logging happens at two levels:
+  1. **Automatic triggers** (from Task 02) log individual INSERT/DELETE operations
+  2. **Manual audit entry** logs summary of complete operation with before/after comparison
+- Agency isolation enforced both via RLS policies and explicit agency_id check
+- Uses Supabase nested select to fetch task details in single query (performance optimization)
+- Returns flattened task array for easier client-side consumption
+- Error messages provide clear feedback for validation, authorization, and not-found scenarios
+- Uses Next.js 15 Promise-based params API (await params)
+
+⚠️ **Deviations from story:**
+- None - implementation matches specification exactly
+
+🔄 **Follow-up tasks:**
+- Add integration tests for task assignment API endpoint
+- Test with actual Supabase instance when migrations are run
+- Verify audit logging captures all changes correctly
+- Test edge cases: empty task list, invalid task IDs, cross-agency access attempts
+- Consider optimistic locking for concurrent task assignment updates (optional enhancement)
 
 ### File List
 
@@ -1161,6 +1199,8 @@ N/A - No debugging required
 - `apps/agency/app/api/invitations/[id]/route.ts` - Updated to Next.js 15 params pattern for consistency
 - `apps/agency/app/users/page.tsx` - Enhanced to fetch task details for pending invitations and transform data
 - `apps/agency/app/users/components/PendingInvitationsTable.tsx` - Added assigned tasks display, Resend button, relative time format, renamed Cancel button
+**Created (Task 08):**
+- `apps/agency/app/api/users/[id]/tasks/route.ts` - API route for managing task assignments for existing users (POST /api/users/[id]/tasks)
 
 ## Change Log
 
@@ -1173,3 +1213,4 @@ N/A - No debugging required
 - **2025-11-13:** Task 06 completed - Created invitation acceptance page and flow with token validation (apps/shell/app/accept-invitation/[token]/page.tsx), signup form component (AcceptInvitationForm.tsx), API route for user creation (POST /api/accept-invitation), automatic agency_id and role assignment, task assignments creation, and dashboard with welcome toast notification
 - **2025-11-13:** Task 07 completed - Enhanced user management page with task assignment capability in InviteUserModal (checkbox selection for master tasks), created GET /api/master-tasks endpoint for fetching available tasks, added "Assigned Tasks" column to UserTable showing task count per user, and created reusable Checkbox UI component following shadcn/ui patterns
 - **2025-11-13:** Task 11 completed - Created migration (009_add_task_ids_to_invitations.sql) adding task_ids JSONB column to invitations table, updated POST /api/invitations to save task_ids, enhanced POST /api/invitations/[id]/resend with email sending functionality, updated both API routes to Next.js 15 params pattern, enhanced PendingInvitationsTable with assigned tasks display (badges), Resend button, relative time format ("In X days"), and renamed Revoke to Cancel button
+- **2025-11-13:** Task 08 completed - Implemented task assignment management API for existing users (POST /api/users/[id]/tasks) with atomic task replacement, dual-level audit logging (automatic triggers + manual summary), agency isolation validation, and comprehensive error handling
