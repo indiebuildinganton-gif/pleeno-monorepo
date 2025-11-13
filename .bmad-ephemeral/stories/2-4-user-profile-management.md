@@ -94,17 +94,17 @@ so that **my account information is accurate and I can change my password**.
   - [x] Button: "Save Changes" (saves full_name)
   - [x] Use TanStack Query for profile updates
 
-- [ ] Create change password dialog (AC: 2, 3, 4)
-  - [ ] Create apps/agency/app/profile/components/ChangePasswordDialog.tsx
-  - [ ] Form fields: Current Password (password input), New Password (password input), Confirm New Password (password input)
-  - [ ] Password strength indicator (show requirements met/unmet)
-  - [ ] Requirements display: "8+ characters, uppercase, lowercase, number, special character"
-  - [ ] Validate new password matches confirm password
-  - [ ] "Cancel" and "Change Password" buttons
-  - [ ] On submit: call PATCH /api/users/me/password
-  - [ ] Show success toast: "Password changed successfully"
-  - [ ] Close dialog on success
-  - [ ] Show error for incorrect current password
+- [x] Create change password dialog (AC: 2, 3, 4)
+  - [x] Create apps/agency/app/profile/components/ChangePasswordDialog.tsx
+  - [x] Form fields: Current Password (password input), New Password (password input), Confirm New Password (password input)
+  - [x] Password strength indicator (show requirements met/unmet)
+  - [x] Requirements display: "8+ characters, uppercase, lowercase, number, special character"
+  - [x] Validate new password matches confirm password
+  - [x] "Cancel" and "Change Password" buttons
+  - [x] On submit: call PATCH /api/users/me/password
+  - [x] Show success toast: "Password changed successfully"
+  - [x] Close dialog on success
+  - [x] Show error for incorrect current password
 
 - [ ] Create update email dialog (admin only) (AC: 8, 9)
   - [ ] Create apps/agency/app/profile/components/UpdateEmailDialog.tsx
@@ -843,8 +843,44 @@ Story 2.3 has not been implemented yet but establishes patterns for user profile
 
 ### Completion Notes List
 
+**Task 07: Create change password dialog** (Completed: 2025-11-13)
+- All subtasks verified as complete
+- ChangePasswordDialog.tsx implements all required functionality:
+  - Three password fields: current, new, confirm
+  - Password strength indicator with real-time feedback
+  - Visual display of all 5 password requirements (8+ chars, uppercase, lowercase, number, special char)
+  - Form validation using Zod schema (PasswordChangeSchema)
+  - API integration with PATCH /api/users/me/password
+  - Success toast message on successful password change
+  - Dialog closes automatically on success
+  - Error handling for incorrect current password
+  - Cancel button with form reset
+- PasswordStrengthIndicator.tsx provides visual feedback:
+  - Shows strength level (weak/medium/strong)
+  - Displays checkmarks for met requirements
+  - Shows X marks for unmet requirements
+- API endpoint verified at apps/agency/app/api/users/me/password/route.ts:
+  - Validates current password via Supabase Auth
+  - Enforces password strength requirements
+  - Updates password securely using Supabase Auth
+  - Logs password change in audit trail (without password values)
+  - Returns appropriate error for incorrect current password
+- Validation schema (PasswordChangeSchema) in packages/validations/src/user.schema.ts:
+  - Enforces min 8 characters
+  - Requires uppercase, lowercase, number, special character
+  - Validates password confirmation match
+- Integration with ProfileForm.tsx confirmed
+- All acceptance criteria (AC: 2, 3, 4) met
+
 ### File List
+
+**Task 07: Create change password dialog**
+- `apps/agency/app/profile/components/ChangePasswordDialog.tsx` - Main dialog component
+- `apps/agency/app/profile/components/PasswordStrengthIndicator.tsx` - Password strength indicator
+- `apps/agency/app/api/users/me/password/route.ts` - Password change API endpoint
+- `packages/validations/src/user.schema.ts` - PasswordChangeSchema validation
 
 ## Change Log
 
 - **2025-11-13:** Story created from epics.md via create-story workflow
+- **2025-11-13:** Task 07 verified complete - Change password dialog with all functionality implemented
