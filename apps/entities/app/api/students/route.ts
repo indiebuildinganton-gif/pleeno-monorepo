@@ -86,10 +86,32 @@ export async function GET(request: NextRequest) {
     // Calculate offset for pagination
     const offset = (page - 1) * perPage
 
-    // Build query with RLS-enforced agency filtering
+    // Build query with RLS-enforced agency filtering and enrollment data
+    // Join with student_enrollments, colleges, and branches to get latest enrollment info
+    // Using LEFT JOIN (no !inner) to include students without enrollments
     let query = supabase
       .from('students')
-      .select('*', { count: 'exact' })
+      .select(
+        `
+        *,
+        student_enrollments(
+          id,
+          college_id,
+          branch_id,
+          enrollment_date,
+          colleges(
+            id,
+            name
+          ),
+          branches(
+            id,
+            name,
+            city
+          )
+        )
+      `,
+        { count: 'exact' }
+      )
       .eq('agency_id', userAgencyId)
 
     // Add search filter if provided
@@ -105,12 +127,36 @@ export async function GET(request: NextRequest) {
       .order('updated_at', { ascending: false })
       .range(offset, offset + perPage - 1)
 
-    const { data: students, error, count } = await query
+    const { data: studentsRaw, error, count } = await query
 
     if (error) {
       console.error('Failed to fetch students:', error)
       throw new Error('Failed to fetch students')
     }
+
+    // Transform the data to include only the latest enrollment
+    const students = studentsRaw?.map((student: any) => {
+      const enrollments = student.student_enrollments || []
+      // Get the most recent enrollment (sort by enrollment_date desc)
+      const sortedEnrollments = enrollments.sort(
+        (a: any, b: any) =>
+          new Date(b.enrollment_date).getTime() - new Date(a.enrollment_date).getTime()
+      )
+      const latestEnrollment = sortedEnrollments.length > 0 ? sortedEnrollments[0] : null
+
+      return {
+        ...student,
+        // Remove the nested enrollments array and flatten the latest enrollment
+        student_enrollments: undefined,
+        latest_enrollment: latestEnrollment
+          ? {
+              college_name: latestEnrollment.colleges?.name || null,
+              branch_name: latestEnrollment.branches?.name || null,
+              branch_city: latestEnrollment.branches?.city || null,
+            }
+          : null,
+      }
+    })
 
     // Calculate total pages
     const totalPages = count ? Math.ceil(count / perPage) : 0
