@@ -16,6 +16,7 @@ import {
   ForbiddenError,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { logActivity } from '@pleeno/database'
 import { requireRole } from '@pleeno/auth'
 import { StudentCreateSchema } from '@pleeno/validations'
 
@@ -248,6 +249,21 @@ export async function POST(request: NextRequest) {
         email: student.email,
         phone: student.phone,
         visa_status: student.visa_status,
+      },
+    })
+
+    // Log activity for Recent Activity Feed (Story 6.4)
+    await logActivity(supabase, {
+      agencyId: userAgencyId,
+      userId: user.id,
+      entityType: 'student',
+      entityId: student.id,
+      action: 'created',
+      description: `added new student ${student.full_name}`,
+      metadata: {
+        student_name: student.full_name,
+        student_id: student.id,
+        passport_number: student.passport_number,
       },
     })
 

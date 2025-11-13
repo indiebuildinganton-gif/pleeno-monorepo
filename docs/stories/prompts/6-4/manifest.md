@@ -13,10 +13,19 @@
 - Notes: Created migration file at supabase/migrations/004_reports_domain/001_activity_log_schema.sql with table schema, RLS policies for agency isolation, and performance indexes
 
 ### Task 2: Implement Activity Logging in Existing API Routes
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created activity-logger utility at packages/database/src/activity-logger.ts with TypeScript types and logActivity function
+  - Exported activity-logger from @pleeno/database package index
+  - Integrated activity logging into payment plan creation API route (apps/payments/app/api/payment-plans/route.ts)
+  - Integrated activity logging into student creation API route (apps/entities/app/api/students/route.ts)
+  - Integrated activity logging into enrollment creation API route (apps/payments/app/api/enrollments/route.ts)
+  - Updated installment overdue detection function (supabase/migrations/004_reports_domain/002_update_installment_status_with_activity_logging.sql) to log system activities when marking installments as overdue
+  - Note: Payment recording API route (POST /api/payments/[id]/record) does not exist yet. When created, it should include activity logging from the start.
+  - All activity logs include human-readable descriptions and metadata for display in the activity feed
+  - System actions (installment overdue) correctly use null user_id
 
 ### Task 3: Create Activity Feed API Route
 - Status: Not Started

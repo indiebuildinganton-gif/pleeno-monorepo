@@ -59,3 +59,6 @@
 // Export only types from the main entry point
 // Import server/client/middleware from their specific paths
 export * from './types/database.types'
+
+// Export activity logger types and functions
+export * from './activity-logger'
