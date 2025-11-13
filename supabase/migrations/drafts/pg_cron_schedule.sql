@@ -36,9 +36,21 @@ CREATE EXTENSION IF NOT EXISTS http;
 -- In Supabase, you can set this via the Dashboard or CLI:
 -- ALTER DATABASE postgres SET app.supabase_function_key = 'actual-key-value';
 
+-- ⚠️  IMPORTANT: Before running this migration in production:
+--    1. Follow the API Key Setup Guide: supabase/migrations/drafts/api_key_setup_guide.md
+--    2. Generate a secure API key using: openssl rand -hex 32
+--    3. Store the key in Supabase secrets vault: supabase secrets set SUPABASE_FUNCTION_KEY="<key>"
+--    4. Update the ALTER DATABASE command below with your actual API key
+--    5. Never commit the actual API key to version control!
+
 -- For now, using a placeholder value
 -- WARNING: Replace with actual API key before deploying to production
 ALTER DATABASE postgres SET app.supabase_function_key = 'your-api-key-here';
+
+-- For complete setup instructions, see:
+-- - API Key Setup Guide: supabase/migrations/drafts/api_key_setup_guide.md
+-- - API Key Rotation Guide: supabase/migrations/drafts/api_key_rotation_guide.md
+-- - Authentication Tests: supabase/migrations/drafts/test_api_key_authentication.sql
 
 -- Verify the setting is stored
 COMMENT ON EXTENSION pg_cron IS 'Job scheduling extension - API key stored in app.supabase_function_key';
