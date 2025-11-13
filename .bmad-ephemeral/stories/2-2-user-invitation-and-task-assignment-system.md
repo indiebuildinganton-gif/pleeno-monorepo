@@ -112,16 +112,16 @@ so that **I can build my team and flexibly delegate work based on individual nee
   - [x] Return updated list of assigned tasks
   - [x] Add error handling
 
-- [ ] Create task assignment UI for existing users (AC: 7, 8)
-  - [ ] Create apps/agency/app/users/[id]/page.tsx user detail page
-  - [ ] Display user profile: name, email, role, status
-  - [ ] Display currently assigned tasks with checkboxes
-  - [ ] Load master tasks list
-  - [ ] Pre-check currently assigned tasks
-  - [ ] "Save Task Assignments" button
-  - [ ] On submit: call POST /api/users/[id]/tasks
-  - [ ] Show success toast: "Task assignments updated"
-  - [ ] Optimistic UI update with TanStack Query
+- [x] Create task assignment UI for existing users (AC: 7, 8)
+  - [x] Create apps/agency/app/users/[id]/page.tsx user detail page
+  - [x] Display user profile: name, email, role, status
+  - [x] Display currently assigned tasks with checkboxes
+  - [x] Load master tasks list
+  - [x] Pre-check currently assigned tasks
+  - [x] "Save Task Assignments" button
+  - [x] On submit: call POST /api/users/[id]/tasks
+  - [x] Show success toast: "Task assignments updated"
+  - [x] Optimistic UI update with TanStack Query
 
 - [ ] Implement invitation expiration validation (AC: 2)
   - [ ] Create packages/utils/src/invitation-helpers.ts
@@ -1202,6 +1202,64 @@ N/A - No debugging required
 **Created (Task 08):**
 - `apps/agency/app/api/users/[id]/tasks/route.ts` - API route for managing task assignments for existing users (POST /api/users/[id]/tasks)
 
+**Task 09: Create task assignment UI for existing users - COMPLETED (2025-11-13)**
+
+✅ **What was completed:**
+- Created user detail page: `apps/agency/app/users/[id]/page.tsx`
+  - Server Component that fetches user profile and task assignment data
+  - Displays user profile information: name, email, role, status
+  - Security checks: admin-only access, agency isolation verification
+  - Fetches master tasks list and current task assignments
+  - Renders TaskAssignmentForm client component with pre-populated data
+- Created task assignment form: `apps/agency/app/users/[id]/TaskAssignmentForm.tsx`
+  - Client Component with interactive checkbox list for all master tasks
+  - Pre-checks currently assigned tasks based on user's existing assignments
+  - "Save Task Assignments" button with loading state
+  - Calls POST /api/users/[id]/tasks endpoint on form submission
+  - Success toast notification: "Task assignments updated successfully!"
+  - TanStack Query mutation with optimistic updates
+  - Rollback on error with error alert feedback
+  - Unsaved changes indicator
+  - Selected task count display
+- Enhanced UserTable component: `apps/agency/app/users/components/UserTable.tsx`
+  - Cleaned up dead code (removed unreachable lines 61-96)
+  - Fixed Assigned Tasks column rendering
+  - Ensured proper colspan for empty state
+  - UserActionsMenu already includes "View Details" action that navigates to user detail page
+
+📝 **Implementation notes:**
+- User detail page uses Next.js 15 Promise-based params API
+- Security enforced at multiple levels: authentication check, admin role check, agency isolation
+- TanStack Query optimistic updates provide instant UI feedback before API responds
+- On error, optimistic update is rolled back and error message displayed
+- Success toast auto-hides after 3 seconds
+- Save button disabled when no changes or during submission
+- Master tasks displayed with name and description in bordered cards
+- Each task has its own checkbox for selection/deselection
+- Navigation from UserTable to user detail page already implemented via UserActionsMenu
+- Form submission replaces all task assignments atomically (handled by API)
+- Changes automatically logged to audit trail via API endpoint
+
+⚠️ **Deviations from story:**
+- Success toast implemented with inline component instead of toast library (simpler, no additional dependency)
+- Used browser alert for error feedback (consistent with existing codebase patterns)
+- Navigation link already existed in UserActionsMenu ("View Details" action)
+
+🔄 **Follow-up tasks:**
+- Test user detail page with actual Supabase data
+- Test optimistic updates and error rollback scenarios
+- Test with users having 0, 1, and multiple task assignments
+- Consider replacing browser alert with toast library for error feedback (UX enhancement)
+- Add loading skeleton for master tasks list (optional UX enhancement)
+- Add integration tests for user detail page
+- Add E2E test for complete task assignment flow (navigate to user → change tasks → save → verify)
+
+**Created (Task 09):**
+- `apps/agency/app/users/[id]/page.tsx` - User detail page displaying profile and task assignments
+- `apps/agency/app/users/[id]/TaskAssignmentForm.tsx` - Client component for managing task assignments with optimistic updates
+
+**Modified (Task 09):**
+- `apps/agency/app/users/components/UserTable.tsx` - Cleaned up dead code and fixed Assigned Tasks column rendering
 **Task 12: Create validation schemas - COMPLETED (2025-11-13)**
 
 ✅ **What was completed:**
@@ -1248,4 +1306,5 @@ N/A - No debugging required
 - **2025-11-13:** Task 07 completed - Enhanced user management page with task assignment capability in InviteUserModal (checkbox selection for master tasks), created GET /api/master-tasks endpoint for fetching available tasks, added "Assigned Tasks" column to UserTable showing task count per user, and created reusable Checkbox UI component following shadcn/ui patterns
 - **2025-11-13:** Task 11 completed - Created migration (009_add_task_ids_to_invitations.sql) adding task_ids JSONB column to invitations table, updated POST /api/invitations to save task_ids, enhanced POST /api/invitations/[id]/resend with email sending functionality, updated both API routes to Next.js 15 params pattern, enhanced PendingInvitationsTable with assigned tasks display (badges), Resend button, relative time format ("In X days"), and renamed Revoke to Cancel button
 - **2025-11-13:** Task 08 completed - Implemented task assignment management API for existing users (POST /api/users/[id]/tasks) with atomic task replacement, dual-level audit logging (automatic triggers + manual summary), agency isolation validation, and comprehensive error handling
+- **2025-11-13:** Task 09 completed - Created task assignment UI for existing users with user detail page (apps/agency/app/users/[id]/page.tsx) displaying profile and task assignments, client component (TaskAssignmentForm.tsx) with checkbox list for master tasks, TanStack Query mutation with optimistic updates, success toast notification, error rollback, and unsaved changes indicator. Enhanced UserTable component by cleaning up dead code and fixing Assigned Tasks column rendering
 - **2025-11-13:** Task 12 completed - Verified validation schemas exist in packages/validations/src/invitation.schema.ts (created during Task 04). Schemas include InvitationCreateSchema (email, role, task_ids with full validation), UserTaskAssignmentSchema (task_ids array), and InvitationAcceptanceSchema (token, full_name, password validation). All TypeScript types exported and integrated across API routes.
