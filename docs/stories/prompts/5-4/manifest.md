@@ -61,10 +61,23 @@
   - Cards are clickable with hover effects (navigation will be added in Task 4)
 
 ### Task 4: Add Navigation to Payment Plans with Filters
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Imported Link from 'next/link' for client-side navigation
+  - Added href prop to StatusCardProps interface
+  - Wrapped each StatusCard in Link component with appropriate filter URLs:
+    - Pending: `/payments?status=pending`
+    - Due Soon: `/payments?status=due_soon`
+    - Overdue: `/payments?status=overdue`
+    - Paid This Month: `/payments?status=paid&period=current_month`
+  - Enhanced hover effects with `hover:scale-[1.02]` for subtle scale transform
+  - Added ArrowRight icon to indicate clickability
+  - Added transition-all duration-200 for smooth hover animations
+  - Verified payments zone exists at `apps/payments/` (currently placeholder implementation)
+  - Navigation uses standard Next.js Link for optimal SPA behavior
+  - Links use `className="block"` to ensure full card area is clickable
 
 ### Task 5: Testing
 - Status: Not Started
@@ -215,10 +228,84 @@
 - ✅ AC #5: Widget displays count and total value of paid payments (this month)
 
 **Next Steps:**
-- Task 4: Add Navigation to Payment Plans with Filters
-  - Make cards clickable with navigation to payment plans page
-  - Apply appropriate filters based on status clicked
-  - Use Next.js Link or router.push for navigation
+- ✅ Task 4: Add Navigation to Payment Plans with Filters (COMPLETED)
+- Task 5: Testing
+
+### Task 4 Completion (2025-11-13)
+
+**Payment Status Widget Navigation Implementation:**
+- Updated `apps/dashboard/app/components/PaymentStatusWidget.tsx` to add navigation functionality
+- Component location: `apps/dashboard/app/components/PaymentStatusWidget.tsx:1`
+
+**Navigation Implementation:**
+1. **Next.js Link Integration**: Used `Link` from `next/link` for optimal client-side routing
+2. **Status Card Wrapping**: Wrapped each `Card` component in a `Link` with block-level display
+3. **Filter URL Mapping**:
+   - **Pending**: `/payments?status=pending` - Shows all pending installments
+   - **Due Soon**: `/payments?status=due_soon` - Shows installments due in next 7 days
+   - **Overdue**: `/payments?status=overdue` - Shows overdue installments needing attention
+   - **Paid This Month**: `/payments?status=paid&period=current_month` - Shows payments collected this month
+
+**UI/UX Enhancements:**
+- Added `ArrowRight` icon to right side of each card header (next to status icon)
+- Enhanced hover effects: `hover:scale-[1.02]` for subtle scale transform on hover
+- Added `transition-all duration-200` for smooth animations
+- Link uses `className="block"` to make entire card area clickable
+- Cursor remains pointer to indicate interactivity
+
+**Multi-Zone Navigation:**
+- Dashboard zone: `apps/dashboard/` (source)
+- Payments zone: `apps/payments/` (destination)
+- Shell app handles routing via `next.config.ts` rewrites
+- Navigation works seamlessly across zones using standard Next.js Link
+
+**Integration Status:**
+- Payments zone exists at `apps/payments/` but currently shows placeholder Next.js page
+- Query parameters are ready for payments zone to consume:
+  - `status`: pending, due_soon, overdue, paid
+  - `period`: current_month (used with paid status)
+- Future implementation: Payments zone should parse query params and filter payment plans list accordingly
+
+**Technical Decisions:**
+- Used `Link` component instead of `router.push()` for better SEO and performance
+- Avoided programmatic navigation to keep component declarative
+- Added visual indicator (ArrowRight icon) for better user affordance
+- Maintained existing color-coding and status iconography
+
+**Code Changes:**
+- Line 23: Added `import Link from 'next/link'`
+- Line 31: Added `ArrowRight` icon import from lucide-react
+- Line 69: Added `href: string` to `StatusCardProps` interface
+- Line 91-111: Updated color classes to include `hover:scale-[1.02]`
+- Line 131-153: Wrapped Card in Link component and added ArrowRight icon
+- Line 244, 252, 260, 268: Added href prop to each StatusCard instantiation
+
+**Acceptance Criteria Met:**
+- ✅ AC #6: Clicking any metric navigates to payment plans page with appropriate filter
+
+**Payments Zone Integration Requirements:**
+The payments zone (`apps/payments/`) needs to implement:
+1. Query parameter parsing using `useSearchParams()` from `next/navigation`
+2. Payment plans list with filtering capability
+3. UI to show active filters and allow clearing/modifying them
+4. Proper handling of all status values: pending, due_soon, overdue, paid
+5. Period parameter handling for time-based filtering (current_month)
+
+Example implementation for payments zone:
+```typescript
+// apps/payments/app/page.tsx
+'use client'
+import { useSearchParams } from 'next/navigation'
+
+export default function PaymentsPage() {
+  const searchParams = useSearchParams()
+  const status = searchParams.get('status')
+  const period = searchParams.get('period')
+
+  // Use status and period to filter payment plans
+  // ...
+}
+```
 
 ## Blockers / Issues
 

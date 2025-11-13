@@ -9,15 +9,18 @@
  *
  * Uses TanStack Query to fetch data from payment status summary API.
  * Each status card is color-coded for quick visual identification.
+ * Cards are clickable and navigate to payment plans with appropriate filters.
  *
  * Epic 5: Payment Plans & Installment Tracking
  * Story 5.4: Payment Status Dashboard Widget
  * Task 3: Create PaymentStatusWidget Component
+ * Task 4: Add Navigation to Payment Plans with Filters
  */
 
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@pleeno/ui'
 import {
   Clock,
@@ -25,6 +28,7 @@ import {
   AlertTriangle,
   CheckCircle,
   RefreshCw,
+  ArrowRight,
 } from 'lucide-react'
 
 /**
@@ -62,6 +66,7 @@ interface StatusCardProps {
   amount: number
   icon: React.ReactNode
   colorClass: 'gray' | 'amber' | 'red' | 'green'
+  href: string
 }
 
 /**
@@ -83,25 +88,25 @@ function getColorClasses(colorClass: 'gray' | 'amber' | 'red' | 'green') {
   switch (colorClass) {
     case 'green':
       return {
-        card: 'border-green-200 bg-green-50 hover:shadow-lg',
+        card: 'border-green-200 bg-green-50 hover:shadow-lg hover:scale-[1.02]',
         icon: 'text-green-600',
         text: 'text-green-900',
       }
     case 'amber':
       return {
-        card: 'border-amber-200 bg-amber-50 hover:shadow-lg',
+        card: 'border-amber-200 bg-amber-50 hover:shadow-lg hover:scale-[1.02]',
         icon: 'text-amber-600',
         text: 'text-amber-900',
       }
     case 'red':
       return {
-        card: 'border-red-200 bg-red-50 hover:shadow-lg',
+        card: 'border-red-200 bg-red-50 hover:shadow-lg hover:scale-[1.02]',
         icon: 'text-red-600',
         text: 'text-red-900',
       }
     case 'gray':
       return {
-        card: 'border-gray-200 bg-gray-50 hover:shadow-lg',
+        card: 'border-gray-200 bg-gray-50 hover:shadow-lg hover:scale-[1.02]',
         icon: 'text-gray-600',
         text: 'text-gray-900',
       }
@@ -111,27 +116,41 @@ function getColorClasses(colorClass: 'gray' | 'amber' | 'red' | 'green') {
 /**
  * Status Card Component
  */
-function StatusCard({ label, count, amount, icon, colorClass }: StatusCardProps) {
+function StatusCard({
+  label,
+  count,
+  amount,
+  icon,
+  colorClass,
+  href,
+}: StatusCardProps) {
   const colors = getColorClasses(colorClass)
   const currency = 'AUD' // TODO: Get from agency settings
 
   return (
-    <Card className={`cursor-pointer transition-shadow ${colors.card}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{label}</CardTitle>
-        <div className={colors.icon}>{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-1">
-          <div className={`text-2xl font-bold ${colors.text}`}>
-            {formatCurrency(amount, currency)}
+    <Link href={href} className="block">
+      <Card
+        className={`cursor-pointer transition-all duration-200 ${colors.card}`}
+      >
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">{label}</CardTitle>
+          <div className="flex items-center gap-2">
+            <div className={colors.icon}>{icon}</div>
+            <ArrowRight className={`w-4 h-4 ${colors.icon}`} />
           </div>
-          <p className="text-xs text-muted-foreground">
-            {count} {count === 1 ? 'installment' : 'installments'}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1">
+            <div className={`text-2xl font-bold ${colors.text}`}>
+              {formatCurrency(amount, currency)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {count} {count === 1 ? 'installment' : 'installments'}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 
@@ -222,6 +241,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.pending.total_amount}
         icon={<Clock className="w-5 h-5" />}
         colorClass="gray"
+        href="/payments?status=pending"
       />
       <StatusCard
         label="Due Soon"
@@ -229,6 +249,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.due_soon.total_amount}
         icon={<AlertCircle className="w-5 h-5" />}
         colorClass="amber"
+        href="/payments?status=due_soon"
       />
       <StatusCard
         label="Overdue"
@@ -236,6 +257,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.overdue.total_amount}
         icon={<AlertTriangle className="w-5 h-5" />}
         colorClass="red"
+        href="/payments?status=overdue"
       />
       <StatusCard
         label="Paid This Month"
@@ -243,6 +265,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.paid_this_month.total_amount}
         icon={<CheckCircle className="w-5 h-5" />}
         colorClass="green"
+        href="/payments?status=paid&period=current_month"
       />
     </div>
   )
