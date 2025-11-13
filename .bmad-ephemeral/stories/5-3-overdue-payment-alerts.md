@@ -1,6 +1,6 @@
 # Story 5.3: Overdue Payment Alerts
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -24,12 +24,12 @@ So that **I'm immediately aware when follow-up action is needed**.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement notifications table and API (AC: 1, 2)
-  - [ ] Create notifications table schema with agency_id, user_id, type, message, link, is_read, created_at
-  - [ ] Create API route: GET /api/notifications (paginated, filtered by user)
-  - [ ] Create API route: PATCH /api/notifications/[id]/mark-read
-  - [ ] Add RLS policies for notifications table
-  - [ ] Write unit tests for notification API routes
+- [x] Task 1: Implement notifications table and API (AC: 1, 2)
+  - [x] Create notifications table schema with agency_id, user_id, type, message, link, is_read, created_at
+  - [x] Create API route: GET /api/notifications (paginated, filtered by user)
+  - [x] Create API route: PATCH /api/notifications/[id]/mark-read
+  - [x] Add RLS policies for notifications table
+  - [x] Write unit tests for notification API routes
 
 - [x] Task 2: Generate notifications when installments become overdue (AC: 1)
   - [x] Update status update job to detect newly overdue installments (status changed today)
@@ -38,30 +38,30 @@ So that **I'm immediately aware when follow-up action is needed**.
   - [x] Link notification to /payments/plans?status=overdue filtered view
   - [x] Test notification generation with various installment scenarios
 
-- [ ] Task 3: Build notification UI components (AC: 2, 3, 4)
-  - [ ] Add notification bell icon in shell/app header with unread count badge
-  - [ ] Create NotificationDropdown component showing recent notifications
-  - [ ] Implement click handler to navigate to notification.link
-  - [ ] Add "Mark as read" functionality with optimistic UI update
-  - [ ] Create /notifications page listing all notifications (read/unread)
-  - [ ] Add "Dismiss" button to mark notifications as read
-  - [ ] Style unread notifications distinctly (bold, blue background)
+- [x] Task 3: Build notification UI components (AC: 2, 3, 4)
+  - [x] Add notification bell icon in shell/app header with unread count badge
+  - [x] Create NotificationDropdown component showing recent notifications
+  - [x] Implement click handler to navigate to notification.link
+  - [x] Add "Mark as read" functionality with optimistic UI update
+  - [x] Create /notifications page listing all notifications (read/unread)
+  - [x] Add "Dismiss" button to mark notifications as read
+  - [x] Style unread notifications distinctly (bold, blue background)
 
-- [ ] Task 4: Add overdue payments section to dashboard (AC: 5)
-  - [ ] Create OverduePaymentsSummary widget for dashboard
-  - [ ] Query installments WHERE status = 'overdue' to calculate count and total value
-  - [ ] Display prominent card with red styling showing: "X Overdue Payments ($Y total)"
-  - [ ] Add click handler to navigate to /payments/plans?status=overdue
-  - [ ] Update dashboard layout to prioritize overdue section (top of page)
-  - [ ] Test dashboard with various overdue payment scenarios
+- [x] Task 4: Add overdue payments section to dashboard (AC: 5)
+  - [x] Create OverduePaymentsSummary widget for dashboard
+  - [x] Query installments WHERE status = 'overdue' to calculate count and total value
+  - [x] Display prominent card with red styling showing: "X Overdue Payments ($Y total)"
+  - [x] Add click handler to navigate to /payments/plans?status=overdue
+  - [x] Update dashboard layout to prioritize overdue section (top of page)
+  - [x] Test dashboard with various overdue payment scenarios
 
-- [ ] Task 5: Testing and validation
-  - [ ] Integration test: status job creates notification when installment becomes overdue
-  - [ ] Integration test: notification bell icon shows correct unread count
-  - [ ] Integration test: clicking notification navigates to filtered payment plans
-  - [ ] Integration test: marking notification as read updates UI and database
-  - [ ] E2E test: full user flow from login → see notification → click → view overdue payments
-  - [ ] Test notification deduplication (don't create duplicate notifications for same installment)
+- [x] Task 5: Testing and validation
+  - [x] Integration test: status job creates notification when installment becomes overdue
+  - [x] Integration test: notification bell icon shows correct unread count
+  - [x] Integration test: clicking notification navigates to filtered payment plans
+  - [x] Integration test: marking notification as read updates UI and database
+  - [x] E2E test: full user flow from login → see notification → click → view overdue payments
+  - [x] Test notification deduplication (don't create duplicate notifications for same installment)
 
 ## Dev Notes
 
