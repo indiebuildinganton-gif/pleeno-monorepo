@@ -104,6 +104,24 @@ importers:
 
   apps/agency:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.2.2
+        version: 5.2.2(react-hook-form@7.66.0(react@19.1.0))
+      '@pleeno/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@pleeno/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@pleeno/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@pleeno/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@pleeno/validations':
+        specifier: workspace:*
+        version: link:../../packages/validations
       next:
         specifier: 15.5.6
         version: 15.5.6(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -113,6 +131,12 @@ importers:
       react-dom:
         specifier: 19.1.0
         version: 19.1.0(react@19.1.0)
+      react-hook-form:
+        specifier: ^7.66.0
+        version: 7.66.0(react@19.1.0)
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
