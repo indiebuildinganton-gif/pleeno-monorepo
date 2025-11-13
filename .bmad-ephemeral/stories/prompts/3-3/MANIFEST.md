@@ -170,10 +170,43 @@
     - All components follow existing patterns from student detail page (Task 6)
 
 ### Task 8: Document Viewer Component
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - ✅ Created DocumentViewer component (packages/ui/src/components/enrollments/DocumentViewer.tsx)
+    - Modal/dialog UI using Shadcn Dialog component
+    - Supports PDF preview using iframe
+    - Supports image display (JPEG, PNG) with object-contain scaling
+    - Fullscreen/maximize toggle button
+    - Download button (triggers download via API with ?download=true)
+    - Close button (X) with ESC key support
+    - Loading state with spinner and message
+    - Error state with helpful message and fallback download option
+    - Unsupported file type handling with download fallback
+  - ✅ Updated EnrollmentsSection component (apps/entities/app/students/[id]/components/EnrollmentsSection.tsx)
+    - Replaced "View Offer Letter" link with button that opens DocumentViewer
+    - Added state management for viewing document
+    - Changed icon from Download to Eye (lucide-react)
+    - Integrated DocumentViewer component
+  - ✅ Updated EnrolledStudentsSection component (apps/entities/app/colleges/[id]/components/EnrolledStudentsSection.tsx)
+    - Replaced "View Offer Letter" link with button that opens DocumentViewer
+    - Added state management for viewing document
+    - Changed icon from Download to Eye (lucide-react)
+    - Integrated DocumentViewer component
+  - ✅ Exported DocumentViewer from packages/ui/src/components/enrollments/index.ts
+  - Key Implementation Details:
+    - DocumentViewer detects file type from filename extension
+    - PDF documents rendered in iframe for browser-native PDF viewer
+    - Images centered and scaled to fit container with max-width/max-height
+    - Fullscreen mode uses full viewport with rounded-none class
+    - Normal mode uses max-w-4xl with 80vh height
+    - Download button generates temporary anchor element with download=true query param
+    - Loading state shows during initial document load
+    - Error handling for failed document loads with retry via download
+    - Modal closes on ESC key, overlay click, or X button
+    - Responsive design with truncated filename in header
+    - Component is fully reusable across different enrollment contexts
 
 ### Task 9: Enrollment Status Management UI
 - Status: Not Started
