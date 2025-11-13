@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { ToastProvider } from '@pleeno/ui'
+import { createServerClient } from '@pleeno/database/server'
+import { isAgencyAdmin } from '@pleeno/auth'
+import { Navigation } from './components/Navigation'
 import { AppHeader } from './components/AppHeader'
 import './globals.css'
 
@@ -19,17 +22,38 @@ export const metadata: Metadata = {
   description: 'Agency management platform',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Get current user for navigation
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let userName = ''
+  let isAdmin = false
+
+  // If user is authenticated, fetch their profile data
+  if (user) {
+    const { data: currentUser } = await supabase
+      .from('users')
+      .select('full_name, role')
+      .eq('id', user.id)
+      .single()
+
+    userName = currentUser?.full_name || ''
+    isAdmin = currentUser?.role === 'agency_admin'
+  }
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ToastProvider>
-          <AppHeader />
-          {children}
+          {user && <Navigation userName={userName} isAdmin={isAdmin} />}
+          <main>{children}</main>
         </ToastProvider>
       </body>
     </html>
