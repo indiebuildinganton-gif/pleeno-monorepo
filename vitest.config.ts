@@ -19,32 +19,22 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['packages/**/src/**/*.{ts,tsx}'],
       exclude: [
         'node_modules/',
         '**/*.config.{js,ts}',
         '**/*.test.{ts,tsx}',
         '**/dist/**',
         '**/.next/**',
+        'packages/**/src/**/*.test.{ts,tsx}',
+        'packages/**/src/__tests__/**',
+        'packages/**/src/**/*.d.ts',
       ],
     },
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['packages/**/src/**/*.{ts,tsx}'],
-      exclude: [
-        'packages/**/src/**/*.test.{ts,tsx}',
-        'packages/**/src/__tests__/**',
-        'packages/**/src/**/*.d.ts',
-      ],
-    },
-    globals: true,
-  },
-  resolve: {
-    alias: {
       '@pleeno/utils': path.resolve(__dirname, './packages/utils/src'),
       '@pleeno/ui': path.resolve(__dirname, './packages/ui/src'),
       '@pleeno/stores': path.resolve(__dirname, './packages/stores/src'),

@@ -30,10 +30,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 4. Implement admin email change API endpoint
-- [ ] Prompt: `04-implement-admin-email-change-api-endpoint.md`
-- [ ] Implementation complete
+- [x] Prompt: `04-implement-admin-email-change-api-endpoint.md`
+- [x] Implementation complete
 - [ ] Tests written
 - [ ] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 5. Implement email verification confirmation endpoint
 - [ ] Prompt: `05-implement-email-verification-confirmation-endpoint.md`
@@ -104,9 +105,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 3
+- Completed: 4
 - In progress: 0
-- Remaining: 12
+- Remaining: 11
 
 ## Notes
 
@@ -141,6 +142,22 @@ Add notes here as you work through the tasks:
   - Returns success message on completion
   - Proper error handling: UnauthorizedError for auth failures, ValidationError for incorrect current password
   - Follows architecture.md security patterns and audit trail requirements
+- **Task 4 (2025-11-13):** Implemented admin email change API endpoint
+  - Installed resend package (v6.4.2) in apps/agency via pnpm
+  - Created EmailUpdateSchema in packages/validations/src/user.schema.ts with email validation (lowercase, trim, max 255 chars)
+  - Created stub email verification template at apps/agency/emails/email-verification.tsx (to be replaced by Task 11)
+  - Created PATCH /api/users/{id}/email endpoint at apps/agency/app/api/users/[id]/email/route.ts
+  - Verifies requester is agency_admin with proper role and agency_id checks
+  - Validates new email is not already in use (checks users table for existing email)
+  - Generates secure verification token using crypto.randomUUID()
+  - Updates pending_email and email_verification_token in database
+  - RLS policies + explicit agency_id check ensure admin can only update users in their agency
+  - Sends verification email via Resend (using HTML template; Task 11 will implement React Email)
+  - Email configuration: from='noreply@pleeno.com', verification link expires in 1 hour
+  - Audit logging handled automatically by log_email_changes() trigger from Task 1
+  - Environment variables required: RESEND_API_KEY, NEXT_PUBLIC_APP_URL
+  - Proper error handling: UnauthorizedError (401), ForbiddenError (403), ValidationError (400)
+  - Follows architecture.md patterns for admin-only operations and email verification workflow
 
 ## Issues / Blockers
 
