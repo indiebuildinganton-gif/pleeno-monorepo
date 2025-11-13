@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "date-fns": "4.1.0",
-    "date-fns-tz": "^3.1.0"
+    "date-fns-tz": "^3.1.0",
+    "@pleeno/database": "workspace:*"
   },
   "peerDependencies": {
     "next": ">=13.0.0",
