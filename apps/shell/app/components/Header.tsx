@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react'
 import { createClient, getCurrentAgencyId } from '@pleeno/database'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { NotificationBell } from './NotificationBell'
 
 export function Header() {
   const [agencyName, setAgencyName] = useState<string>('')
@@ -110,6 +111,9 @@ export function Header() {
                 </span>
               </Link>
             )}
+
+            {/* Notification Bell */}
+            <NotificationBell />
           </nav>
         </div>
       </div>
