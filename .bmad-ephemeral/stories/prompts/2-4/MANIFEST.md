@@ -69,10 +69,11 @@
 - **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 10. Create email verification page
-- [ ] Prompt: `10-create-email-verification-page.md`
-- [ ] Implementation complete
+- [x] Prompt: `10-create-email-verification-page.md`
+- [x] Implementation complete
 - [ ] Tests written
-- [ ] Story file updated
+- [x] Story file updated
+- **Status:** Completed (Started: 2025-11-13, Completed: 2025-11-13)
 
 ### 11. Create email verification email template
 - [ ] Prompt: `11-create-email-verification-email-template.md`
@@ -107,9 +108,9 @@
 ## Progress Tracking
 
 - Total tasks: 15
-- Completed: 6
+- Completed: 7
 - In progress: 0
-- Remaining: 9
+- Remaining: 8
 
 ## Notes
 
@@ -188,6 +189,31 @@ Add notes here as you work through the tasks:
   - Resets form and closes dialog after submission
   - For MVP: No actual request submission (future: notification system)
   - Follows AC6 and AC7: Regular users must request email changes from Agency Admin
+- **Task 10 (2025-11-13):** Created email verification page
+  - Created client component at apps/agency/app/verify-email/page.tsx
+  - Uses useSearchParams from next/navigation to extract verification token from query params
+  - Automatically calls POST /api/users/verify-email?token=... on page load via useEffect
+  - Implements three distinct UI states: loading, success, error
+  - Loading state: Animated Loader2 spinner icon, "Verifying Your Email" message with wait text
+  - Success state: CheckCircle2 icon in green, "Email Verified Successfully!" message
+  - Success countdown: 3-second timer with visual countdown display ("Redirecting in X seconds...")
+  - Auto-redirect to /profile after countdown completes
+  - Manual "Go to Profile Now" button for immediate navigation
+  - Error state: XCircle icon in red, displays specific error message from API response
+  - Detailed error explanations based on error type:
+    - MISSING_TOKEN: Verification link is incomplete
+    - Expired/Invalid: Link expired (1 hour), already used, or corrupted
+    - NETWORK_ERROR: Connection issues with server
+  - Error help section: Explanatory list of possible causes with "What happened?" heading
+  - Link back to profile page with Mail icon: "Go to Profile"
+  - Instructions to request new verification email from profile page
+  - Uses Card components from @pleeno/ui for consistent styling
+  - Responsive design: max-w-md container, centered layout on gray-50 background
+  - All icons from lucide-react (Loader2, CheckCircle2, XCircle, Mail)
+  - Professional, clean appearance matching existing UI patterns
+  - Story file updated with completion notes and changelog entry
+  - Manifest file updated with task completion status
+  - Follows AC9: Email changes require verification with user-friendly flow
 
 ## Issues / Blockers
 
