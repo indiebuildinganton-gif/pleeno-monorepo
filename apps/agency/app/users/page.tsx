@@ -28,16 +28,31 @@ export default async function UsersPage() {
     redirect('/dashboard')
   }
 
-  // Fetch all users in agency (RLS auto-filters)
+  // Fetch all users in agency with task assignment counts (RLS auto-filters)
   const { data: users, error: usersError } = await supabase
     .from('users')
-    .select('*')
+    .select(
+      `
+      *,
+      user_task_assignments (
+        id
+      )
+    `
+    )
     .order('full_name', { ascending: true })
 
   if (usersError) {
     console.error('Error fetching users:', usersError)
     return <div>Error loading users</div>
   }
+
+  // Transform users to include task count
+  const usersWithTaskCount = users?.map((user) => ({
+    ...user,
+    task_count: Array.isArray(user.user_task_assignments)
+      ? user.user_task_assignments.length
+      : 0,
+  })) || []
 
   // Fetch pending invitations
   const { data: invitations, error: invitationsError } = await supabase
@@ -78,7 +93,7 @@ export default async function UsersPage() {
 
       <div>
         <h2 className="text-xl font-semibold mb-4">Active Users</h2>
-        <UserTable initialUsers={users || []} currentUserId={user.id} />
+        <UserTable initialUsers={usersWithTaskCount} currentUserId={user.id} />
       </div>
     </div>
   )
