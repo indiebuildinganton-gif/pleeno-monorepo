@@ -24,11 +24,21 @@
   - Recommended indexes documented in SQL comments for optimal performance
 
 ### Task 2: Create Jobs Log Table
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Files Created:
+  - supabase/migrations/drafts/jobs_log_table.sql
+  - supabase/migrations/drafts/test_jobs_log_table.sql
 - Notes:
+  - Table created with all required columns: id, job_name, started_at, completed_at, records_updated, status, error_message, metadata, created_at
+  - Status CHECK constraint enforces valid values: 'running', 'success', 'failed'
+  - Two indexes created: idx_jobs_log_job_name (composite on job_name, started_at DESC) and idx_jobs_log_status (partial index WHERE status = 'failed')
+  - RLS policies configured: Admin read access, service role insert/update access
+  - Table and column comments added for documentation
+  - JSONB metadata field supports flexible job-specific data storage (e.g., agency-level results)
+  - Comprehensive test suite with 10 test scenarios covering structure, constraints, indexes, RLS, JSONB operations, and query patterns
+  - System-wide logs (no agency_id filtering) - operational data for monitoring
 
 ### Task 3: Create Supabase Edge Function
 - Status: Not Started
@@ -129,4 +139,4 @@
 
 ---
 
-**Last Updated**: 2025-11-13 (Task 1 completed)
+**Last Updated**: 2025-11-13 (Tasks 1-2 completed)
