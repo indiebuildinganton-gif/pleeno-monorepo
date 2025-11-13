@@ -1,8 +1,8 @@
 # Pleeno - Product Requirements Document
 
 **Author:** anton
-**Date:** 2025-11-10
-**Version:** 1.0
+**Date:** 2025-11-13
+**Version:** 1.1 (Refined based on epic breakdown insights)
 
 ---
 
@@ -256,20 +256,49 @@ Complete payment tracking visibility and automated status intelligence for agenc
 - Student Portal User: Students viewing their own payment plans
 - College Partner User: College finance teams accessing commission claims
 
-### Subscription & Billing Model (For Reference)
+### Subscription & Billing Model
 
-**Pricing Strategy (TBD - requires market research):**
+**Subscription Tiers:**
 
-Potential models:
-1. Per-user pricing: $49-99/user/month
-2. Per-student pricing: $2-5/active student/month
-3. Tiered pricing: Starter ($99/mo for 1-50 students), Growth ($299/mo for 51-200), Enterprise (custom)
+1. **Basic Tier**
+   - Manual data entry for students, colleges, payment plans
+   - CSV bulk import/export
+   - Standard reporting
+   - Core automation features
+   - Up to 3 users
+   - Pricing: $99-149/month (TBD - requires market research)
+
+2. **Premium Tier**
+   - All Basic features
+   - **AI-Powered Offer Letter Extraction** (automatic data extraction from PDFs)
+   - Advanced reporting and analytics
+   - Custom email templates
+   - Multi-stakeholder notifications (students, colleges, sales agents)
+   - Up to 10 users
+   - Priority support
+   - Pricing: $299-399/month (TBD - requires market research)
+
+3. **Enterprise Tier**
+   - All Premium features
+   - Unlimited users
+   - White-label options
+   - Custom integrations
+   - Dedicated account manager
+   - SLA guarantees
+   - Custom pricing
+
+**Feature Gating:**
+- AI offer letter extraction available only in Premium and Enterprise tiers
+- Tier information stored in `agencies.subscription_tier` field
+- Features check subscription tier before allowing access
+- Upgrade prompts shown when users attempt to access premium features
 
 **Billing Requirements (Future):**
 - Subscription management integration (Stripe Billing)
 - Usage tracking and metering
 - Invoice generation
 - Payment method management
+- Trial period management (14-30 days)
 
 ### Onboarding & Data Migration
 
@@ -486,18 +515,23 @@ Scenario: Friday planning, agency owner wants to forecast next 90 days
 - Agency Users have limited permissions (no user management, no audit log access)
 - Permissions enforced at API layer and UI layer
 
-**FR-1.4: User Invitation Flow**
+**FR-1.4: User Invitation Flow with Task Assignment**
 - Admin invites new user via email
-- Invitation email contains unique signup link
+- Invitation email contains unique signup link with assigned tasks
 - New user sets password and completes profile
 - User assigned role by inviting admin
+- Admin can assign specific tasks from master task list (e.g., data entry, document verification, payment processing)
+- Admin can modify task assignments for existing users
+- All task assignments are logged in audit trail
 
 **Acceptance Criteria:**
 - User can create account and verify email within 5 minutes
 - Login successful with correct credentials
 - Invalid login shows clear error message
-- Password reset link expires after 24 hours
+- Password reset link expires after 24 hours (7 days for invitations)
 - Role permissions enforced (Agency User cannot access admin features)
+- Invitation email shows only assigned tasks with unique link
+- Task assignments tracked with who assigned, what was assigned, and timestamp
 
 ---
 
@@ -524,30 +558,76 @@ Scenario: Friday planning, agency owner wants to forecast next 90 days
   - "Overdue" trigger time (default 5pm on due date)
 - Notification preferences (future: email alert settings)
 
+**FR-2.4: User Profile Management with Role-Based Permissions**
+
+**Regular Agency User Permissions:**
+- Can update own profile: name, password only
+- **Cannot** change own email address (must request from Admin for company policy compliance)
+- Can change student application statuses
+- Can view and check student data
+- Can update student information
+- **Cannot** change/update college information (Admin only)
+- **Cannot** change own role or agency assignment
+
+**Agency Admin Permissions:**
+- Can update own email address (with email verification)
+- Can update email addresses for all users in their agency
+- Can change/update payment plans and installment details
+- Can modify agency-level settings
+- All permissions granted to Regular Agency Users
+- Access to audit logs
+
+**Profile Management Requirements:**
+- Password changes require current password confirmation
+- Password must meet security requirements (min 8 chars, uppercase, lowercase, number, special character)
+- Email changes (Admin only) require verification email with confirmation link
+- User can view role, agency, and email but Regular Users cannot change them
+- Profile page displays read-only fields for email (Regular Users), agency name, and role
+
+**Audit Trail Requirements:**
+- All email changes logged with: admin user_id, timestamp, old → new values
+- All payment plan and installment changes logged with: user_id, timestamp, field-level changes
+- All agency-level setting changes logged with: user_id, timestamp, before/after values
+- Audit logs immutable and retained for compliance
+
 **Acceptance Criteria:**
 - Admin can update agency profile and settings
 - Changes to default settings apply to new entities (not retroactive)
 - User invitation email sent successfully
 - Deactivated users cannot login
 - Agency User cannot access admin functions
+- Regular Users can update name and password only
+- Admin email changes require verification
+- Permission checks enforce role-based access control
+- All profile and setting changes logged in audit trail
 
 ---
 
 ### FR-3: College Management
 
-**FR-3.1: College Directory**
+**FR-3.1: College Directory with Enhanced Contact and Activity Management**
 - Create college profile:
   - College name
+  - City location
   - Country/region
-  - Contact information (primary contact name, email, phone)
+  - Multiple contacts with:
+    - Name, role/department, position/title
+    - Email and phone
+    - Display format: "Name (Role/Department)" with position on separate line
   - Commercial terms:
     - Default commission percentage
-    - GST setting (inclusive, exclusive, none)
+    - GST setting (included, excluded - toggle-based)
     - Bonus structure (optional: tiered bonuses, performance incentives)
+    - Contract expiration date (for renewal tracking)
   - Payment terms (typical payment delay, e.g., "60 days after student enrollment")
-- Edit college profile (audit logged)
-- Delete college (soft delete if associated payment plans exist)
-- View college details and associated payment plans
+- Edit college profile (Admin only, audit logged)
+- Delete college (Admin only, soft delete if associated payment plans exist)
+- View college details with:
+  - Associated payment plans
+  - Branches displayed as clickable links: "College Name — Branch City"
+  - Activity feed with time filtering and search
+  - Notes section (up to 2,000 characters with counter)
+- GST status changes tracked in activity feed
 
 **FR-3.2: Branch Management**
 - Add multiple branches per college
@@ -584,16 +664,31 @@ Scenario: Friday planning, agency owner wants to forecast next 90 days
 
 ### FR-4: Student Management
 
-**FR-4.1: Student Database**
+**FR-4.1: Student Database with Document Management**
 - Create student profile:
   - Full name
-  - Email, phone
-  - Visa status (e.g., "Applied", "Approved", "Enrolled", "Rejected")
-  - Country of origin
-  - Notes (free text field)
+  - Email, phone (optional to support partial data imports)
+  - Passport number (unique per agency)
+  - Date of birth
+  - Nationality/Country of origin
+  - Visa status (In Process, Approved, Denied, Expired) with colored badges
+  - College/Branch association with display format: "College - Branch (City)"
+  - Document attachments (offer letters, visa, passport, etc.)
+  - Notes section (up to 2,000 characters with counter)
 - Edit student profile (audit logged)
 - Delete student (soft delete if associated payment plans exist)
-- View student details and associated payment plans
+- View student details with:
+  - Associated payment plans
+  - Activity feed showing:
+    - Enrollment changes (College & Branch with before → after values)
+    - Email updates
+    - Visa status changes
+    - Note additions
+    - Time period filtering and search capability
+  - Document viewer with maximize/fullscreen option
+- Table view showing: Full Name, Email, Visa Status (badges), College/Branch, Updated (relative timestamps)
+- CSV export functionality for all students
+- Incomplete student data notification: system sends email to admin after CSV import listing students with missing critical data (especially phone numbers) with clickable edit links
 
 **FR-4.2: Student Search & Filtering**
 - Search students by name, email, phone
@@ -605,32 +700,83 @@ Scenario: Friday planning, agency owner wants to forecast next 90 days
 - Quick navigation to payment plan details from student profile
 - Visual indicator of payment status (e.g., "3 pending, 1 overdue")
 
+**FR-4.4: AI-Powered Offer Letter Extraction (Premium Feature)**
+- Upload PDF offer letter to automatically extract:
+  - Student name, passport number
+  - School/college name, branch/campus
+  - Course/program name
+  - Start date, end date
+  - Total tuition amount
+  - Payment schedule
+- AI extraction pre-populates multi-step wizard for review/approval
+- Intelligent matching: fuzzy search existing colleges/branches by name
+- If no match found, user selects from existing or creates new
+- Extracted payment schedule generates draft installments
+- Feature gated by agency subscription tier (basic/premium/enterprise)
+- Fallback to manual entry if extraction fails
+- Extraction accuracy metrics logged for improvement
+
 **Acceptance Criteria:**
 - User can create student with all required fields
 - Visa status tracked and searchable
 - Student profile displays all linked payment plans
 - Search returns relevant students
 - Soft-deleted students hidden but retained in database
+- CSV import supports partial student data (missing fields added later)
+- Admin receives email notification for incomplete student records after import
+- Premium tier users can extract data from offer letters with 85%+ accuracy
+- Extracted data requires manual review/approval before saving
 
 ---
 
 ### FR-5: Payment Plan Management
 
-**FR-5.1: Payment Plan Creation**
-- Create new payment plan:
-  - Select student (search existing or create new)
-  - Select college (search existing)
-  - Select branch (if applicable)
-  - Enter payment details:
-    - Gross tuition amount
-    - Materials cost (deducted from commissionable value)
-    - Admin fee (deducted from commissionable value)
-    - Commission percentage (default from college, editable)
-    - GST setting (default from college, editable)
-  - **Commissionable value auto-calculated:** Gross tuition - Materials - Admin fee, then apply commission % and GST rules
-  - Create installments:
-    - **Auto-create:** Number of installments, start date, frequency (monthly, quarterly, custom) → System generates equal installments
-    - **Manual create:** Add installment rows (due date, amount, description)
+**FR-5.1: Payment Plan Creation with Multi-Step Wizard**
+
+**Step 1: General Information**
+- Select student from dropdown (pre-populated with agency's students)
+- College/branch automatically assigned from student's enrollment
+- Enter or select course name
+- Enter total course value
+- Enter commission rate (0-1 decimal format, e.g., 0.15 for 15%)
+  - Helper text showing examples: "0.1 = 10%, 0.3 = 30%"
+- Select course start date
+- Select course end date
+
+**Step 2: Payment Structure**
+- Enter initial payment amount (separate from installments)
+- Specify initial payment due date
+- Toggle "Has the initial payment already been paid?" to mark as paid immediately
+- Enter number of installments (e.g., 11)
+- Select payment frequency: Monthly, Quarterly, or Custom
+  - Monthly/Quarterly: system auto-calculates installment amounts and due dates
+- Enter optional Non-Commissionable Fees:
+  - Materials Cost
+  - Admin Fees
+  - Other Fees
+- Real-time Payment Summary displays:
+  - Total Commission (green highlight)
+  - Remaining after initial payment
+  - Amount per installment
+- Enter First Installment College Due Date (drives college payment schedule)
+- Enter Student Lead Time in days (student pays before college)
+  - System auto-calculates: student_due_date = college_due_date - student_lead_time
+- Toggle GST Inclusive to indicate whether amounts include GST
+
+**Step 3: Review & Confirmation**
+- Summary section displays:
+  - Selected Student
+  - Course
+  - Total Value
+  - Total Commission (green)
+  - Commission Rate
+  - GST Inclusive status
+- Installment Schedule table showing:
+  - Initial Payment row: amount, student due date, college due date, paid status badge
+  - Installment rows (1, 2, 3...): amount, student due date, college due date, draft status dropdown
+- Commission-eligible amounts styled separately from non-commissionable fees
+- Validation: SUM(initial payment + all installments) = total course value
+- Navigation to edit installment structure before final confirmation
 - Save payment plan → Installments set to "Draft" status initially
 
 **FR-5.2: Payment Plan Editing**
@@ -654,14 +800,18 @@ Scenario: Friday planning, agency owner wants to forecast next 90 days
 - View audit log for payment plan (admin only)
 
 **FR-5.4: Payment Plan Search & Filtering**
-- Search by student name, college name
-- Filter by:
-  - Status (Draft, Pending, Due Soon, Overdue, Paid, Completed)
-  - College
-  - Date range (created, due dates, payment dates)
-  - Commission amount range
+- Search by student name, college name, reference number
+- Filter by any combination of:
+  - Status (active, completed, cancelled)
+  - Student name (dropdown or autocomplete)
+  - College/branch (dropdown)
+  - Total amount (range slider or min/max inputs)
+  - Number of installments (dropdown or range)
+  - Next due date (date range picker)
+- Clear all filters button to reset view
 - Sort by created date, due date, commission amount, status
 - Saved filters (future enhancement)
+- Multiple simultaneous filters with visual filter chips/tags
 
 **FR-5.5: Commission Calculation Engine**
 - Formula: `Commissionable Value = Gross Tuition - Materials Cost - Admin Fee`
@@ -728,10 +878,38 @@ Installment status lifecycle:
   - Link to external payment terms (URL)
 - Notes displayed chronologically (newest first)
 
-**FR-6.5: Status Notifications (Future)**
-- Email alerts when installment becomes "Due Soon" or "Overdue"
-- Configurable notification rules (who gets notified, frequency)
+**FR-6.5: Multi-Stakeholder Status Notifications**
+
+**Agency Notifications:**
 - In-app notifications (badge counts, notification center)
+- Email alerts for overdue payments (optional, user preference)
+- Summary of newly overdue installments with student names, colleges, amounts, due dates
+- Link to view overdue payments in app
+
+**Student Notifications:**
+- Automated reminder sent 36 hours before payment due (5:00 AM Brisbane time, day before due date)
+- Individual email per overdue installment
+- Payment amount, due date, payment instructions
+- Agency contact information
+- Contact preference tracking (email, SMS, both)
+
+**College Notifications (Optional):**
+- Agency-defined custom email templates
+- Summary of overdue payments for students at that college
+- Configurable custom fields
+
+**Sales Agent Notifications (Optional):**
+- Notification when assigned student has overdue payment
+- Student name, amount, due date, contact information
+- Link to student profile in app
+- Sales agent assignment tracked per student
+
+**Configuration:**
+- Enable/disable notifications per recipient type
+- Configure which events trigger notifications (overdue, due soon, payment received)
+- Custom email template editor with variable placeholders
+- Emails sent only once per installment per recipient when first overdue
+- Independent enable/disable settings for each recipient type
 
 **Acceptance Criteria:**
 - Status bot runs on schedule (daily minimum)
@@ -744,14 +922,14 @@ Installment status lifecycle:
 
 ### FR-7: Business Intelligence Dashboard
 
-**FR-7.1: Key KPIs Panel**
+**FR-7.1: Key KPIs Panel with Seasonal and Market Insights**
 
-Display prominently at top of dashboard:
+**Core KPIs Display:**
 
 1. **Total Commissions Due**
    - Sum of commissionable value for all installments with status: Pending, Due Soon, Overdue, Paid (not yet Completed)
    - Visual: Large number, currency formatted
-   - Comparison to previous period (future: "↑ 12% vs last month")
+   - Trend indicator (up/down vs last month)
 
 2. **Total Overdue**
    - Sum of commissionable value for installments with status: Overdue
@@ -762,11 +940,42 @@ Display prominently at top of dashboard:
    - Sum of commissionable value for installments with status: Completed
    - Filter by date range (MTD, QTD, YTD, custom)
    - Visual: Green number (success)
+   - Trend indicator vs previous period
 
 4. **90-Day Projection**
    - Sum of commissionable value for installments due in next 90 days (status: Pending, Due Soon)
    - Visual: Blue number, forward-looking indicator
    - Breakdown by month (hover to see monthly projection)
+
+5. **Total Active Students**
+   - Count of students with active enrollments
+   - Trend indicator vs last month
+
+6. **Total Active Payment Plans**
+   - Count of payment plans with status "active"
+   - Trend indicator vs last month
+
+7. **Payment Collection Rate**
+   - Percentage of expected payments received this month
+   - Visual indicator (green for 90%+, yellow for 70-89%, red for <70%)
+
+**Seasonal Commission Analysis:**
+- Monthly commission totals for last 12 months (line/bar chart)
+- Visual indicators of peak and quiet months
+- Year-over-year comparison (if historical data available)
+- Helps identify seasonal patterns and plan for slow periods
+
+**Commission Breakdown by School:**
+- Top 5 schools by commission earned (current month)
+- Percentage share of total commission per school
+- Trend indicator for each school (vs previous month)
+- Identifies most valuable institutional relationships
+
+**Commission Breakdown by Country of Origin:**
+- Top 5 countries by commission earned (current month)
+- Percentage share of total commission per country
+- Trend indicator for each country (vs previous month)
+- Reveals market concentration and diversification opportunities
 
 **FR-7.2: Cash Flow Visualization**
 
@@ -791,13 +1000,16 @@ Timeline chart showing payment flow over time:
 - Sort by days overdue (most urgent first)
 - Quick actions: Mark as Paid, Add Note, View Details
 - Visual urgency indicator (red background, exclamation icon)
+- Shows total count and total amount overdue
+- Celebratory message when empty: "No overdue payments! 🎉"
 
 **Upcoming Due Dates List:**
-- Table showing installments flagged "Due Soon" (next N days, configurable)
+- Table showing installments flagged "Due Soon" (next 4 days, configurable)
 - Columns: Student, College, Amount, Due Date, Days Until Due
 - Sort by due date (soonest first)
 - Quick actions: Mark as Paid, Add Note, View Details
 - Visual: Yellow background, calendar icon
+- Includes weekend and early-week payment visibility
 
 **FR-7.4: Strategic Analysis Charts**
 
@@ -841,25 +1053,33 @@ Timeline chart showing payment flow over time:
 
 ### FR-8: Reporting Engine
 
-**FR-8.1: Report Builder**
+**FR-8.1: Report Builder with Contract Expiration Tracking**
 
-Ad-hoc report generation with filters:
+Ad-hoc report generation with comprehensive filtering:
 
 - **Filters:**
   - Date range: Created date, due date, payment date (start/end)
   - College: Select one or multiple colleges
-  - Student: Select one or multiple students
-  - Status: Select one or multiple statuses
-  - Commission amount: Min/max range
   - Branch: Select specific branch (if applicable)
+  - Student: Select one or multiple students
+  - Payment status: Select one or multiple statuses
+  - Commission amount: Min/max range
+  - Contract expiration date: Range filter (e.g., next 30/60/90 days)
 - **Output Fields (customizable):**
   - Student name, email
-  - College name, branch
+  - College name, branch, city
   - Payment plan created date
   - Installment due date, amount, status
   - Commission percentage, commissionable value
+  - Contract expiration date
+  - Days until contract expiration
   - Notes
-- **Preview:** Show report results in table view before export
+- **Contract Expiration Features:**
+  - Filter to show only contracts expiring within specified date range
+  - Visual indicator (warning badge) for contracts expiring within 30 days
+  - Dedicated "Contract Expiration Report" preset filter
+- **Preview:** Show report results in table view before export with sorting and pagination
+- **Summary Totals:** Total amount, total paid, total commission at bottom of report
 - **Save Filter Presets:** Save commonly used filter combinations (future enhancement)
 
 **FR-8.2: Export Options**
@@ -887,11 +1107,17 @@ Ad-hoc report generation with filters:
 - Average commission per payment plan
 - Filter by date range, college
 
-**College Performance Report:**
-- List of colleges with commission totals
+**College Performance Report with Location and Tax Details:**
+- List of colleges with branches showing: college, branch, city, total paid by students, commission rate
+- Total commissions, total GST, total commission + GST (combined)
+- Expected commission, earned commission, outstanding commission
 - Average payment delay (days between "Paid" and "Completed")
 - Count of overdue commissions per college
-- Sort by total revenue, overdue count
+- City field distinguishes between multiple branches
+- Optional city filter for location-specific reports
+- Sort by total revenue, overdue count, city
+- PDF version formatted professionally for college partner submission
+- Drill-down showing payment plans and students contributing to commission
 
 **Student Payment History Report:**
 - All payment plans for selected student(s)
@@ -1217,6 +1443,83 @@ The functional and non-functional requirements above must be decomposed into imp
 
 ---
 
+## Document Revision History
+
+### Version 1.1 (2025-11-13) - Epic Breakdown Refinements
+
+This version incorporates detailed requirements discovered during the epic and story breakdown process:
+
+**Major Enhancements:**
+
+1. **User Management**
+   - Added task assignment system for flexible delegation
+   - Enhanced user invitation flow with task-specific links
+   - Clarified role-based permissions (Regular Users vs Admins)
+   - Email change restrictions for compliance
+
+2. **College Management**
+   - Multiple contact management with role/department tracking
+   - Activity feed with time filtering and search
+   - Notes section (2,000 char limit with counter)
+   - Contract expiration date tracking for renewal management
+   - GST status toggle (Included/Excluded)
+
+3. **Student Management**
+   - Document attachment and viewing (offer letters, visa, passport)
+   - Activity feed showing enrollment changes, email updates, visa status changes
+   - CSV export functionality
+   - Incomplete data notification system (automated emails to admin)
+   - AI-Powered Offer Letter Extraction (Premium feature)
+
+4. **Payment Plan Engine**
+   - Multi-step wizard (General Info → Payment Structure → Review & Confirmation)
+   - Initial payment tracking (separate from installments)
+   - Student lead time calculation (student pays before college)
+   - Non-commissionable fees (materials, admin, other)
+   - Real-time payment summary with commission highlighting
+   - Comprehensive filtering (any combination of criteria)
+
+5. **Status Automation & Notifications**
+   - Multi-stakeholder notification system:
+     - Agency users (in-app and email)
+     - Students (36-hour advance reminders at 5 AM Brisbane time)
+     - Colleges (custom templates)
+     - Sales agents (assigned per student)
+   - Configurable notification rules per recipient type
+   - Custom email template editor with variables
+   - 4-day "due soon" threshold (weekend-aware)
+
+6. **Dashboard & Analytics**
+   - Seasonal commission analysis (12-month trends, peak/quiet months)
+   - Commission breakdown by school (top 5 with trends)
+   - Commission breakdown by country of origin (top 5 with trends)
+   - Payment collection rate metric
+   - Celebratory messaging when no overdue payments
+
+7. **Reporting**
+   - Contract expiration tracking and filtering
+   - Location-based reporting (city field for branch distinction)
+   - Tax tracking (GST separate and combined totals)
+   - College performance report enhanced with location and tax details
+
+8. **Subscription Tiers**
+   - Basic: Manual entry, CSV import/export, standard features
+   - Premium: AI extraction, advanced analytics, custom templates, multi-stakeholder notifications
+   - Enterprise: Unlimited users, white-label, custom integrations
+   - Feature gating for AI extraction (Premium+ only)
+
+**Technical Refinements:**
+- Audit logging requirements specified (field-level change tracking)
+- Permission enforcement clarified (API and UI layers)
+- RLS (Row-Level Security) emphasized throughout
+- Data validation requirements detailed
+- Activity feed implementation guidance
+
+---
+
 _This PRD captures the essence of Pleeno - transforming financial chaos into clarity and control for international study agencies._
 
 _Created through collaborative discovery between anton and AI facilitator._
+
+_Version 1.0: Initial requirements (2025-11-10)_
+_Version 1.1: Refined with epic breakdown insights (2025-11-13)_

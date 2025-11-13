@@ -1,4 +1,4 @@
-# generated: 2025-11-10
+# generated: 2025-11-13
 # project: pleeno
 # project_key: pleeno
 # tracking_system: file-system
@@ -8,27 +8,28 @@
 # ==================
 # Epic Status:
 #   - backlog: Epic exists in epic file but not contexted
-#   - contexted: Next epic tech context created by *epic-tech-context (required)
+#   - contexted: Epic tech context created (required before drafting stories)
 #
 # Story Status:
 #   - backlog: Story only exists in epic file
-#   - drafted: Story file created in stories folder by *create-story
-#   - ready-for-dev: Draft approved and story context created by *story-ready
-#   - in-progress: Developer actively working on implementation by *dev-story
-#   - review: Implementation complete, ready for review by *code-review
-#   - done: Story completed by *story-done
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via code-review workflow)
+#   - done: Story completed
 #
 # Retrospective Status:
 #   - optional: Can be completed but not required
-#   - completed: Retrospective has been done by *retrospective
+#   - completed: Retrospective has been done
 #
 # WORKFLOW NOTES:
 # ===============
 # - Epics should be 'contexted' before stories can be 'drafted'
-# - SM typically drafts next story ONLY after previous one is 'done' to incorporate learnings
-# - Dev moves story to 'review', dev reviews, then Dev moves to 'done'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-10
+generated: 2025-11-13
 project: pleeno
 project_key: pleeno
 tracking_system: file-system
@@ -44,7 +45,7 @@ development_status:
 
   epic-2: backlog
   2-1-agency-profile-setup: ready-for-dev
-  2-2-user-invitation-system: backlog
+  2-2-user-invitation-and-task-assignment-system: backlog
   2-3-user-management-interface: backlog
   2-4-user-profile-management: backlog
   epic-2-retrospective: optional
@@ -68,11 +69,11 @@ development_status:
   5-2-due-soon-notification-flags: backlog
   5-3-overdue-payment-alerts: backlog
   5-4-payment-status-dashboard-widget: backlog
-  5-5-automated-email-notifications-optional-enhancement: backlog
+  5-5-automated-email-notifications-multi-stakeholder: backlog
   epic-5-retrospective: optional
 
   epic-6: backlog
-  6-1-key-performance-indicators-kpis-widget: backlog
+  6-1-key-performance-indicators-kpis-widget-with-seasonal-and-market-insights: backlog
   6-2-cash-flow-projection-chart: backlog
   6-3-commission-breakdown-by-college: backlog
   6-4-recent-activity-feed: backlog
@@ -80,7 +81,7 @@ development_status:
   epic-6-retrospective: optional
 
   epic-7: backlog
-  7-1-payment-plans-report-generator: backlog
+  7-1-payment-plans-report-generator-with-contract-expiration-tracking: backlog
   7-2-csv-export-functionality: backlog
   7-3-pdf-export-functionality: backlog
   7-4-commission-report-by-college: backlog
