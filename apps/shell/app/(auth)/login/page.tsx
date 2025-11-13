@@ -9,12 +9,13 @@
  * - Loading states
  * - Link to password reset
  * - Link to signup page
+ * - Redirect to original URL after login (via redirectTo query parameter)
  */
 
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -33,6 +34,8 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirectTo') || '/dashboard'
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -61,8 +64,8 @@ export default function LoginPage() {
         throw new Error(result.error || 'Login failed')
       }
 
-      // Redirect to dashboard after successful login
-      router.push('/dashboard')
+      // Redirect to original destination or dashboard
+      router.push(redirectTo)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
