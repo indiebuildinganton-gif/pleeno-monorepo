@@ -80,6 +80,23 @@
   - Job execution logged to jobs_log table (via Edge Function)
   - Cron run history available in cron.job_run_details table
   - Production deployment checklist included in migration comments
+  - supabase/migrations/drafts/pg_cron_schedule.sql
+  - supabase/migrations/drafts/test_pg_cron_schedule.sql
+  - supabase/migrations/drafts/pg_cron_management_guide.md
+- Notes:
+  - pg_cron extension enabled for PostgreSQL-native job scheduling
+  - http extension enabled for making HTTP requests from PostgreSQL (net.http_post)
+  - API key stored in PostgreSQL custom setting: app.supabase_function_key
+  - Job scheduled with cron expression '0 7 * * *' (7:00 AM UTC daily = 5:00 PM Brisbane AEST)
+  - Job invokes Edge Function via HTTP POST with API key authentication
+  - Comprehensive test suite with 12 test scenarios covering extensions, scheduling, configuration, and execution
+  - Detailed management guide documenting how to view, manage, test, and troubleshoot scheduled jobs
+  - Job command uses net.http_post() to call Edge Function endpoint
+  - Placeholders included for project reference (<project-ref>) and API key (to be updated in Task 5)
+  - Idempotent scheduling: unschedules existing job before rescheduling to prevent duplicates
+  - Includes verification queries, troubleshooting guides, and monitoring examples
+  - Job execution tracked via both cron.job_run_details and jobs_log tables
+  - Documentation covers timezone conversions, performance considerations, and security best practices
 
 ### Task 5: Implement API Key Authentication
 - Status: Not Started
