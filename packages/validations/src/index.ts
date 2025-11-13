@@ -22,5 +22,8 @@ export * from './branch.schema'
 // Export contact schemas and types
 export * from './contact.schema'
 
+// Export note schemas and types
+export * from './note.schema'
+
 // Export enrollment schemas and types
 export * from './enrollment.schema'
