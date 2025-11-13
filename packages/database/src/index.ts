@@ -1,35 +1,40 @@
 /**
- * Database Package - Supabase Client and Types
- *
- * Epic 1: Foundation & Multi-Tenant Security
- * Story 1.2: Multi-Tenant Database Schema with RLS
- */
-
-export * from './types/database.types'
-
-// Client utilities will be added in future stories
-// export { createClient } from './client'
-// export { createServerClient } from './server'
-// export { middleware } from './middleware'
  * Pleeno Database Package
  *
  * Provides Supabase client setup for both server-side and client-side usage
- * with built-in authentication via HTTP-only cookies.
+ * with built-in authentication via HTTP-only cookies and multi-tenant RLS support.
+ *
+ * Epic 1: Foundation & Multi-Tenant Security
+ * Story 1.2: Multi-Tenant Database Schema with RLS
  *
  * @example Server-side usage
  * ```typescript
- * import { createServerClient } from '@pleeno/database/server'
+ * import { createServerClient, setAgencyContext } from '@pleeno/database/server'
  *
- * const supabase = createServerClient()
+ * const supabase = await createServerClient()
+ * await setAgencyContext(supabase)
  * const { data } = await supabase.from('users').select('*')
  * ```
  *
  * @example Client-side usage
  * ```typescript
- * import { createClient } from '@pleeno/database/client'
+ * import { createClient, getCurrentAgencyId } from '@pleeno/database/client'
  *
  * const supabase = createClient()
+ * const agencyId = await getCurrentAgencyId(supabase)
  * const { data } = await supabase.from('users').select('*')
+ * ```
+ *
+ * @example Middleware usage
+ * ```typescript
+ * import { withAgencyContext } from '@pleeno/database/middleware'
+ *
+ * export const GET = withAgencyContext(async (request) => {
+ *   // RLS context is already set
+ *   const supabase = await createServerClient()
+ *   const { data } = await supabase.from('users').select('*')
+ *   return Response.json(data)
+ * })
  * ```
  *
  * @packageDocumentation
@@ -38,6 +43,9 @@ export * from './types/database.types'
 // Note: Import from specific files to maintain tree-shaking
 // Server-side: import from '@pleeno/database/server'
 // Client-side: import from '@pleeno/database/client'
+// Middleware: import from '@pleeno/database/middleware'
 
 export * from './server'
 export * from './client'
+export * from './middleware'
+export * from './types/database.types'

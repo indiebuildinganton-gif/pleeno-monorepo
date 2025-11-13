@@ -91,7 +91,22 @@ export interface Database {
       }
     }
     Views: {}
-    Functions: {}
+    Functions: {
+      set_agency_context: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
+      get_agency_context: {
+        Args: Record<string, never>
+        Returns: string | null
+      }
+      verify_agency_access: {
+        Args: {
+          target_agency_id: string
+        }
+        Returns: boolean
+      }
+    }
     Enums: {}
   }
 }
