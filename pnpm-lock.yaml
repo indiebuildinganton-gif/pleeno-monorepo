@@ -183,6 +183,30 @@ importers:
 
   apps/dashboard:
     dependencies:
+      '@pleeno/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@pleeno/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@pleeno/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@pleeno/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
+      '@tanstack/react-query':
+        specifier: 5.90.7
+        version: 5.90.7(react@19.1.0)
+      date-fns:
+        specifier: 4.1.0
+        version: 4.1.0
+      date-fns-tz:
+        specifier: ^3.1.0
+        version: 3.2.0(date-fns@4.1.0)
+      lucide-react:
+        specifier: ^0.553.0
+        version: 0.553.0(react@19.1.0)
       next:
         specifier: 15.5.6
         version: 15.5.6(@babel/core@7.28.5)(@opentelemetry/api@1.9.0)(@playwright/test@1.56.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
