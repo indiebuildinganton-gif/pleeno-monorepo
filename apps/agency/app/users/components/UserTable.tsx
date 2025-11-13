@@ -17,6 +17,7 @@ interface User {
   role: 'agency_admin' | 'agency_user'
   status: 'active' | 'inactive' | 'suspended'
   created_at: string
+  task_count?: number
 }
 
 interface UserTableProps {
@@ -67,6 +68,7 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Assigned Tasks</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -89,6 +91,12 @@ export function UserTable({ initialUsers, currentUserId }: UserTableProps) {
                 <Badge variant={getStatusBadgeVariant(user.status)}>
                   {formatStatus(user.status)}
                 </Badge>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">
+                  {user.task_count !== undefined ? user.task_count : 0} task
+                  {user.task_count !== 1 ? 's' : ''}
+                </span>
               </TableCell>
               <TableCell className="text-right">
                 <span className="text-sm text-muted-foreground">
