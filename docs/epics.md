@@ -593,36 +593,42 @@ So that **I can track which students are enrolled where, monitor their visa stat
 ### Story 3.3: Student-College Enrollment Linking
 
 As an **Agency User**,
-I want **to link students to their enrolled colleges and branches with supporting documentation**,
-So that **I can track where each student is studying, store official offer letters, and enable payment plan creation**.
+I want **to link students to their enrolled colleges through payment plan creation with supporting documentation**,
+So that **I can track where each student is studying, store official offer letters, and manage payments for multiple enrollments**.
 
 **Acceptance Criteria:**
 
 **Given** I have existing students and colleges in the system
-**When** I enroll a student at a college branch
-**Then** the enrollment is recorded with start date and expected end date
-
+**When** I create a payment plan
+**Then** I select a student from a dropdown
+**And** I select a college/branch from a dropdown
 **And** I can specify the program/course name
 **And** I can attach the official offer letter (PDF/image) to the enrollment
-**And** I can view/download/maximize the offer letter from the student profile
-**And** I can view all enrollments for a student with their attached documents
-**And** I can view all enrolled students for a college/branch
-**And** a student can be enrolled in multiple colleges/branches
-**And** I can mark an enrollment as completed or cancelled
+**And** the student-college enrollment is automatically created/linked when the payment plan is saved
+
+**And** I can view all enrollments for a student with their attached documents on the student detail page
+**And** I can view all enrolled students for a college/branch on the college detail page
+**And** I can view/download/maximize the offer letter from both student and college detail pages
+**And** a student can have multiple payment plans for different colleges/branches
+**And** a student can have multiple payment plans for the same college/branch (e.g., different courses)
 **And** incomplete student information (e.g., missing phone number) can be added/updated later manually
+**And** I can mark an enrollment as completed or cancelled from the student or college detail page
 
 **Prerequisites:** Story 3.2
 
 **Technical Notes:**
-- Create enrollments table: id, agency_id, student_id, branch_id, program_name, start_date, expected_end_date, offer_letter_url (nullable), offer_letter_filename (nullable), status ENUM ('active', 'completed', 'cancelled'), created_at, updated_at
-- Implement file upload for offer letters (Supabase Storage with RLS)
-- Implement API routes: POST /api/enrollments (with file upload), PATCH /api/enrollments/[id], GET /api/students/[id]/enrollments, GET /api/branches/[id]/enrollments
+- Create enrollments table: id, agency_id, student_id, branch_id, program_name, offer_letter_url (nullable), offer_letter_filename (nullable), status ENUM ('active', 'completed', 'cancelled'), created_at, updated_at
+- Enrollment creation is triggered automatically when a payment plan is created (via payment plan creation flow)
+- Add foreign key from payment_plans table to enrollments table
+- Implement file upload for offer letters (Supabase Storage with RLS) during payment plan creation
+- Implement API routes: POST /api/enrollments (called internally by payment plan creation), PATCH /api/enrollments/[id], GET /api/students/[id]/enrollments, GET /api/branches/[id]/enrollments
 - Add enrollment section to student detail page with document viewer/maximizer
 - Add enrolled students list to college/branch detail page
 - RLS policy using agency_id for both database and storage buckets
 - Validate: student and branch must exist and belong to same agency
 - Support modal/fullscreen view for offer letter documents
 - Allow students to be created with partial information (mark required vs optional fields)
+- Handle duplicate enrollments: if student-branch-program combo exists, reuse enrollment; otherwise create new
 
 ---
 

@@ -193,7 +193,8 @@ pleeno-monorepo/
 │   │   │   ├── commission-calculator.ts
 │   │   │   ├── commission-calculator.test.ts
 │   │   │   ├── date-helpers.ts
-│   │   │   └── formatters.ts
+│   │   │   ├── formatters.ts
+│   │   │   └── file-upload.ts       # File upload helpers (offer letters)
 │   │   └── package.json
 │   │
 │   ├── stores/                        # Shared Zustand stores
@@ -1194,6 +1195,130 @@ export function PaymentPlanForm() {
 }
 ```
 
+### File Upload Pattern
+
+```typescript
+// packages/utils/src/file-upload.ts
+import { createClient } from '@/packages/database'
+
+export async function uploadOfferLetter(
+  enrollmentId: string,
+  file: File
+): Promise<{ url: string; filename: string }> {
+  const supabase = createClient()
+
+  // Validate file type
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error('Invalid file type. Only PDF and images are allowed.')
+  }
+
+  // Validate file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024
+  if (file.size > maxSize) {
+    throw new Error('File size must be less than 10MB')
+  }
+
+  // Generate unique filename
+  const ext = file.name.split('.').pop()
+  const filename = `${Date.now()}-${file.name}`
+  const path = `${enrollmentId}/${filename}`
+
+  // Upload to storage
+  const { error } = await supabase.storage
+    .from('offer-letters')
+    .upload(path, file)
+
+  if (error) throw error
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('offer-letters')
+    .getPublicUrl(path)
+
+  return { url: publicUrl, filename: file.name }
+}
+
+export async function deleteOfferLetter(
+  enrollmentId: string,
+  filename: string
+): Promise<void> {
+  const supabase = createClient()
+  const path = `${enrollmentId}/${filename}`
+
+  const { error } = await supabase.storage
+    .from('offer-letters')
+    .remove([path])
+
+  if (error) throw error
+}
+```
+
+### Duplicate Enrollment Handling Pattern
+
+```typescript
+// apps/entities/lib/enrollments.ts
+import { createClient } from '@/packages/database'
+
+export async function createOrReuseEnrollment(
+  studentId: string,
+  branchId: string,
+  programName: string,
+  offerLetter?: File
+): Promise<string> {
+  const supabase = createClient()
+
+  // Check for existing enrollment
+  const { data: existing } = await supabase
+    .from('enrollments')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('branch_id', branchId)
+    .eq('program_name', programName)
+    .single()
+
+  if (existing) {
+    // Reuse existing enrollment
+    return existing.id
+  }
+
+  // Create new enrollment
+  let offerLetterUrl = null
+  let offerLetterFilename = null
+
+  const { data: newEnrollment, error } = await supabase
+    .from('enrollments')
+    .insert({
+      student_id: studentId,
+      branch_id: branchId,
+      program_name: programName,
+      status: 'active'
+    })
+    .select('id')
+    .single()
+
+  if (error) throw error
+
+  // Upload offer letter if provided
+  if (offerLetter && newEnrollment) {
+    const uploaded = await uploadOfferLetter(newEnrollment.id, offerLetter)
+    offerLetterUrl = uploaded.url
+    offerLetterFilename = uploaded.filename
+
+    // Update enrollment with offer letter details
+    await supabase
+      .from('enrollments')
+      .update({
+        offer_letter_url: offerLetterUrl,
+        offer_letter_filename: offerLetterFilename
+      })
+      .eq('id', newEnrollment.id)
+  }
+
+  return newEnrollment.id
+}
+```
+
 ### Date Handling Pattern
 
 ```typescript
@@ -1427,29 +1552,80 @@ CREATE TABLE student_documents (
   uploaded_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Enrollments (links students to colleges/branches)
+-- Enrollments (links students to colleges/branches via payment plan creation)
 CREATE TABLE enrollments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   student_id UUID REFERENCES students(id) ON DELETE CASCADE,
   branch_id UUID REFERENCES branches(id) ON DELETE CASCADE,
   agency_id UUID REFERENCES agencies(id) ON DELETE CASCADE,
   program_name TEXT,
-  start_date DATE,
-  expected_end_date DATE,
+  offer_letter_url TEXT,
+  offer_letter_filename TEXT,
   status TEXT CHECK (status IN ('active', 'completed', 'cancelled')) DEFAULT 'active',
   created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(student_id, branch_id, program_name) -- Prevent duplicate enrollments
 );
 
 -- RLS Policies (apply to all tables)
 ALTER TABLE colleges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 -- ... (apply agency_id filter to all)
 
 CREATE POLICY "Users access their agency data"
   ON colleges FOR ALL
   USING (agency_id = (SELECT agency_id FROM users WHERE id = auth.uid()));
+```
+
+**Supabase Storage Configuration:**
+```sql
+-- Storage bucket for offer letters
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('offer-letters', 'offer-letters', false);
+
+-- RLS policies for offer-letters bucket
+CREATE POLICY "Agency users can upload offer letters"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'offer-letters'
+    AND auth.uid() IN (
+      SELECT id FROM users
+      WHERE agency_id = (
+        SELECT agency_id FROM enrollments
+        WHERE id::text = (storage.foldername(name))[1]
+      )
+    )
+  );
+
+CREATE POLICY "Agency users can read their offer letters"
+  ON storage.objects FOR SELECT
+  USING (
+    bucket_id = 'offer-letters'
+    AND auth.uid() IN (
+      SELECT id FROM users
+      WHERE agency_id = (
+        SELECT agency_id FROM enrollments
+        WHERE id::text = (storage.foldername(name))[1]
+      )
+    )
+  );
+
+CREATE POLICY "Agency users can delete their offer letters"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'offer-letters'
+    AND auth.uid() IN (
+      SELECT id FROM users
+      WHERE agency_id = (
+        SELECT agency_id FROM enrollments
+        WHERE id::text = (storage.foldername(name))[1]
+      )
+    )
+  );
+
+-- Storage path pattern: offer-letters/{enrollment_id}/{filename}
 ```
 
 **Payments Domain (Epic 4, 5):**
@@ -1669,6 +1845,85 @@ Request: {
 Response: {
   success: true
   data: { message: "Password reset email sent" }
+}
+```
+
+### Enrollment Endpoints
+
+```typescript
+POST /api/enrollments
+Request: FormData {
+  student_id: string
+  branch_id: string
+  program_name: string
+  offer_letter?: File  // PDF/image
+}
+Response: {
+  success: true
+  data: {
+    id: string
+    student_id: string
+    branch_id: string
+    program_name: string
+    offer_letter_url: string | null
+    offer_letter_filename: string | null
+    status: 'active' | 'completed' | 'cancelled'
+    created_at: string
+    updated_at: string
+  }
+}
+
+PATCH /api/enrollments/[id]
+Request: {
+  program_name?: string
+  status?: 'active' | 'completed' | 'cancelled'
+  offer_letter?: File  // Optional update
+}
+Response: {
+  success: true
+  data: Enrollment
+}
+
+GET /api/students/[id]/enrollments
+Response: {
+  success: true
+  data: Array<{
+    id: string
+    branch: {
+      id: string
+      name: string
+      college: {
+        id: string
+        name: string
+      }
+    }
+    program_name: string
+    offer_letter_url: string | null
+    offer_letter_filename: string | null
+    status: 'active' | 'completed' | 'cancelled'
+    created_at: string
+    updated_at: string
+  }>
+}
+
+GET /api/branches/[id]/enrollments
+Response: {
+  success: true
+  data: Array<{
+    id: string
+    student: {
+      id: string
+      full_name: string
+      email: string
+      phone: string
+    }
+    program_name: string
+    offer_letter_url: string | null
+    offer_letter_filename: string | null
+    status: 'active' | 'completed' | 'cancelled'
+    created_at: string
+    updated_at: string
+  }>
 }
 ```
 
