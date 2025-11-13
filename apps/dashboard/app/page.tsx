@@ -17,6 +17,7 @@ import { SeasonalCommissionChart } from './components/SeasonalCommissionChart'
 import { CommissionBySchoolWidget } from './components/CommissionBySchoolWidget'
 import { CommissionByCountryWidget } from './components/CommissionByCountryWidget'
 import PaymentStatusWidget from './components/PaymentStatusWidget'
+import { OverduePaymentsSummary } from './components/OverduePaymentsSummary'
 
 export default function Dashboard() {
   const searchParams = useSearchParams()
@@ -63,6 +64,11 @@ export default function Dashboard() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">High-level KPIs and business health metrics</p>
+      </div>
+
+      {/* Overdue Payments Section - TOP PRIORITY */}
+      <div className="mb-8">
+        <OverduePaymentsSummary />
       </div>
 
       <div className="space-y-8">
