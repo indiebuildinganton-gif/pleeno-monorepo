@@ -7,6 +7,30 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    globals: true,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        '**/*.config.{js,ts}',
+        '**/*.test.{ts,tsx}',
+        '**/dist/**',
+        '**/.next/**',
+      ],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
