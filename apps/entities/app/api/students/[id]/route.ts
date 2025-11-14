@@ -16,6 +16,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { StudentUpdateSchema } from '@pleeno/validations'
@@ -264,23 +265,30 @@ export async function PATCH(
     }
 
     // Log changes to audit trail with old and new values
-    const changes: Record<string, { old: any; new: any }> = {}
+    const oldValues: Record<string, any> = {}
+    const newValues: Record<string, any> = {}
+    let hasChanges = false
+
     Object.keys(validatedData).forEach((key) => {
       const oldValue = existingStudent[key as keyof typeof existingStudent]
       const newValue = updatedStudent[key as keyof typeof updatedStudent]
       if (oldValue !== newValue) {
-        changes[key] = { old: oldValue, new: newValue }
+        oldValues[key] = oldValue
+        newValues[key] = newValue
+        hasChanges = true
       }
     })
 
     // Only log if there are actual changes
-    if (Object.keys(changes).length > 0) {
-      await supabase.from('audit_logs').insert({
-        entity_type: 'student',
-        entity_id: id,
-        user_id: user.id,
+    if (hasChanges) {
+      await logAudit(supabase, {
+        userId: user.id,
+        agencyId: userAgencyId,
+        entityType: 'student',
+        entityId: id,
         action: 'update',
-        changes_json: changes,
+        oldValues,
+        newValues,
       })
     }
 
@@ -374,17 +382,20 @@ export async function DELETE(
 
     // Log deletion before removing the record
     // This creates an immutable audit trail of the deletion
-    await supabase.from('audit_logs').insert({
-      entity_type: 'student',
-      entity_id: id,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'student',
+      entityId: id,
       action: 'delete',
-      changes_json: {
+      oldValues: {
         full_name: student.full_name,
         passport_number: student.passport_number,
         email: student.email,
         phone: student.phone,
         visa_status: student.visa_status,
+        date_of_birth: student.date_of_birth,
+        nationality: student.nationality,
       },
     })
 

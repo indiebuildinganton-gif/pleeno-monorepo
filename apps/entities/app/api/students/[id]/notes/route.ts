@@ -15,6 +15,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { NoteCreateSchema } from '@pleeno/validations'
@@ -234,12 +235,16 @@ export async function POST(
     }
 
     // Log note creation to audit trail
-    await supabase.from('audit_logs').insert({
-      entity_type: 'student_note',
-      entity_id: note.id,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'student_note',
+      entityId: note.id,
       action: 'create',
-      changes_json: {
+      newValues: {
+        content: validatedData.content,
+      },
+      metadata: {
         student_id: studentId,
         student_name: student.full_name,
         content_length: validatedData.content.length,
