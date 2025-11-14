@@ -28,22 +28,40 @@
   - System actions (installment overdue) correctly use null user_id
 
 ### Task 3: Create Activity Feed API Route
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Created API route at apps/dashboard/app/api/activity-log/route.ts with pagination support, agency isolation via RLS, and proper error handling
 
 ### Task 4: Create ActivityFeed Component
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created ActivityFeed component at apps/dashboard/app/components/ActivityFeed.tsx with TanStack Query integration
+  - Created ActivityCard component for individual activity display with user avatars, icons, and relative timestamps
+  - Created ActivityFeedSkeleton for loading states
+  - Created ActivityFeedError for error handling with retry functionality
+  - Created ActivityFeedEmpty for empty states
+  - All components use proper TypeScript types and follow project architecture patterns
 
 ### Task 5: Implement Auto-Refresh for Real-Time Feel
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Configured TanStack Query with auto-refresh settings:
+    - refetchInterval: 60000 (60 seconds) for automatic polling
+    - refetchOnWindowFocus: true for refreshing when user returns to tab
+    - refetchOnReconnect: true for refreshing on network reconnection
+    - refetchIntervalInBackground: false to prevent unnecessary background polling
+  - Added visual indicator for new activities:
+    - "New Activity" badge appears when fresh data arrives
+    - Badge uses green background with pulse animation
+    - Auto-hides after 3 seconds
+    - Tracks dataUpdatedAt timestamp to detect new data
+  - Documented WebSocket/Supabase Realtime as future enhancement in TODO comment
+  - Current polling approach (60s) sufficient for MVP with good UX
 
 ### Task 6: Make Activities Clickable
 - Status: Not Started
