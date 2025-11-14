@@ -57,6 +57,7 @@ import { PaymentPlanCreateSchema } from '@pleeno/validations'
  *       "status": "active",
  *       "next_due_date": "2025-02-15",
  *       "total_installments": 10,
+ *       "installments_paid_count": 3,
  *       "student": { "first_name": "John", "last_name": "Doe" },
  *       "college": { "name": "University of Example" },
  *       "branch": { "name": "Main Campus" }
@@ -244,6 +245,11 @@ export async function GET(request: NextRequest) {
         // Calculate total installments
         const totalInstallments = installments?.length || 0
 
+        // Calculate installments paid count
+        const installmentsPaidCount = (installments || []).filter(
+          (inst) => inst.status === 'paid'
+        ).length
+
         // Apply installments count filter
         const meetsInstallmentsMin = !installmentsMin || totalInstallments >= parseInt(installmentsMin, 10)
         const meetsInstallmentsMax = !installmentsMax || totalInstallments <= parseInt(installmentsMax, 10)
@@ -289,6 +295,7 @@ export async function GET(request: NextRequest) {
           notes: plan.notes,
           next_due_date: nextDueDate,
           total_installments: totalInstallments,
+          installments_paid_count: installmentsPaidCount,
           student: student ? {
             first_name: student.first_name,
             last_name: student.last_name,
