@@ -236,6 +236,12 @@ Access the local Supabase dashboard at http://localhost:54323
 - **[Sentry Setup](SENTRY_SETUP.md)** - Error monitoring configuration
 - **[Contributing](CONTRIBUTING.md)** - Contribution guidelines and standards
 
+### Notification System Documentation
+
+- **[Admin Guide - Notifications](docs/admin-guide-notifications.md)** - Configure notification rules and email templates
+- **[Sample Email Templates](docs/sample-email-templates.md)** - Template examples and variable reference
+- **[Deployment - Notifications](docs/deployment-notifications.md)** - Deploy and configure the notification system
+
 ## 🧪 Testing
 
 This project includes comprehensive testing infrastructure:
