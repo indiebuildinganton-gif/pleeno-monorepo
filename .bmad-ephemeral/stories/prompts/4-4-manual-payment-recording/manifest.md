@@ -99,10 +99,34 @@
   - Real-time updates work without page refresh - when user records payment, all dashboard metrics update immediately
 
 ### Task 6: Partial Payment Display
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Updated InstallmentsList component to display partial payment details:
+    - Added Progress component import from @pleeno/ui
+    - Modified table structure to show additional row for partial payments with yellow background
+    - Added progress bar showing percentage paid (e.g., "$500 of $1,000 paid (50%)")
+    - Displayed outstanding balance in paid amount column and in expanded details row
+    - Used consistent yellow color scheme for partial payment indicators
+  - Updated MarkAsPaidModal component to handle partial payment scenarios:
+    - Imported AlertTriangle icon from lucide-react for warning display
+    - Added logic to calculate outstanding balance: installment.amount - (installment.paid_amount || 0)
+    - Pre-fill paid_amount with outstanding balance when status is 'partial'
+    - Added real-time watch on paid_amount field to detect partial payments
+    - Display warning alert when paid_amount < outstanding balance showing:
+      - "This is a partial payment" message
+      - Outstanding balance after current payment
+      - Helpful message about recording additional payments later
+    - Updated dialog description to show outstanding balance for partial payments
+    - Updated help text for paid_amount field to show different messages for partial vs. new payments
+  - InstallmentStatusBadge already supports 'partial' status with yellow/warning badge (implemented in Task 4)
+  - All currency formatting uses formatCurrency() utility with agency.currency
+  - Partial payment UX improvements:
+    - Users can immediately see payment progress with visual progress bar
+    - Real-time feedback on remaining balance as they type payment amount
+    - Clear visual indicators using yellow color scheme throughout
+    - Mark as Paid button remains available for partial payments to record additional payments
 
 ### Task 7: Audit Logging
 - Status: Not Started
