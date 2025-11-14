@@ -33,3 +33,6 @@ export * from './notification.schema'
 
 // Export payment plan wizard schemas and types
 export * from './payment-plan-wizard.schema'
+
+// Export installment schemas and types
+export * from './installment.schema'
