@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
   Button,
+  Progress,
 } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils/formatters'
 import { format, parseISO } from 'date-fns'
@@ -78,68 +79,104 @@ export function InstallmentsList({ installments, currency, onMarkAsPaid }: Insta
         </TableHeader>
         <TableBody>
           {installments.map((installment) => (
-            <TableRow key={installment.id}>
-              {/* Installment Number */}
-              <TableCell className="font-medium">
-                {installment.installment_number}
-              </TableCell>
+            <>
+              <TableRow key={installment.id}>
+                {/* Installment Number */}
+                <TableCell className="font-medium">
+                  {installment.installment_number}
+                </TableCell>
 
-              {/* Due Date */}
-              <TableCell>
-                {installment.student_due_date ? (
-                  <span className="text-sm">
-                    {format(parseISO(installment.student_due_date), 'MMM d, yyyy')}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-400">No due date</span>
-                )}
-              </TableCell>
+                {/* Due Date */}
+                <TableCell>
+                  {installment.student_due_date ? (
+                    <span className="text-sm">
+                      {format(parseISO(installment.student_due_date), 'MMM d, yyyy')}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">No due date</span>
+                  )}
+                </TableCell>
 
-              {/* Amount */}
-              <TableCell className="text-right font-semibold">
-                {formatCurrency(installment.amount, currency)}
-              </TableCell>
+                {/* Amount */}
+                <TableCell className="text-right font-semibold">
+                  {formatCurrency(installment.amount, currency)}
+                </TableCell>
 
-              {/* Paid Date */}
-              <TableCell>
-                {installment.paid_date ? (
-                  <span className="text-sm">
-                    {format(parseISO(installment.paid_date), 'MMM d, yyyy')}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-400">-</span>
-                )}
-              </TableCell>
+                {/* Paid Date */}
+                <TableCell>
+                  {installment.paid_date ? (
+                    <span className="text-sm">
+                      {format(parseISO(installment.paid_date), 'MMM d, yyyy')}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                </TableCell>
 
-              {/* Paid Amount */}
-              <TableCell className="text-right">
-                {installment.paid_amount !== null ? (
-                  <span className="text-sm font-semibold">
-                    {formatCurrency(installment.paid_amount, currency)}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-400">-</span>
-                )}
-              </TableCell>
+                {/* Paid Amount */}
+                <TableCell className="text-right">
+                  {installment.paid_amount !== null ? (
+                    <div className="space-y-1">
+                      <div className="text-sm font-semibold">
+                        {formatCurrency(installment.paid_amount, currency)}
+                      </div>
+                      {installment.status === 'partial' && (
+                        <div className="text-xs text-muted-foreground">
+                          {formatCurrency(installment.amount - installment.paid_amount, currency)} remaining
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                </TableCell>
 
-              {/* Status Badge */}
-              <TableCell>
-                <InstallmentStatusBadge status={installment.status} />
-              </TableCell>
+                {/* Status Badge */}
+                <TableCell>
+                  <InstallmentStatusBadge status={installment.status} />
+                </TableCell>
 
-              {/* Actions - Mark as Paid Button */}
-              <TableCell>
-                {(installment.status === 'pending' || installment.status === 'partial') && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onMarkAsPaid(installment)}
-                  >
-                    Mark as Paid
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
+                {/* Actions - Mark as Paid Button */}
+                <TableCell>
+                  {(installment.status === 'pending' || installment.status === 'partial') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onMarkAsPaid(installment)}
+                    >
+                      Mark as Paid
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+
+              {/* Partial Payment Details Row */}
+              {installment.status === 'partial' && installment.paid_amount !== null && (
+                <TableRow key={`${installment.id}-partial-details`}>
+                  <TableCell colSpan={7} className="bg-yellow-50 border-t-0 py-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium text-yellow-800">
+                          Partial Payment Progress
+                        </span>
+                        <span className="text-xs text-yellow-700">
+                          {formatCurrency(installment.paid_amount, currency)} of{' '}
+                          {formatCurrency(installment.amount, currency)} paid
+                          {' '}({Math.round((installment.paid_amount / installment.amount) * 100)}%)
+                        </span>
+                      </div>
+                      <Progress
+                        value={(installment.paid_amount / installment.amount) * 100}
+                        className="h-2 bg-yellow-200"
+                      />
+                      <div className="text-xs text-yellow-700">
+                        Outstanding balance: {formatCurrency(installment.amount - installment.paid_amount, currency)}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>
