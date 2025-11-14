@@ -5,7 +5,7 @@ import { useStudents } from '../../hooks/useStudents'
 import { StudentTable } from './components/StudentTable'
 import { Button } from '@pleeno/ui/src/components/ui/button'
 import { Input } from '@pleeno/ui/src/components/ui/input'
-import { Plus, Search, Download } from 'lucide-react'
+import { Plus, Search, Download, Upload } from 'lucide-react'
 import { createClient } from '@pleeno/database/client'
 import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
@@ -94,6 +94,10 @@ export default function StudentsPage() {
     router.push('/students/new')
   }
 
+  const handleImportCSV = () => {
+    router.push('/students/import')
+  }
+
   const handleExportCSV = async () => {
     try {
       const response = await fetch('/api/students/export')
@@ -141,6 +145,10 @@ export default function StudentsPage() {
           <Button variant="outline" onClick={handleExportCSV}>
             <Download className="h-4 w-4 mr-2" />
             Export CSV
+          </Button>
+          <Button variant="outline" onClick={handleImportCSV}>
+            <Upload className="h-4 w-4 mr-2" />
+            Import CSV
           </Button>
           <Button onClick={handleAddStudent}>
             <Plus className="h-4 w-4 mr-2" />
