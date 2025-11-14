@@ -53,10 +53,26 @@
   - Removed manual toast handling from modal (now handled by mutation hook)
 
 ### Task 4: Payment Plan Detail Page Updates
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Created Progress component in UI package (@pleeno/ui) using @radix-ui/react-progress
+  - Created usePaymentPlanDetail hook for fetching payment plan details with installments
+  - Updated InstallmentStatusBadge to support 'partial' status (yellow badge)
+  - Created InstallmentsList component with Mark as Paid button (shown only for pending/partial installments)
+  - Created PaymentPlanDetail component with payment progress indicators:
+    - Progress bar showing percentage of amount paid (visual indicator)
+    - Text showing "X of Y installments paid"
+    - Text showing "$X of $Y paid" using formatCurrency
+    - Commission tracking: expected vs earned
+  - Created payment plan detail page (apps/payments/app/plans/[id]/page.tsx) with:
+    - Modal state management for MarkAsPaidModal
+    - Integration of all components (PaymentPlanDetail, InstallmentsList, MarkAsPaidModal)
+    - Auto-refresh after successful payment recording (via TanStack Query invalidation)
+    - Loading states, error states, and empty states
+    - Navigation back to payment plans list
+  - All components follow project conventions: formatCurrency for amounts, status badge styling consistent with Story 4.3
 
 ### Task 5: Dashboard Widget Updates
 - Status: Not Started
