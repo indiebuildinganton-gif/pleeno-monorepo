@@ -3,6 +3,10 @@ import {
   calculateCommissionableValue,
   calculateExpectedCommission,
   calculateExpectedCommissionLegacy,
+  calculateGST,
+  calculateTotalWithGST,
+  calculateEarnedCommission,
+  calculateOutstandingCommission,
 } from '../commission-calculator'
 
 describe('Commission Calculator - Story 4.2', () => {
@@ -349,7 +353,7 @@ describe('Commission Calculator - Story 4.2', () => {
       it('uses same formula as PostgreSQL function (GST exclusive)', () => {
         const commissionableValue = 12345.67
         const commissionRate = 0.1345
-        const base = commissionableValue / 1.10
+        const base = commissionableValue / 1.1
 
         const result = calculateExpectedCommission(commissionableValue, commissionRate, false)
         const expected = Math.round(base * commissionRate * 100) / 100
@@ -438,7 +442,11 @@ describe('Commission Calculator - Story 4.2', () => {
 
       // Step 2: Calculate expected commission (GST inclusive)
       const commissionRate = 0.15 // 15%
-      const expectedCommission = calculateExpectedCommission(commissionableValue, commissionRate, true)
+      const expectedCommission = calculateExpectedCommission(
+        commissionableValue,
+        commissionRate,
+        true
+      )
       expect(expectedCommission).toBe(1380)
     })
 
@@ -481,6 +489,164 @@ describe('Commission Calculator - Story 4.2', () => {
 
       const expectedCommission = calculateExpectedCommission(commissionableValue, 0.15)
       expect(expectedCommission).toBe(0)
+    })
+  })
+})
+
+describe('GST and Earned Commission Calculator - Story 6.3', () => {
+  describe('calculateGST', () => {
+    describe('GST inclusive mode', () => {
+      it('calculates GST correctly for 10% rate', () => {
+        const commission = 1100 // $1100 including GST
+        const gstRate = 0.1 // 10%
+        const gstInclusive = true
+
+        const gst = calculateGST(commission, gstRate, gstInclusive)
+
+        // GST = 1100 / 1.1 * 0.1 = 100
+        expect(gst).toBeCloseTo(100, 2)
+      })
+
+      it('calculates GST correctly for 15% rate', () => {
+        const commission = 1150 // $1150 including GST
+        const gstRate = 0.15 // 15%
+        const gstInclusive = true
+
+        const gst = calculateGST(commission, gstRate, gstInclusive)
+
+        // GST = 1150 / 1.15 * 0.15 = 150
+        expect(gst).toBeCloseTo(150, 2)
+      })
+
+      it('handles zero commission', () => {
+        expect(calculateGST(0, 0.1, true)).toBe(0)
+      })
+    })
+
+    describe('GST exclusive mode', () => {
+      it('calculates GST correctly for 10% rate', () => {
+        const commission = 1000 // $1000 excluding GST
+        const gstRate = 0.1 // 10%
+        const gstInclusive = false
+
+        const gst = calculateGST(commission, gstRate, gstInclusive)
+
+        // GST = 1000 * 0.1 = 100
+        expect(gst).toBe(100)
+      })
+
+      it('calculates GST correctly for 15% rate', () => {
+        const commission = 1000 // $1000 excluding GST
+        const gstRate = 0.15 // 15%
+        const gstInclusive = false
+
+        const gst = calculateGST(commission, gstRate, gstInclusive)
+
+        // GST = 1000 * 0.15 = 150
+        expect(gst).toBe(150)
+      })
+
+      it('handles zero commission', () => {
+        expect(calculateGST(0, 0.1, false)).toBe(0)
+      })
+    })
+  })
+
+  describe('calculateTotalWithGST', () => {
+    it('returns same amount for inclusive mode', () => {
+      const commission = 1100
+      const gstRate = 0.1
+      const gstInclusive = true
+
+      const total = calculateTotalWithGST(commission, gstRate, gstInclusive)
+
+      expect(total).toBe(1100) // Already includes GST
+    })
+
+    it('adds GST for exclusive mode', () => {
+      const commission = 1000
+      const gstRate = 0.1
+      const gstInclusive = false
+
+      const total = calculateTotalWithGST(commission, gstRate, gstInclusive)
+
+      expect(total).toBe(1100) // 1000 + 100 GST
+    })
+  })
+
+  describe('calculateEarnedCommission', () => {
+    it('calculates earned commission proportionally', () => {
+      const totalPaid = 5000 // $5000 paid
+      const totalAmount = 10000 // $10000 total
+      const expectedCommission = 1500 // $1500 expected
+
+      const earned = calculateEarnedCommission(totalPaid, totalAmount, expectedCommission)
+
+      expect(earned).toBe(750) // 50% of 1500 = 750
+    })
+
+    it('returns full commission when fully paid', () => {
+      const totalPaid = 10000
+      const totalAmount = 10000
+      const expectedCommission = 1500
+
+      const earned = calculateEarnedCommission(totalPaid, totalAmount, expectedCommission)
+
+      expect(earned).toBe(1500) // 100% of 1500 = 1500
+    })
+
+    it('returns zero when nothing paid', () => {
+      const totalPaid = 0
+      const totalAmount = 10000
+      const expectedCommission = 1500
+
+      const earned = calculateEarnedCommission(totalPaid, totalAmount, expectedCommission)
+
+      expect(earned).toBe(0) // 0% of 1500 = 0
+    })
+
+    it('returns zero when total amount is zero', () => {
+      const earned = calculateEarnedCommission(1000, 0, 500)
+      expect(earned).toBe(0) // Avoid division by zero
+    })
+
+    it('handles partial payment correctly', () => {
+      const totalPaid = 2500 // $2500 paid
+      const totalAmount = 10000 // $10000 total
+      const expectedCommission = 1200 // $1200 expected
+
+      const earned = calculateEarnedCommission(totalPaid, totalAmount, expectedCommission)
+
+      expect(earned).toBe(300) // 25% of 1200 = 300
+    })
+  })
+
+  describe('calculateOutstandingCommission', () => {
+    it('calculates outstanding commission correctly', () => {
+      const expected = 1500
+      const earned = 750
+
+      const outstanding = calculateOutstandingCommission(expected, earned)
+
+      expect(outstanding).toBe(750) // 1500 - 750 = 750
+    })
+
+    it('returns zero when fully paid', () => {
+      const expected = 1500
+      const earned = 1500
+
+      const outstanding = calculateOutstandingCommission(expected, earned)
+
+      expect(outstanding).toBe(0)
+    })
+
+    it('returns zero when earned exceeds expected', () => {
+      const expected = 1000
+      const earned = 1200
+
+      const outstanding = calculateOutstandingCommission(expected, earned)
+
+      expect(outstanding).toBe(0) // Should not return negative
     })
   })
 })
