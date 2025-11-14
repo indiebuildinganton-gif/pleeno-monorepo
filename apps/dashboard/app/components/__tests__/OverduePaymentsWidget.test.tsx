@@ -384,4 +384,285 @@ describe('OverduePaymentsWidget', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/dashboard/overdue-payments')
     })
   })
+
+  // =================================================================
+  // TEST 14: Color Coding - Critical (30+ days)
+  // =================================================================
+
+  it('should apply red color for payments 30+ days overdue', async () => {
+    const criticalData = {
+      success: true,
+      data: {
+        overdue_payments: [
+          {
+            id: '1',
+            payment_plan_id: 'plan-1',
+            student_name: 'John Doe',
+            college_name: 'Tech University',
+            amount: 500.0,
+            due_date: '2024-01-01',
+            days_overdue: 35,
+          },
+        ],
+        total_count: 1,
+        total_amount: 500.0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => criticalData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      const overdueText = screen.getByText(/35 days overdue/i)
+      expect(overdueText).toHaveClass('text-red-600')
+    })
+  })
+
+  // =================================================================
+  // TEST 15: Color Coding - Alert (8-30 days)
+  // =================================================================
+
+  it('should apply orange color for payments 8-30 days overdue', async () => {
+    const alertData = {
+      success: true,
+      data: {
+        overdue_payments: [
+          {
+            id: '1',
+            payment_plan_id: 'plan-1',
+            student_name: 'Jane Smith',
+            college_name: 'Tech University',
+            amount: 500.0,
+            due_date: '2024-01-01',
+            days_overdue: 15,
+          },
+        ],
+        total_count: 1,
+        total_amount: 500.0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => alertData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      const overdueText = screen.getByText(/15 days overdue/i)
+      expect(overdueText).toHaveClass('text-orange-600')
+    })
+  })
+
+  // =================================================================
+  // TEST 16: Color Coding - Warning (1-7 days)
+  // =================================================================
+
+  it('should apply yellow color for payments 1-7 days overdue', async () => {
+    const warningData = {
+      success: true,
+      data: {
+        overdue_payments: [
+          {
+            id: '1',
+            payment_plan_id: 'plan-1',
+            student_name: 'Bob Johnson',
+            college_name: 'Tech University',
+            amount: 500.0,
+            due_date: '2024-01-01',
+            days_overdue: 5,
+          },
+        ],
+        total_count: 1,
+        total_amount: 500.0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => warningData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      const overdueText = screen.getByText(/5 days overdue/i)
+      expect(overdueText).toHaveClass('text-yellow-600')
+    })
+  })
+
+  // =================================================================
+  // TEST 17: Navigation - Clickable Links
+  // =================================================================
+
+  it('should have clickable links to payment plan details', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOverduePaymentsData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument()
+    })
+
+    const link = screen.getByText('John Doe').closest('a')
+    expect(link).toHaveAttribute('href', '/payments/plans/plan-1')
+  })
+
+  // =================================================================
+  // TEST 18: Multiple Payments Display
+  // =================================================================
+
+  it('should display multiple overdue payments correctly', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOverduePaymentsData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      expect(screen.getByText('John Doe')).toBeInTheDocument()
+      expect(screen.getByText('Jane Smith')).toBeInTheDocument()
+      expect(screen.getByText('Bob Johnson')).toBeInTheDocument()
+    })
+
+    // Verify all colleges are shown
+    expect(screen.getByText('Tech University')).toBeInTheDocument()
+    expect(screen.getByText('Engineering College')).toBeInTheDocument()
+    expect(screen.getByText('Science Institute')).toBeInTheDocument()
+  })
+
+  // =================================================================
+  // TEST 19: Currency Formatting
+  // =================================================================
+
+  it('should format currency correctly', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOverduePaymentsData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      // Check individual amounts are formatted
+      expect(screen.getByText('A$500.00')).toBeInTheDocument()
+      expect(screen.getByText('A$750.00')).toBeInTheDocument()
+      expect(screen.getByText('A$1,000.00')).toBeInTheDocument()
+
+      // Check total amount is formatted
+      expect(screen.getByText('A$2,250.00')).toBeInTheDocument()
+    })
+  })
+
+  // =================================================================
+  // TEST 20: Empty State Celebration
+  // =================================================================
+
+  it('should show celebration emoji in empty state', async () => {
+    const emptyData = {
+      success: true,
+      data: {
+        overdue_payments: [],
+        total_count: 0,
+        total_amount: 0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => emptyData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      expect(screen.getByText('🎉')).toBeInTheDocument()
+    })
+  })
+
+  // =================================================================
+  // TEST 21: Day Singular/Plural
+  // =================================================================
+
+  it('should use singular "day" for 1 day overdue', async () => {
+    const oneDayData = {
+      success: true,
+      data: {
+        overdue_payments: [
+          {
+            id: '1',
+            payment_plan_id: 'plan-1',
+            student_name: 'Test Student',
+            college_name: 'Test College',
+            amount: 100.0,
+            due_date: '2024-01-01',
+            days_overdue: 1,
+          },
+        ],
+        total_count: 1,
+        total_amount: 100.0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => oneDayData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      expect(screen.getByText('1 day overdue')).toBeInTheDocument()
+    })
+  })
+
+  it('should use plural "days" for multiple days overdue', async () => {
+    const multipleDaysData = {
+      success: true,
+      data: {
+        overdue_payments: [
+          {
+            id: '1',
+            payment_plan_id: 'plan-1',
+            student_name: 'Test Student',
+            college_name: 'Test College',
+            amount: 100.0,
+            due_date: '2024-01-01',
+            days_overdue: 2,
+          },
+        ],
+        total_count: 1,
+        total_amount: 100.0,
+      },
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => multipleDaysData,
+    })
+
+    renderWithQuery(<OverduePaymentsWidget />)
+
+    await waitFor(() => {
+      expect(screen.getByText('2 days overdue')).toBeInTheDocument()
+    })
+  })
 })
