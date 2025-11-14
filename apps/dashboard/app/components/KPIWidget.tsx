@@ -12,15 +12,15 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@pleeno/ui'
 import {
   Users,
   FileText,
-  AlertTriangle,
+  AlertCircle,
   DollarSign,
   TrendingUp,
   TrendingDown,
-  Minus,
+  ArrowRight,
   RefreshCw,
 } from 'lucide-react'
 
@@ -60,7 +60,7 @@ function TrendArrow({ trend }: { trend: 'up' | 'down' | 'neutral' }) {
   if (trend === 'down') {
     return <TrendingDown className="w-4 h-4 text-red-600" aria-label="Trending down" />
   }
-  return <Minus className="w-4 h-4 text-gray-400" aria-label="No change" />
+  return <ArrowRight className="w-4 h-4 text-gray-400" aria-label="No change" />
 }
 
 /**
@@ -111,13 +111,25 @@ function KPISkeleton() {
       {[...Array(5)].map((_, i) => (
         <Card key={i}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-            <div className="h-5 w-5 bg-gray-200 rounded animate-pulse" />
+            <div
+              role="generic"
+              className="h-4 w-24 bg-gray-200 rounded animate-pulse"
+            />
+            <div
+              role="generic"
+              className="h-5 w-5 bg-gray-200 rounded animate-pulse"
+            />
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="h-8 w-20 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse" />
+              <div
+                role="generic"
+                className="h-8 w-20 bg-gray-200 rounded animate-pulse"
+              />
+              <div
+                role="generic"
+                className="h-4 w-4 bg-gray-200 rounded animate-pulse"
+              />
             </div>
           </CardContent>
         </Card>
@@ -134,7 +146,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
     <Card className="border-red-200 bg-red-50">
       <CardHeader>
         <CardTitle className="text-red-800 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
+          <AlertCircle className="w-5 h-5" />
           Failed to load KPI metrics
         </CardTitle>
       </CardHeader>
@@ -142,10 +154,13 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
         <p className="text-sm text-red-700 mb-4">
           There was an error loading the dashboard metrics. Please try again.
         </p>
-        <Button onClick={onRetry} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
+        <button
+          onClick={onRetry}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-800 bg-white border border-red-300 rounded-md hover:bg-red-100 transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
           Retry
-        </Button>
+        </button>
       </CardContent>
     </Card>
   )
@@ -218,7 +233,7 @@ export function KPIWidget() {
       <MetricCard
         label="Outstanding Amount"
         value={formatCurrency(metrics.outstanding_amount, currency)}
-        icon={<AlertTriangle className="w-5 h-5" />}
+        icon={<AlertCircle className="w-5 h-5" />}
         trend={metrics.trends.outstanding_amount}
         variant="warning"
       />
