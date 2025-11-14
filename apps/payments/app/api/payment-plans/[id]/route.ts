@@ -1,33 +1,33 @@
 /**
- * Payment Plan Detail API - Get Operation
+ * Payment Plan Detail API
  *
- * This endpoint provides detailed payment plan information with related data.
+ * This endpoint provides detailed payment plan information with nested relationships
+ * and progress calculations.
  *
  * Epic 4: Payments Domain
- * Story 4.1: Payment Plan Creation
- * Task 03: Payment Plan API Routes
+ * Story 4.3: Payment Plan List and Detail Views
+ * Task 2: Payment Plan Detail API
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
   handleApiError,
-  createSuccessResponse,
-  ValidationError,
-  UnauthorizedError,
+  NotFoundError,
   ForbiddenError,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { requireRole } from '@pleeno/auth'
 
 /**
  * GET /api/payment-plans/[id]
  *
- * Returns detailed information about a specific payment plan including:
- * - Payment plan details
- * - Associated enrollment with student, branch, and college information
+ * Retrieves a single payment plan with full details including nested relationships
+ * and progress metrics.
  *
- * The response includes joined data for a complete payment plan view.
+ * Path parameters:
+ * - id: UUID of the payment plan
  *
- * Response (200):
+ * Response (200 OK):
  * {
  *   "success": true,
  *   "data": {
@@ -46,8 +46,8 @@ import { createServerClient } from '@pleeno/database/server'
  *     "updated_at": "2025-01-13T...",
  *     "enrollment": {
  *       "id": "uuid",
- *       "program_name": "Bachelor of Computer Science",
- *       "status": "active",
+ *       "student_id": "uuid",
+ *       "branch_id": "uuid",
  *       "student": {
  *         "id": "uuid",
  *         "first_name": "John",
@@ -55,13 +55,35 @@ import { createServerClient } from '@pleeno/database/server'
  *       },
  *       "branch": {
  *         "id": "uuid",
- *         "city": "Sydney",
- *         "commission_rate_percent": 15,
+ *         "name": "Main Campus",
+ *         "college_id": "uuid",
  *         "college": {
  *           "id": "uuid",
- *           "name": "University of Sydney"
+ *           "name": "University of Example"
  *         }
  *       }
+ *     },
+ *     "installments": [
+ *       {
+ *         "id": "uuid",
+ *         "payment_plan_id": "uuid",
+ *         "agency_id": "uuid",
+ *         "installment_number": 0,
+ *         "amount": 1000.50,
+ *         "student_due_date": "2025-01-15",
+ *         "college_due_date": "2025-01-10",
+ *         "is_initial_payment": true,
+ *         "generates_commission": false,
+ *         "status": "paid",
+ *         "paid_date": "2025-01-14",
+ *         "paid_amount": 1000.50,
+ *         "created_at": "2025-01-13T...",
+ *         "updated_at": "2025-01-14T..."
+ *       }
+ *     ],
+ *     "progress": {
+ *       "total_paid": 5000.50,
+ *       "installments_paid_count": 5
  *     }
  *   }
  * }
@@ -69,118 +91,161 @@ import { createServerClient } from '@pleeno/database/server'
  * Error responses:
  * - 401: Not authenticated
  * - 403: Not authorized
- * - 404: Payment plan not found or belongs to different agency (RLS)
+ * - 404: Payment plan not found or belongs to different agency
  *
  * Security:
- * - Requires authentication
- * - RLS policies ensure payment plan belongs to user's agency
- * - Returns 404 if payment plan not found or belongs to different agency
+ * - Requires authentication with agency_admin or agency_user role
+ * - RLS policies automatically filter by agency_id
+ * - Returns 404 if plan belongs to different agency (no information disclosure)
  *
  * @param request - Next.js request object
  * @param params - Route parameters containing payment plan ID
- * @returns Payment plan detail with enrollment or error response
+ * @returns Payment plan details with nested relationships or error response
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
   try {
-    const supabase = await createServerClient()
+    // SECURITY BOUNDARY: Require authentication
+    const authResult = await requireRole(request, ['agency_admin', 'agency_user'])
 
-    // SECURITY BOUNDARY: Verify user is authenticated
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-    if (authError || !user) {
-      throw new UnauthorizedError('Not authenticated')
+    if (authResult instanceof NextResponse) {
+      return authResult // Return 401 or 403 error response
     }
 
-    // Get user's agency_id
+    const { user } = authResult
+
+    // Get user's agency_id from JWT metadata
     const userAgencyId = user.app_metadata?.agency_id
 
     if (!userAgencyId) {
       throw new ForbiddenError('User not associated with an agency')
     }
 
-    // Fetch payment plan with RLS enforcement
-    const { data: paymentPlan, error: paymentPlanError } = await supabase
-      .from('payment_plans')
-      .select('*')
-      .eq('id', id)
-      .eq('agency_id', userAgencyId) // Explicit agency check
-      .single()
+    // Await params to get the ID
+    const { id } = await params
 
-    if (paymentPlanError || !paymentPlan) {
-      throw new ValidationError('Payment plan not found')
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      throw new NotFoundError('Payment plan not found')
     }
 
-    // Fetch enrollment with joined student, branch, and college data
-    const { data: enrollment, error: enrollmentError } = await supabase
-      .from('enrollments')
+    // Create Supabase client
+    const supabase = await createServerClient()
+
+    // Fetch payment plan with nested relationships
+    // RLS policies will automatically filter by agency_id
+    const { data: paymentPlan, error: fetchError } = await supabase
+      .from('payment_plans')
       .select(
         `
         id,
-        program_name,
+        enrollment_id,
+        agency_id,
+        total_amount,
+        currency,
+        start_date,
+        commission_rate_percent,
+        expected_commission,
         status,
-        student:students (
+        notes,
+        reference_number,
+        created_at,
+        updated_at,
+        enrollment:enrollments (
           id,
-          full_name
-        ),
-        branch:branches (
-          id,
-          city,
-          commission_rate_percent,
-          college:colleges (
+          student_id,
+          branch_id,
+          student:students (
             id,
-            name
+            first_name,
+            last_name
+          ),
+          branch:branches (
+            id,
+            name,
+            college_id,
+            college:colleges (
+              id,
+              name
+            )
           )
         )
       `
       )
-      .eq('id', paymentPlan.enrollment_id)
-      .eq('agency_id', userAgencyId)
+      .eq('id', id)
       .single()
 
-    if (enrollmentError) {
-      console.error('Failed to fetch enrollment:', enrollmentError)
-      // Don't fail the request, just return payment plan without enrollment details
+    if (fetchError || !paymentPlan) {
+      // Return 404 whether plan doesn't exist or belongs to different agency
+      // This prevents information disclosure about other agencies' data
+      throw new NotFoundError('Payment plan not found')
     }
 
-    // Parse student full_name into first_name and last_name for response format
-    let studentData = null
-    if (enrollment?.student) {
-      const fullName = enrollment.student.full_name || ''
-      const nameParts = fullName.trim().split(/\s+/)
-      const firstName = nameParts[0] || ''
-      const lastName = nameParts.slice(1).join(' ') || ''
+    // Fetch all installments for this payment plan, ordered by student_due_date ASC
+    const { data: installments, error: installmentsError } = await supabase
+      .from('installments')
+      .select(
+        `
+        id,
+        payment_plan_id,
+        agency_id,
+        installment_number,
+        amount,
+        student_due_date,
+        college_due_date,
+        is_initial_payment,
+        generates_commission,
+        status,
+        paid_date,
+        paid_amount,
+        created_at,
+        updated_at
+      `
+      )
+      .eq('payment_plan_id', id)
+      .order('student_due_date', { ascending: true })
 
-      studentData = {
-        id: enrollment.student.id,
-        first_name: firstName,
-        last_name: lastName,
-      }
+    if (installmentsError) {
+      console.error('Failed to fetch installments:', installmentsError)
+      throw new Error('Failed to fetch installments')
     }
 
-    // Combine payment plan data with enrollment
-    const paymentPlanWithEnrollment = {
+    // Calculate progress metrics
+    const paidInstallments = (installments || []).filter(
+      (inst: any) => inst.status === 'paid'
+    )
+
+    const totalPaid = paidInstallments.reduce(
+      (sum: number, inst: any) => sum + (inst.paid_amount || 0),
+      0
+    )
+
+    const installmentsPaidCount = paidInstallments.length
+
+    // Build response with nested data
+    const response = {
       ...paymentPlan,
-      enrollment: enrollment
-        ? {
-            id: enrollment.id,
-            program_name: enrollment.program_name,
-            status: enrollment.status,
-            student: studentData,
-            branch: enrollment.branch,
-          }
-        : null,
+      installments: installments || [],
+      progress: {
+        total_paid: totalPaid,
+        installments_paid_count: installmentsPaidCount,
+      },
     }
 
-    return createSuccessResponse(paymentPlanWithEnrollment)
+    // Return standardized success response
+    return NextResponse.json(
+      {
+        success: true,
+        data: response,
+      },
+      { status: 200 }
+    )
   } catch (error) {
     return handleApiError(error, {
-      path: `/api/payment-plans/${id}`,
+      path: `/api/payment-plans/${(await params).id}`,
     })
   }
 }
