@@ -33,6 +33,8 @@ import {
   useToast,
 } from '@pleeno/ui'
 import { ChevronDown, ChevronUp, FileText } from 'lucide-react'
+import CommissionReportTable from '../../components/CommissionReportTable'
+import type { CommissionsReportResponse } from '../../types/commissions-report'
 
 /**
  * Commission Report Filters Schema
@@ -63,25 +65,13 @@ type CommissionsReportFormData = z.infer<typeof commissionsReportSchema>
  */
 type DatePreset = 'last_30' | 'last_90' | 'this_year' | 'custom'
 
-/**
- * Mock commission data for placeholder
- */
-interface CommissionRow {
-  college_name: string
-  branch_name: string
-  branch_city: string
-  total_amount: number
-  commission_earned: number
-  payment_plans_count: number
-}
-
 export default function CommissionsReportPage() {
   const { addToast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [hasGeneratedReport, setHasGeneratedReport] = useState(false)
   const [isBuilderCollapsed, setIsBuilderCollapsed] = useState(false)
   const [activePreset, setActivePreset] = useState<DatePreset>('this_year')
-  const [reportData, setReportData] = useState<CommissionRow[]>([])
+  const [reportResponse, setReportResponse] = useState<CommissionsReportResponse | null>(null)
 
   // Mock cities data (will be fetched from API in Task 2)
   const cities = ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa']
@@ -142,57 +132,33 @@ export default function CommissionsReportPage() {
   /**
    * Handle form submission - Generate report
    */
-  const onSubmit = async (_data: CommissionsReportFormData) => {
+  const onSubmit = async (data: CommissionsReportFormData) => {
     setIsLoading(true)
 
     try {
-      // TODO: Task 2 - Replace with actual API call
-      // const response = await fetch('/api/reports/commissions', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     date_from: data.date_from,
-      //     date_to: data.date_to,
-      //     city: data.city || undefined,
-      //   }),
-      // })
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to generate report')
-      // }
-      //
-      // const result = await response.json()
-      // setReportData(result.data)
+      const response = await fetch('/api/reports/commissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date_from: data.date_from,
+          date_to: data.date_to,
+          city: data.city || undefined,
+        }),
+      })
 
-      // Mock delay to simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to generate report')
+      }
 
-      // Mock data for placeholder
-      setReportData([
-        {
-          college_name: 'University of Toronto',
-          branch_name: 'Main Campus',
-          branch_city: 'Toronto',
-          total_amount: 50000,
-          commission_earned: 2500,
-          payment_plans_count: 10,
-        },
-        {
-          college_name: 'UBC',
-          branch_name: 'Vancouver Campus',
-          branch_city: 'Vancouver',
-          total_amount: 35000,
-          commission_earned: 1750,
-          payment_plans_count: 7,
-        },
-      ])
-
+      const result: CommissionsReportResponse = await response.json()
+      setReportResponse(result)
       setHasGeneratedReport(true)
       setIsBuilderCollapsed(true)
 
       addToast({
         title: 'Report Generated',
-        description: 'Your commission report has been generated successfully.',
+        description: `Your commission report has been generated successfully. Found ${result.data.length} branch${result.data.length !== 1 ? 'es' : ''}.`,
         variant: 'success',
       })
     } catch (error) {
@@ -221,7 +187,7 @@ export default function CommissionsReportPage() {
     setActivePreset('this_year')
     setIsBuilderCollapsed(false)
     setHasGeneratedReport(false)
-    setReportData([])
+    setReportResponse(null)
   }
 
   return (
@@ -239,7 +205,9 @@ export default function CommissionsReportPage() {
           <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
             <div>
               <h2 className="font-semibold">Filters Applied</h2>
-              <p className="text-sm text-muted-foreground">{reportData.length} result(s) found</p>
+              <p className="text-sm text-muted-foreground">
+                {reportResponse?.data.length || 0} branch{reportResponse?.data.length !== 1 ? 'es' : ''} found
+              </p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setIsBuilderCollapsed(false)}>
@@ -434,78 +402,15 @@ export default function CommissionsReportPage() {
         </div>
       )}
 
-      {/* Results Table - Placeholder */}
-      {hasGeneratedReport && !isLoading && reportData.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">Commission Report Results</h2>
-              <p className="text-sm text-muted-foreground">
-                Report period: {dateFrom} to {dateTo}
-                {selectedCity && ` • City: ${selectedCity}`}
-              </p>
-            </div>
-          </div>
-
-          <Card>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">College</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Branch</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">City</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">Total Amount</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">
-                        Commission Earned
-                      </th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold">Payment Plans</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {reportData.map((row, index) => (
-                      <tr key={index} className="hover:bg-muted/50">
-                        <td className="px-4 py-3 text-sm">{row.college_name}</td>
-                        <td className="px-4 py-3 text-sm">{row.branch_name}</td>
-                        <td className="px-4 py-3 text-sm">{row.branch_city}</td>
-                        <td className="px-4 py-3 text-sm text-right">
-                          ${row.total_amount.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-medium">
-                          ${row.commission_earned.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right">{row.payment_plans_count}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-muted font-semibold">
-                    <tr>
-                      <td colSpan={3} className="px-4 py-3 text-sm">
-                        Total
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        $
-                        {reportData
-                          .reduce((sum, row) => sum + row.total_amount, 0)
-                          .toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        $
-                        {reportData
-                          .reduce((sum, row) => sum + row.commission_earned, 0)
-                          .toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        {reportData.reduce((sum, row) => sum + row.payment_plans_count, 0)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Results Table */}
+      {hasGeneratedReport && !isLoading && reportResponse && reportResponse.data.length > 0 && (
+        <CommissionReportTable
+          data={reportResponse.data}
+          summary={reportResponse.summary}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          selectedCity={selectedCity}
+        />
       )}
 
       {/* Empty State - No report generated yet */}
@@ -520,16 +425,19 @@ export default function CommissionsReportPage() {
       )}
 
       {/* Empty Results State */}
-      {hasGeneratedReport && !isLoading && reportData.length === 0 && (
-        <div className="rounded-lg border p-12 text-center">
-          <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="font-semibold mb-2">No Results Found</h3>
-          <p className="text-muted-foreground">
-            No commission data found for the selected date range and filters. Try adjusting your
-            filters.
-          </p>
-        </div>
-      )}
+      {hasGeneratedReport &&
+        !isLoading &&
+        reportResponse &&
+        reportResponse.data.length === 0 && (
+          <div className="rounded-lg border p-12 text-center">
+            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="font-semibold mb-2">No Results Found</h3>
+            <p className="text-muted-foreground">
+              No commission data found for the selected date range and filters. Try adjusting your
+              filters.
+            </p>
+          </div>
+        )}
     </div>
   )
 }
