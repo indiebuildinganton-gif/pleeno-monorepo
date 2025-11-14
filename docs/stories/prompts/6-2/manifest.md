@@ -68,10 +68,18 @@
   - View persists across page refreshes via Zustand persist middleware
 
 ### Task 5: Implement Real-Time Updates
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully implemented real-time updates with:
+  - TanStack Query refetchOnWindowFocus: Automatically refetches when user returns to browser tab
+  - TanStack Query refetchInterval: Background polling every 5 minutes for automatic updates
+  - Enhanced visual loading indicator in top-right corner with "Updating..." badge (blue background, spinner, shadow)
+  - Supabase Realtime subscription to installments table filtered by agency_id
+  - Automatic query cache invalidation when installments are inserted, updated, or deleted
+  - useAuth hook integration to get agency_id from user.app_metadata
+  - Proper cleanup of Realtime subscription on component unmount
+  - Payment mutation integration: No existing payment mutations found, but Realtime subscription handles all installment changes from any source
 
 ### Task 6: Add Widget Header and Controls
 - Status: Not Started
@@ -92,6 +100,31 @@
 - Notes:
 
 ## Implementation Notes
+
+### Task 5 - Real-Time Updates Implementation
+- **TanStack Query Configuration**:
+  - refetchOnWindowFocus: Ensures data is fresh when users return to the dashboard tab
+  - refetchInterval: 5-minute background polling prevents stale data during long sessions
+  - staleTime: 5 minutes prevents unnecessary refetches for frequently changing views
+- **Supabase Realtime Integration**:
+  - Channel name: 'cash-flow-updates'
+  - Listens to all events (*) on installments table: INSERT, UPDATE, DELETE
+  - Filter: agency_id=eq.${agencyId} ensures users only receive updates for their agency
+  - Uses queryClient.invalidateQueries to trigger refetch when data changes
+  - Proper cleanup: Removes channel subscription on component unmount
+- **Visual Feedback**:
+  - Loading indicator only shows during background updates (isFetching && !isLoading)
+  - Positioned absolutely in top-right corner with z-10 for visibility
+  - Blue-themed badge with spinner and "Updating..." text for clear user feedback
+  - Shadow and border for depth and visual separation
+- **Authentication**:
+  - Uses useAuth hook from @pleeno/auth to get current user
+  - Extracts agency_id from user.app_metadata (JWT metadata)
+  - Only subscribes to Realtime when agency_id is available
+- **Performance**:
+  - Query cache prevents duplicate fetches across view changes
+  - Realtime subscription more efficient than continuous polling
+  - Invalidation-based updates ensure data consistency without over-fetching
 
 ### Task 2 - CashFlowChart Component Implementation
 - **Component Structure**: Follows established patterns from SeasonalCommissionChart and KPIWidget
