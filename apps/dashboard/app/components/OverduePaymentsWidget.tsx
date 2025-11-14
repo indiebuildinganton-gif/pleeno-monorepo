@@ -98,20 +98,26 @@ function OverduePaymentsError({ onRetry }: { onRetry: () => void }) {
 /**
  * Empty State Component
  *
- * Displays friendly message when no overdue payments exist
+ * Displays celebratory message when no overdue payments exist
+ * Features:
+ * - Celebration emoji with bounce animation
+ * - Positive reinforcement messaging
+ * - Green success styling
+ * - "Last checked" timestamp for reassurance
  */
 function OverduePaymentsEmpty() {
   return (
-    <div className="border-2 border-green-300 rounded-lg p-6 bg-green-50">
-      <div className="flex items-center gap-3">
-        <div className="p-3 bg-green-100 rounded-full">
-          <AlertTriangle className="h-6 w-6 text-green-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-green-800">All Payments Current</h3>
-          <p className="text-sm text-green-600">No overdue payments at this time</p>
-        </div>
-      </div>
+    <div className="border-2 border-green-500 rounded-lg p-6 bg-green-50 text-center">
+      <div className="text-6xl mb-3 animate-bounce">🎉</div>
+      <h3 className="text-lg font-semibold text-green-900 mb-2">
+        No overdue payments!
+      </h3>
+      <p className="text-sm text-green-700">
+        Great work keeping all payments on track!
+      </p>
+      <p className="text-xs text-green-600 mt-2">
+        Last checked: {new Date().toLocaleTimeString()}
+      </p>
     </div>
   )
 }
