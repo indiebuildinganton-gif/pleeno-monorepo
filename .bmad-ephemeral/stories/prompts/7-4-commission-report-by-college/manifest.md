@@ -19,10 +19,10 @@
 - Notes: Created commission report API with database function approach for optimal performance. Implemented TypeScript types, PostgreSQL function for aggregation, and API route with full validation and error handling. Function supports date range filtering (required), optional city filtering, and returns commission data grouped by college/branch with drill-down student payment plan details.
 
 ### Task 3: Display Commission Report Results
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Created CommissionReportTable component with full college grouping, expandable drill-down for student payment plans, currency formatting, and visual highlighting. Integrated component with page and connected to API route. Component features: college headers with blue background, clickable branch rows with expand/collapse icons, nested student payment plan tables, summary totals row with color-coded values (green for earned, red for outstanding), and proper accessibility attributes.
 
 ### Task 4: Add CSV Export for Commissions Report
 - Status: Not Started
@@ -161,3 +161,46 @@ curl -X POST http://localhost:3005/api/reports/commissions \
 - Task 3 will integrate this API with the UI to display commission report results
 - City dropdown will be updated to fetch actual cities from branches table
 - Mock data in table will be replaced with real API response data
+
+### Task 3 Implementation Details
+
+**Files Created**:
+1. `apps/reports/app/components/CommissionReportTable.tsx` - Table component with college grouping and expandable drill-down
+
+**Files Modified**:
+1. `apps/reports/app/reports/commissions/page.tsx` - Integrated table component and connected to API
+
+**Component Features**:
+- **College Grouping**: Data grouped by college with distinct blue header rows (`bg-blue-50` in light mode, `bg-blue-950/30` in dark mode)
+- **Branch Rows**: Each branch under its college with hover effects and expandable interaction
+- **Expandable Drill-Down**:
+  - Click branch rows to expand/collapse student payment plan details
+  - ChevronRight icon when collapsed, ChevronDown when expanded
+  - Keyboard accessible (Enter/Space keys)
+  - Shows nested table with student name, payment plan ID, amounts, and commission
+- **Currency Formatting**: Uses `Intl.NumberFormat` with USD locale for all monetary values
+- **Visual Highlighting**:
+  - Earned commission: Green text (`text-green-600` / `text-green-400` for dark mode)
+  - Outstanding commission: Red text when > 0 (`text-red-600` / `text-red-400` for dark mode)
+  - Outstanding commission: Muted text when 0
+- **Summary Row**: Footer with totals for paid, earned, and outstanding commissions
+- **Responsive Design**: Horizontal scroll on mobile, grid layout for branch rows
+- **Accessibility**: Proper ARIA attributes, keyboard navigation, semantic HTML
+
+**API Integration**:
+- Replaced mock data with real API call to `/api/reports/commissions`
+- Updated state to use `CommissionsReportResponse` type
+- Error handling with user-friendly toast messages
+- Loading states during report generation
+- Empty state when no data found
+
+**Table Structure**:
+- Columns: College/Branch, City, Total Paid, Rate %, Earned Commission, Outstanding Commission
+- Nested tables for drill-down student payment plans
+- Fixed header with proper column alignment
+- Summary footer with color-coded totals
+
+**Next Steps**:
+- Task 4 will add CSV export functionality for commission reports
+- Consider adding sort functionality to columns if needed
+- May add pagination if report data becomes very large
