@@ -18,6 +18,7 @@ export * from './components/ui/dropdown-menu'
 export * from './components/ui/textarea'
 export * from './components/ui/select'
 export * from './components/ui/switch'
+export * from './components/ui/progress'
 
 // Auth Components
 export * from './components/auth'

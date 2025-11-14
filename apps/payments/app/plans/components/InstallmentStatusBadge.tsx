@@ -19,7 +19,7 @@
 import { Badge } from '@pleeno/ui'
 import { Clock, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 
-export type InstallmentStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'cancelled'
+export type InstallmentStatus = 'draft' | 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled'
 
 export interface InstallmentStatusBadgeProps {
   /**
@@ -70,6 +70,11 @@ const statusConfig = {
   due_soon: {
     variant: 'warning' as const,
     label: 'Due Soon',
+    icon: Clock,
+  },
+  partial: {
+    variant: 'warning' as const,
+    label: 'Partial',
     icon: Clock,
   },
   overdue: {
@@ -148,5 +153,5 @@ export function getInstallmentStatusLabel(
  * Helper function to get all valid installment statuses
  */
 export function getAllInstallmentStatuses(): InstallmentStatus[] {
-  return ['draft', 'pending', 'paid', 'overdue', 'cancelled']
+  return ['draft', 'pending', 'partial', 'paid', 'overdue', 'cancelled']
 }
