@@ -38,10 +38,19 @@
   - Fixed: API endpoint path corrected from /api/dashboard/cash-flow-projection to /api/cash-flow-projection
 
 ### Task 3: Implement Interactive Tooltip
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully enhanced CustomTooltip component in CashFlowChart.tsx with:
+  - Dynamic date range formatting based on groupBy parameter (day: "MMM dd, yyyy", week: "MMM dd-dd, yyyy", month: "MMMM yyyy")
+  - Comprehensive amount display showing Total Expected (blue), Total Paid (green), and Total for Period (bold)
+  - Installment count display
+  - Student list showing top 5 students with name, amount, and status (paid/expected)
+  - "...and N more" indicator when more than 5 students in period
+  - Empty bucket handling with graceful fallback message
+  - Max-width constraint for better tooltip readability
+  - Currency formatting using agency currency (AUD)
+  - Color-coded status indicators (green for paid, blue for expected)
 
 ### Task 4: Add View Toggle Controls
 - Status: Not Started
@@ -92,6 +101,26 @@
 - **Currency Formatting**: Compact format for Y-axis (1K, 1M notation)
 - **Component Props**: Flexible groupBy and days parameters for different views
 - **Reusability**: Designed to be easily integrated into dashboard layouts
+
+### Task 3 - Interactive Tooltip Implementation
+- **Date Range Formatting**: Created formatDateRange helper function for context-aware date display
+  - Daily view: Shows single date (e.g., "Jan 15, 2025")
+  - Weekly view: Shows date range (e.g., "Jan 15-21, 2025")
+  - Monthly view: Shows month and year (e.g., "January 2025")
+- **Enhanced Data Display**:
+  - Three-tier amount breakdown: Expected (blue), Paid (green), Total (bold)
+  - Installment count with singular/plural grammar
+  - Color-coded values matching chart colors for consistency
+- **Student List**:
+  - Top 5 students displayed with name, amount, and status
+  - Truncation with "...and N more" indicator for overflow
+  - Status color coding (green for paid, blue for expected)
+- **Empty State Handling**: Graceful fallback for periods with no installments
+- **UX Enhancements**:
+  - Max-width constraint (max-w-sm) prevents overly wide tooltips
+  - Shadow and border for depth and definition
+  - Proper spacing and typography hierarchy
+  - Responsive layout with flex justify-between for clean alignment
 
 ### Task 1 - API Route Implementation
 - **Date Grouping Logic**: Implemented custom date bucketing for day/week/month views
