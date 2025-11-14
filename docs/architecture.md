@@ -904,6 +904,173 @@ If issues arise after deployment:
 
 ---
 
+## Notification System
+
+### Overview
+
+The notification system sends automated emails to multiple stakeholders when payment events occur (overdue, due soon, payment received). The system is highly configurable, allowing each agency to control which recipients receive which types of notifications.
+
+### Architecture Components
+
+1. **Database Layer:**
+   - `notification_rules`: Stores per-agency rules for who gets notified and when
+   - `email_templates`: Stores customizable email templates with variable placeholders
+   - `notification_log`: Prevents duplicate sends and provides audit trail
+   - `installments.last_notified_date`: Tracks when installment last triggered notifications
+
+2. **Settings UI (Agency Zone):**
+   - `/settings/notifications`: Configure notification rules (enable/disable per recipient type)
+   - `/settings/email-templates`: Customize email templates with rich text editor
+
+3. **Background Job:**
+   - Status update job (from Story 5.1) extended to track newly overdue installments
+   - Calls `send-notifications` Edge Function with list of newly overdue IDs
+
+4. **Edge Function:**
+   - `supabase/functions/notifications/send-notifications`
+   - Processes notification rules for each agency
+   - Determines recipients based on recipient type
+   - Checks notification_log to prevent duplicates
+   - Renders email templates with installment/student/agency data
+   - Sends via Resend API
+   - Logs successful sends to notification_log
+
+5. **Email Service:**
+   - Resend API for email delivery
+   - React Email templates for type-safe, component-based email composition
+   - Shared utilities for template rendering and placeholder replacement
+
+### Recipient Types
+
+The notification system supports four recipient types, each with different notification needs:
+
+1. **Agency Users:** Staff who opted in via `email_notifications_enabled` flag
+   - Receive daily summaries of new overdue payments
+   - Can be configured to receive individual alerts
+   - Controlled by user preference setting
+
+2. **Students:** Individual reminders per overdue installment
+   - Personalized payment reminders
+   - Include payment instructions and contact information
+   - One email per overdue installment
+
+3. **Colleges:** Summary of overdue payments for students at that college (optional)
+   - Aggregate view of all overdue payments
+   - Helps colleges coordinate with students
+   - Must be explicitly enabled per agency
+
+4. **Sales Agents:** Alerts for their assigned students (optional)
+   - Notifications for students they're responsible for
+   - Includes student contact information for follow-up
+   - Based on `students.assigned_user_id` field
+
+### Event Types
+
+The system triggers notifications for three event types:
+
+- **overdue:** Sent when installment becomes overdue (after cutoff time on due date)
+- **due_soon:** Sent 36 hours before due date (configurable via trigger_config)
+- **payment_received:** Sent when payment is recorded (optional)
+
+### Database Schema
+
+#### notification_rules
+
+| Column          | Type      | Description                                    |
+|-----------------|-----------|------------------------------------------------|
+| id              | UUID      | Primary key                                    |
+| agency_id       | UUID      | Foreign key to agencies                        |
+| recipient_type  | TEXT      | 'agency_user', 'student', 'college', 'sales_agent' |
+| event_type      | TEXT      | 'overdue', 'due_soon', 'payment_received'      |
+| is_enabled      | BOOLEAN   | Whether rule is active                         |
+| template_id     | UUID      | Foreign key to email_templates                 |
+| trigger_config  | JSONB     | Optional config (e.g., advance_hours for due_soon) |
+
+#### email_templates
+
+| Column      | Type   | Description                                  |
+|-------------|--------|----------------------------------------------|
+| id          | UUID   | Primary key                                  |
+| agency_id   | UUID   | Foreign key to agencies                      |
+| template_type | TEXT | Template identifier (e.g., 'student_overdue') |
+| subject     | TEXT   | Email subject line with placeholders         |
+| body_html   | TEXT   | Email HTML body with placeholders            |
+| variables   | JSONB  | Placeholder mapping for documentation        |
+
+#### notification_log
+
+| Column          | Type        | Description                          |
+|-----------------|-------------|--------------------------------------|
+| id              | UUID        | Primary key                          |
+| installment_id  | UUID        | Foreign key to installments          |
+| recipient_type  | TEXT        | Type of recipient notified           |
+| recipient_email | TEXT        | Email address notified               |
+| sent_at         | TIMESTAMPTZ | When notification was sent           |
+
+**UNIQUE(installment_id, recipient_type, recipient_email)** - Prevents duplicate sends
+
+### Security Considerations
+
+1. **Email Template Security:**
+   - All user-provided HTML sanitized to prevent XSS attacks
+   - Only whitelisted HTML tags allowed (<p>, <strong>, <em>, <a>, <ul>, <ol>, <li>)
+   - Template editing restricted to Agency Admins only via RLS
+
+2. **Notification Rules:**
+   - RLS policies ensure agencies only manage their own rules
+   - Email addresses validated before sending
+   - Rate limiting: max 100 emails per hour per agency
+
+3. **Resend API:**
+   - API key stored in environment variables (never in code)
+   - Email sending only via server-side Edge Function
+   - Graceful error handling with retry logic
+
+### Performance Optimizations
+
+1. **Batch Processing:**
+   - Group installments by agency to minimize database queries
+   - Send emails in parallel using Promise.all
+   - Exponential backoff for failed sends
+
+2. **Database Indexes:**
+   ```sql
+   CREATE INDEX idx_notification_rules_agency ON notification_rules(agency_id, is_enabled, recipient_type);
+   CREATE INDEX idx_notification_log_installment ON notification_log(installment_id, recipient_email);
+   CREATE INDEX idx_installments_last_notified ON installments(last_notified_date);
+   CREATE INDEX idx_students_assigned_user ON students(assigned_user_id);
+   ```
+
+3. **Caching Strategy:**
+   - Cache notification rules per agency (5-minute TTL)
+   - Cache email templates per agency (1-hour TTL)
+   - Invalidate cache when rules/templates updated
+
+### Deployment Requirements
+
+See [docs/deployment-notifications.md](deployment-notifications.md) for detailed deployment instructions.
+
+### Troubleshooting
+
+**Emails not sending:**
+1. Check RESEND_API_KEY is set correctly
+2. Verify notification rules are enabled for the agency
+3. Check notification_log for error entries
+4. Verify recipient email addresses are valid
+5. Check Resend dashboard for delivery status
+
+**Duplicate emails:**
+1. Verify UNIQUE constraint exists on notification_log
+2. Check last_notified_date is updating correctly
+3. Review Edge Function logs for duplicate processing
+
+**Template rendering issues:**
+1. Verify all placeholder variables exist in data
+2. Check template syntax ({{variable}}, not {variable})
+3. Test template rendering with preview functionality
+
+---
+
 ## Implementation Patterns
 
 ### Naming Conventions

@@ -6,21 +6,62 @@
  * all colleges/programs where the student is enrolled.
  *
  * Epic 3: Entities Domain
- * Story 3.2: Student Registry (Base Page Structure)
- * Story 3.3: Student-College Enrollment Linking (Enrollments Section)
- * Task 6: Student Detail Page - Enrollments Section
+ * Story 3.2: Student Registry
+ * Task 10: Student Detail Page
+ *
+ * Features:
+ * - Student name heading
+ * - Back navigation to students list
+ * - Action buttons (Edit Info, New Payment Plan, Delete)
+ * - Student information with visa status badge
+ * - College/Branch clickable link
+ * - Enrollments section
  */
 
 import { createServerClient } from '@pleeno/database/server'
 import { redirect, notFound } from 'next/navigation'
 import { Badge } from '@pleeno/ui'
 import { EnrollmentsSection } from './components/EnrollmentsSection'
+import { StudentActions } from './components/StudentActions'
+import { DocumentViewer } from '../components/DocumentViewer'
 import Link from 'next/link'
 
 interface StudentDetailPageProps {
   params: Promise<{
     id: string
   }>
+}
+
+/**
+ * VisaStatusBadge Component
+ *
+ * Displays visa status with color coding:
+ * - Denied: red (destructive)
+ * - In Process: blue (default)
+ * - Approved: green (success)
+ * - Expired: gray (secondary)
+ */
+function VisaStatusBadge({ status }: { status: string | null }) {
+  if (!status) {
+    return <span className="text-muted-foreground">—</span>
+  }
+
+  const badgeConfig: Record<
+    string,
+    { variant: 'destructive' | 'default' | 'success' | 'secondary'; label: string }
+  > = {
+    denied: { variant: 'destructive', label: 'Denied' },
+    in_process: { variant: 'default', label: 'In Process' },
+    approved: { variant: 'success', label: 'Approved' },
+    expired: { variant: 'secondary', label: 'Expired' },
+  }
+
+  const config = badgeConfig[status] || {
+    variant: 'secondary',
+    label: status,
+  }
+
+  return <Badge variant={config.variant}>{config.label}</Badge>
 }
 
 export default async function StudentDetailPage({
@@ -63,6 +104,32 @@ export default async function StudentDetailPage({
     notFound()
   }
 
+  // Fetch latest enrollment with college and branch data
+  const { data: enrollments } = await supabase
+    .from('enrollments')
+    .select(
+      `
+      id,
+      program_name,
+      status,
+      branch:branches (
+        id,
+        name,
+        city,
+        college:colleges (
+          id,
+          name
+        )
+      )
+    `
+    )
+    .eq('student_id', studentId)
+    .eq('agency_id', userAgencyId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+
+  const latestEnrollment = enrollments?.[0]
+
   return (
     <div className="container mx-auto py-8 max-w-6xl">
       {/* Header with back link */}
@@ -73,7 +140,12 @@ export default async function StudentDetailPage({
         >
           ← Back to Students
         </Link>
-        <h1 className="text-3xl font-bold">{student.full_name}</h1>
+
+        {/* Student name and action buttons */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">{student.full_name}</h1>
+          <StudentActions studentId={studentId} studentName={student.full_name} />
+        </div>
       </div>
 
       {/* Student Profile Card */}
@@ -94,22 +166,36 @@ export default async function StudentDetailPage({
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">
+              Visa Status
+            </label>
+            <div className="mt-1">
+              <VisaStatusBadge status={student.visa_status} />
+            </div>
+          </div>
+          {latestEnrollment?.branch?.college && (
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">
+                College / Branch
+              </label>
+              <p className="text-base mt-1">
+                <Link
+                  href={`/colleges/${latestEnrollment.branch.college.id}`}
+                  className="hover:underline text-primary"
+                >
+                  {latestEnrollment.branch.college.name} -{' '}
+                  {latestEnrollment.branch.name} ({latestEnrollment.branch.city})
+                </Link>
+              </p>
+            </div>
+          )}
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">
               Passport Number
             </label>
             <p className="text-base mt-1">
               {student.passport_number || 'N/A'}
             </p>
           </div>
-          {student.visa_status && (
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">
-                Visa Status
-              </label>
-              <div className="mt-1">
-                <Badge variant="secondary">{student.visa_status}</Badge>
-              </div>
-            </div>
-          )}
           <div>
             <label className="text-sm font-medium text-muted-foreground">
               Date of Birth
@@ -164,6 +250,11 @@ export default async function StudentDetailPage({
 
       {/* Enrollments Section - Story 3.3 Task 6 */}
       <EnrollmentsSection studentId={studentId} />
+
+      {/* Document Management Section - Story 3.2 Task 14 */}
+      <div className="mt-8">
+        <DocumentViewer studentId={studentId} />
+      </div>
     </div>
   )
 }

@@ -22,6 +22,7 @@ export type ActivityEntityType =
   | 'student'
   | 'enrollment'
   | 'installment'
+  | 'report'
 
 /**
  * Valid actions for activity logging
@@ -32,6 +33,7 @@ export type ActivityAction =
   | 'updated'
   | 'marked_overdue'
   | 'deleted'
+  | 'exported'
 
 /**
  * Activity log entry interface
@@ -58,7 +60,7 @@ export interface ActivityLogParams {
   userId: string | null
   /** Type of entity being logged */
   entityType: ActivityEntityType
-  /** UUID of the entity being logged */
+  /** UUID of the entity being logged (empty string for reports) */
   entityId: string
   /** Action performed on the entity */
   action: ActivityAction
@@ -180,4 +182,180 @@ export async function logActivity(
  */
 export function canLogActivity(client: SupabaseClient): boolean {
   return client !== null && client !== undefined
+}
+
+/**
+ * Parameters for logging report export events
+ */
+export interface ReportExportParams {
+  /** Supabase client instance */
+  client: SupabaseClient
+  /** UUID of agency the user belongs to */
+  agencyId: string
+  /** UUID of user who performed the export */
+  userId: string
+  /** Type of report being exported (e.g., 'payment_plans') */
+  reportType: string
+  /** Export format ('csv' or 'pdf') */
+  format: 'csv' | 'pdf'
+  /** Number of rows exported */
+  rowCount: number
+  /** Filters applied to the export */
+  filters: Record<string, any>
+  /** Columns included in the export */
+  columns: string[]
+  /** Number of pages (PDF only) */
+  pageCount?: number
+  /** Duration of export in milliseconds (for performance monitoring) */
+  durationMs?: number
+  /** File size in bytes (for analytics) */
+  fileSizeBytes?: number
+}
+
+/**
+ * Log a report export event to the activity feed
+ *
+ * This specialized function logs CSV/PDF export events with:
+ * - User identification (who exported)
+ * - Report type and format
+ * - Row count for visibility
+ * - Applied filters for audit trail
+ * - Selected columns
+ *
+ * The function automatically fetches the user's name to generate a
+ * human-readable description like:
+ * "John Doe exported payment plans report to CSV (150 rows)"
+ *
+ * Metadata includes:
+ * - report_type: Type of report (e.g., 'payment_plans')
+ * - format: Export format ('csv' or 'pdf')
+ * - row_count: Number of rows exported
+ * - filters: Applied filters (dates, colleges, status, etc.)
+ * - columns: Selected columns for export
+ * - exported_at: ISO timestamp of export
+ *
+ * Security:
+ * - Requires authenticated user (userId cannot be null)
+ * - RLS policies enforce agency isolation via agency_id
+ * - No sensitive data logged in metadata (only filter params, not results)
+ *
+ * Performance:
+ * - Non-blocking: Failures don't interrupt export
+ * - Async logging runs in background
+ * - Graceful error handling
+ *
+ * @param params - Report export parameters
+ * @returns Promise that resolves when activity log is created (or fails gracefully)
+ *
+ * @example CSV export
+ * ```typescript
+ * const supabase = await createServerClient()
+ *
+ * await logReportExport({
+ *   client: supabase,
+ *   agencyId: 'agency-uuid',
+ *   userId: 'user-uuid',
+ *   reportType: 'payment_plans',
+ *   format: 'csv',
+ *   rowCount: 150,
+ *   filters: {
+ *     date_from: '2025-01-01',
+ *     date_to: '2025-12-31',
+ *     status: ['active', 'completed']
+ *   },
+ *   columns: ['student_name', 'total_amount', 'status']
+ * })
+ * ```
+ *
+ * @example PDF export with filters
+ * ```typescript
+ * await logReportExport({
+ *   client: supabase,
+ *   agencyId: 'agency-uuid',
+ *   userId: 'user-uuid',
+ *   reportType: 'payment_plans',
+ *   format: 'pdf',
+ *   rowCount: 75,
+ *   filters: {
+ *     college_id: 'college-1',
+ *     date_from: '2025-01-01'
+ *   },
+ *   columns: ['student_name', 'college_name', 'total_amount']
+ * })
+ * ```
+ */
+export async function logReportExport(params: ReportExportParams): Promise<void> {
+  const {
+    client,
+    agencyId,
+    userId,
+    reportType,
+    format,
+    rowCount,
+    filters,
+    columns,
+    pageCount,
+    durationMs,
+    fileSizeBytes,
+  } = params
+
+  try {
+    // Get user name for description
+    const { data: user, error: userError } = await client
+      .from('users')
+      .select('first_name, last_name')
+      .eq('id', userId)
+      .single()
+
+    if (userError) {
+      console.error('Failed to fetch user for activity log:', userError)
+      // Continue with generic description if user fetch fails
+    }
+
+    const userName = user ? `${user.first_name} ${user.last_name}` : 'User'
+
+    // Generate human-readable description
+    let description = `${userName} exported ${reportType.replace(/_/g, ' ')} report to ${format.toUpperCase()} (${rowCount} rows`
+    if (format === 'pdf' && pageCount !== undefined) {
+      description += `, ${pageCount} pages`
+    }
+    description += ')'
+
+    // Build metadata with optional performance metrics
+    const metadata: Record<string, any> = {
+      report_type: reportType,
+      format,
+      row_count: rowCount,
+      filters,
+      columns,
+      exported_at: new Date().toISOString(),
+    }
+
+    // Add PDF-specific metrics if available
+    if (pageCount !== undefined) {
+      metadata.page_count = pageCount
+    }
+
+    if (durationMs !== undefined) {
+      metadata.duration_ms = durationMs
+    }
+
+    if (fileSizeBytes !== undefined) {
+      metadata.file_size_bytes = fileSizeBytes
+    }
+
+    // Log the export activity
+    await logActivity(client, {
+      agencyId,
+      userId,
+      entityType: 'report',
+      entityId: '', // Reports don't have a specific entity_id
+      action: 'exported',
+      description,
+      metadata,
+    })
+  } catch (error) {
+    console.error('Failed to log report export:', error)
+    // Don't throw - logging failures shouldn't break export
+  }
 }

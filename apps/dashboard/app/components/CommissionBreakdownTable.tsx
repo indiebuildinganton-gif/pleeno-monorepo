@@ -17,12 +17,33 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  ColumnDef,
+  flexRender,
+  SortingState,
+} from '@tanstack/react-table'
 import { useDashboardStore } from '@pleeno/stores'
 import { formatCurrency, getDateRangeLabel } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
-import { RefreshCw, AlertTriangle, X, Filter, Eye, DollarSign, Receipt, Calculator, Clock } from 'lucide-react'
+import {
+  RefreshCw,
+  AlertTriangle,
+  X,
+  Filter,
+  Eye,
+  DollarSign,
+  Receipt,
+  Calculator,
+  Clock,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react'
 import Link from 'next/link'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 /**
  * Commission breakdown data type
@@ -308,6 +329,9 @@ function FilterControls() {
  */
 export function CommissionBreakdownTable() {
   const { commissionFilters } = useDashboardStore()
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'total_earned_commission', desc: true }, // Default sort by earned commission DESC
+  ])
 
   // Fetch commission breakdown data
   const {
@@ -328,6 +352,140 @@ export function CommissionBreakdownTable() {
 
   // Determine currency (default to AUD for now)
   const currency = 'AUD'
+
+  // Define column definitions
+  const columns = useMemo<ColumnDef<CommissionBreakdown>[]>(
+    () => [
+      {
+        accessorKey: 'college_name',
+        header: 'College',
+        cell: ({ row }) => (
+          <div className="font-medium">
+            <Link
+              href={`/entities/colleges/${row.original.college_id}`}
+              className="text-blue-600 hover:underline"
+            >
+              {row.original.college_name}
+            </Link>
+            {row.index < 3 && (
+              <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
+                Top {row.index + 1}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'branch_name',
+        header: 'Branch',
+        cell: ({ row }) => (
+          <div>
+            <Link
+              href={`/entities/colleges/${row.original.college_id}?branch=${row.original.branch_id}`}
+              className="text-blue-600 hover:underline"
+            >
+              {row.original.branch_name}
+            </Link>
+            {row.original.branch_city && (
+              <div className="text-xs text-gray-500">{row.original.branch_city}</div>
+            )}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'total_commissions',
+        header: 'Commissions',
+        cell: ({ row }) => (
+          <span className="font-medium text-gray-900">
+            {formatCurrency(row.original.total_commissions, currency)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'total_gst',
+        header: 'GST',
+        cell: ({ row }) => (
+          <span className="text-blue-600">{formatCurrency(row.original.total_gst, currency)}</span>
+        ),
+      },
+      {
+        accessorKey: 'total_with_gst',
+        header: 'Total (+ GST)',
+        cell: ({ row }) => (
+          <span className="font-semibold text-gray-900">
+            {formatCurrency(row.original.total_with_gst, currency)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'total_expected_commission',
+        header: 'Expected',
+        cell: ({ row }) => (
+          <span className="text-gray-600">
+            {formatCurrency(row.original.total_expected_commission, currency)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'total_earned_commission',
+        header: 'Earned',
+        cell: ({ row }) => (
+          <span className="font-medium text-green-600">
+            {formatCurrency(row.original.total_earned_commission, currency)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'outstanding_commission',
+        header: 'Outstanding',
+        cell: ({ row }) => (
+          <span
+            className={`font-medium ${
+              row.original.outstanding_commission > 0 ? 'text-red-600' : 'text-green-600'
+            }`}
+          >
+            {formatCurrency(row.original.outstanding_commission, currency)}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <div className="flex items-center justify-center">
+            <Link
+              href={`/payments/plans?college=${row.original.college_id}&branch=${row.original.branch_id}`}
+              title={`View ${row.original.payment_plan_count} payment plan${
+                row.original.payment_plan_count !== 1 ? 's' : ''
+              } for ${row.original.college_name} - ${row.original.branch_name}`}
+            >
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+              >
+                <Eye className="h-4 w-4" />
+                <span>View Plans</span>
+                <span className="text-xs text-gray-500">({row.original.payment_plan_count})</span>
+              </button>
+            </Link>
+          </div>
+        ),
+      },
+    ],
+    [currency]
+  )
+
+  // Create table instance
+  const table = useReactTable({
+    data: commissionData || [],
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  })
 
   // Calculate summary metrics
   const summaryMetrics = useMemo(() => {
@@ -553,93 +711,79 @@ export function CommissionBreakdownTable() {
         <div className="mt-6 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">College</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Branch</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Commissions</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">GST</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Total (+ GST)</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Expected</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Earned</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Outstanding</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
-              </tr>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id} className="border-b border-gray-200">
+                  {headerGroup.headers.map((header) => {
+                    const isSortable = header.column.getCanSort()
+                    const isSorted = header.column.getIsSorted()
+                    const isNumericColumn =
+                      header.id !== 'college_name' &&
+                      header.id !== 'branch_name' &&
+                      header.id !== 'actions'
+
+                    return (
+                      <th
+                        key={header.id}
+                        className={`py-3 px-4 font-semibold text-gray-700 ${
+                          isNumericColumn ? 'text-right' : 'text-left'
+                        } ${header.id === 'actions' ? 'text-center' : ''}`}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <div
+                            className={`flex items-center gap-2 ${
+                              isNumericColumn ? 'justify-end' : 'justify-start'
+                            } ${header.id === 'actions' ? 'justify-center' : ''} ${
+                              isSortable ? 'cursor-pointer select-none' : ''
+                            }`}
+                            onClick={
+                              isSortable ? header.column.getToggleSortingHandler() : undefined
+                            }
+                          >
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                            {isSortable && (
+                              <span className="text-gray-400">
+                                {isSorted === 'asc' ? (
+                                  <ArrowUp className="h-4 w-4" />
+                                ) : isSorted === 'desc' ? (
+                                  <ArrowDown className="h-4 w-4" />
+                                ) : (
+                                  <ArrowUpDown className="h-4 w-4 opacity-50" />
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </th>
+                    )
+                  })}
+                </tr>
+              ))}
             </thead>
             <tbody>
-              {commissionData.map((row, index) => (
+              {table.getRowModel().rows.map((row) => (
                 <tr
-                  key={`${row.college_id}-${row.branch_id}`}
+                  key={row.id}
                   className={`border-b border-gray-100 hover:bg-gray-50 ${
-                    index < 3 ? 'bg-blue-50/30' : ''
+                    row.index < 3 ? 'bg-blue-50/30' : ''
                   }`}
                 >
-                  <td className="py-3 px-4">
-                    <div className="font-medium">
-                      <Link
-                        href={`/entities/colleges/${row.college_id}`}
-                        className="text-blue-600 hover:underline"
+                  {row.getVisibleCells().map((cell) => {
+                    const isNumericColumn =
+                      cell.column.id !== 'college_name' &&
+                      cell.column.id !== 'branch_name' &&
+                      cell.column.id !== 'actions'
+
+                    return (
+                      <td
+                        key={cell.id}
+                        className={`py-3 px-4 ${
+                          isNumericColumn ? 'text-right' : 'text-left'
+                        } ${cell.column.id === 'actions' ? 'text-center' : ''}`}
                       >
-                        {row.college_name}
-                      </Link>
-                      {index < 3 && (
-                        <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
-                          Top {index + 1}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link
-                      href={`/entities/colleges/${row.college_id}?branch=${row.branch_id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {row.branch_name}
-                    </Link>
-                    {row.branch_city && (
-                      <div className="text-xs text-gray-500">{row.branch_city}</div>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right font-medium text-gray-900">
-                    {formatCurrency(row.total_commissions, currency)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-blue-600">
-                    {formatCurrency(row.total_gst, currency)}
-                  </td>
-                  <td className="py-3 px-4 text-right font-semibold text-gray-900">
-                    {formatCurrency(row.total_with_gst, currency)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-gray-600">
-                    {formatCurrency(row.total_expected_commission, currency)}
-                  </td>
-                  <td className="py-3 px-4 text-right font-medium text-green-600">
-                    {formatCurrency(row.total_earned_commission, currency)}
-                  </td>
-                  <td
-                    className={`py-3 px-4 text-right font-medium ${
-                      row.outstanding_commission > 0 ? 'text-red-600' : 'text-green-600'
-                    }`}
-                  >
-                    {formatCurrency(row.outstanding_commission, currency)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center justify-center">
-                      <Link
-                        href={`/payments/plans?college=${row.college_id}&branch=${row.branch_id}`}
-                        title={`View ${row.payment_plan_count} payment plan${
-                          row.payment_plan_count !== 1 ? 's' : ''
-                        } for ${row.college_name} - ${row.branch_name}`}
-                      >
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span>View Plans</span>
-                          <span className="text-xs text-gray-500">({row.payment_plan_count})</span>
-                        </button>
-                      </Link>
-                    </div>
-                  </td>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    )
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -648,7 +792,8 @@ export function CommissionBreakdownTable() {
 
         {/* Footer info */}
         <div className="mt-4 text-sm text-gray-500 text-right">
-          Showing {commissionData.length} {commissionData.length === 1 ? 'result' : 'results'}
+          Showing {table.getRowModel().rows.length}{' '}
+          {table.getRowModel().rows.length === 1 ? 'result' : 'results'}
         </div>
       </CardContent>
     </Card>

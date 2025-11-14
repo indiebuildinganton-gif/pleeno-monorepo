@@ -28,28 +28,62 @@
   - System actions (installment overdue) correctly use null user_id
 
 ### Task 3: Create Activity Feed API Route
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
+- Notes: Created API route at apps/dashboard/app/api/activity-log/route.ts with pagination support, agency isolation via RLS, and proper error handling
 
 ### Task 4: Create ActivityFeed Component
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-13
+- Completed: 2025-11-13
 - Notes:
+  - Created ActivityFeed component at apps/dashboard/app/components/ActivityFeed.tsx with TanStack Query integration
+  - Created ActivityCard component for individual activity display with user avatars, icons, and relative timestamps
+  - Created ActivityFeedSkeleton for loading states
+  - Created ActivityFeedError for error handling with retry functionality
+  - Created ActivityFeedEmpty for empty states
+  - All components use proper TypeScript types and follow project architecture patterns
 
 ### Task 5: Implement Auto-Refresh for Real-Time Feel
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Configured TanStack Query with auto-refresh settings:
+    - refetchInterval: 60000 (60 seconds) for automatic polling
+    - refetchOnWindowFocus: true for refreshing when user returns to tab
+    - refetchOnReconnect: true for refreshing on network reconnection
+    - refetchIntervalInBackground: false to prevent unnecessary background polling
+  - Added visual indicator for new activities:
+    - "New Activity" badge appears when fresh data arrives
+    - Badge uses green background with pulse animation
+    - Auto-hides after 3 seconds
+    - Tracks dataUpdatedAt timestamp to detect new data
+  - Documented WebSocket/Supabase Realtime as future enhancement in TODO comment
+  - Current polling approach (60s) sufficient for MVP with good UX
 
 ### Task 6: Make Activities Clickable
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Updated ActivityCard component (apps/dashboard/app/components/ActivityCard.tsx) with navigation functionality
+  - Created getActivityLink helper function with comprehensive navigation mapping:
+    - payment/installment → /payments/plans/[payment_plan_id] (from metadata)
+    - payment_plan → /payments/plans/[entity_id]
+    - student → /entities/students/[entity_id]
+    - enrollment → /entities/students/[student_id]?tab=enrollments (from metadata)
+    - Fallback to /dashboard if metadata is missing
+  - Wrapped ActivityCard with Next.js Link component for client-side navigation
+  - Enhanced hover states:
+    - Border color changes to primary/50 on hover
+    - Icon scales to 110% on hover with smooth transition
+    - Description text changes to primary color on hover
+    - All animations coordinated using group hover
+  - Added tooltip via title attribute: "Click to view details"
+  - Implemented error handling with console warnings for missing metadata
+  - All navigation paths follow Next.js App Router conventions
 
 ### Task 7: Integrate into Dashboard Page
 - Status: Not Started
