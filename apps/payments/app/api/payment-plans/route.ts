@@ -604,31 +604,63 @@ export async function POST(request: NextRequest) {
 
     // END TRANSACTION
 
-    // Log payment plan creation to audit trail
+    // Log payment plan creation to audit trail with comprehensive wizard data
     await logAudit(supabase, {
       userId: user.id,
       agencyId: userAgencyId,
       entityType: 'payment_plan',
       entityId: paymentPlan.id,
-      action: 'create',
+      action: 'create_with_installments',
       newValues: {
-        student_id: paymentPlan.student_id,
-        course_name: paymentPlan.course_name,
-        total_amount: paymentPlan.total_amount,
-        commission_rate: paymentPlan.commission_rate,
-        expected_commission: paymentPlan.expected_commission,
-        number_of_installments: validatedData.number_of_installments,
-        installments_created: installments?.length || 0,
+        // Step 1 data: Student, course, and commission details
+        student_id: validatedData.student_id,
+        course_name: validatedData.course_name,
+        total_course_value: validatedData.total_course_value,
+        commission_rate: validatedData.commission_rate,
+        course_dates: {
+          start: validatedData.course_start_date,
+          end: validatedData.course_end_date,
+        },
+        // Step 2 data: Payment structure, fees, timeline, and GST
+        payment_structure: {
+          initial_payment_amount: validatedData.initial_payment_amount,
+          initial_payment_due_date: validatedData.initial_payment_due_date,
+          initial_payment_paid: validatedData.initial_payment_paid,
+          number_of_installments: validatedData.number_of_installments,
+          payment_frequency: validatedData.payment_frequency,
+        },
+        fees: {
+          materials_cost: validatedData.materials_cost,
+          admin_fees: validatedData.admin_fees,
+          other_fees: validatedData.other_fees,
+        },
+        timeline: {
+          first_college_due_date: validatedData.first_college_due_date,
+          student_lead_time_days: validatedData.student_lead_time_days,
+        },
+        gst_inclusive: validatedData.gst_inclusive,
+        // Calculated values
+        calculated_values: {
+          commissionable_value: commissionableValue,
+          expected_commission: expectedCommission,
+        },
       },
       metadata: {
+        wizard_version: '1.0',
+        installment_count: installments?.length || 0,
+        source: 'payment_plan_wizard',
         // Include commission calculation parameters for transparency
         commission_calculation: {
+          formula: validatedData.gst_inclusive
+            ? '(commissionable_value / 1.10) * commission_rate'
+            : 'commissionable_value * commission_rate',
           total_course_value: validatedData.total_course_value,
           materials_cost: validatedData.materials_cost,
           admin_fees: validatedData.admin_fees,
           other_fees: validatedData.other_fees,
           commissionable_value: commissionableValue,
           commission_rate: validatedData.commission_rate,
+          commission_rate_percent: commissionRatePercent,
           gst_inclusive: validatedData.gst_inclusive,
           expected_commission: expectedCommission,
         },
@@ -637,6 +669,34 @@ export async function POST(request: NextRequest) {
           student_id: student.id,
           student_name: `${student.first_name} ${student.last_name}`,
         },
+      },
+    })
+
+    // Log installment creation in batch for complete audit trail
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'installments',
+      entityId: paymentPlan.id, // Reference parent payment plan
+      action: 'create_batch',
+      newValues: {
+        installments: (installments || []).map((inst) => ({
+          id: inst.id,
+          installment_number: inst.installment_number,
+          amount: inst.amount,
+          student_due_date: inst.student_due_date,
+          college_due_date: inst.college_due_date,
+          is_initial_payment: inst.is_initial_payment,
+          generates_commission: inst.generates_commission,
+          status: inst.status,
+          paid_date: inst.paid_date,
+          paid_amount: inst.paid_amount,
+        })),
+      },
+      metadata: {
+        payment_plan_id: paymentPlan.id,
+        total_installments: installments?.length || 0,
+        initial_payment_paid: validatedData.initial_payment_paid,
       },
     })
 
@@ -672,6 +732,50 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    // Log error to audit trail for debugging and compliance
+    try {
+      // Try to get context for audit logging (may not be available if error occurred early)
+      const supabase = await createServerClient()
+      const authResult = await requireRole(request, ['agency_admin', 'agency_user'])
+
+      if (authResult && !(authResult instanceof NextResponse)) {
+        const { user } = authResult
+        const userAgencyId = user.app_metadata?.agency_id
+
+        if (userAgencyId) {
+          // Get request body for debugging (if available)
+          let requestBody: any = null
+          try {
+            const clonedRequest = request.clone()
+            requestBody = await clonedRequest.json()
+          } catch {
+            // Request body already consumed or invalid
+            requestBody = null
+          }
+
+          await logAudit(supabase, {
+            userId: user.id,
+            agencyId: userAgencyId,
+            entityType: 'payment_plan',
+            entityId: '', // No entity created due to error
+            action: 'create',
+            metadata: {
+              error: error instanceof Error ? error.message : String(error),
+              error_name: error instanceof Error ? error.name : 'UnknownError',
+              error_stack: process.env.NODE_ENV === 'development' && error instanceof Error
+                ? error.stack
+                : undefined,
+              request_body: requestBody,
+              timestamp: new Date().toISOString(),
+            },
+          })
+        }
+      }
+    } catch (auditError) {
+      // Audit logging failed - log to console but don't throw
+      console.error('Failed to log payment plan creation error to audit trail:', auditError)
+    }
+
     return handleApiError(error, {
       path: '/api/payment-plans',
     })
