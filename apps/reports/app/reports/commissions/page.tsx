@@ -32,7 +32,7 @@ import {
   Select,
   useToast,
 } from '@pleeno/ui'
-import { ChevronDown, ChevronUp, FileText } from 'lucide-react'
+import { ChevronDown, ChevronUp, FileText, Download } from 'lucide-react'
 import CommissionReportTable from '../../components/CommissionReportTable'
 import type { CommissionsReportResponse } from '../../types/commissions-report'
 
@@ -72,6 +72,7 @@ export default function CommissionsReportPage() {
   const [isBuilderCollapsed, setIsBuilderCollapsed] = useState(false)
   const [activePreset, setActivePreset] = useState<DatePreset>('this_year')
   const [reportResponse, setReportResponse] = useState<CommissionsReportResponse | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Mock cities data (will be fetched from API in Task 2)
   const cities = ['Toronto', 'Vancouver', 'Montreal', 'Calgary', 'Ottawa']
@@ -171,6 +172,67 @@ export default function CommissionsReportPage() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  /**
+   * Handle CSV export
+   */
+  const handleExportCSV = async () => {
+    setIsExporting(true)
+
+    try {
+      // Build export URL with query parameters
+      const params = new URLSearchParams({
+        format: 'csv',
+        date_from: dateFrom,
+        date_to: dateTo,
+      })
+
+      if (selectedCity) {
+        params.append('city', selectedCity)
+      }
+
+      const exportUrl = `/api/reports/commissions/export?${params.toString()}`
+
+      // Trigger download
+      const response = await fetch(exportUrl)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to export report')
+      }
+
+      // Get the CSV content and create a blob
+      const csvContent = await response.text()
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+
+      // Create download link and trigger it
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `commissions_report_${dateFrom}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      addToast({
+        title: 'Export Successful',
+        description: 'Your commission report has been exported to CSV.',
+        variant: 'success',
+      })
+    } catch (error) {
+      console.error('Export error:', error)
+      addToast({
+        title: 'Export Failed',
+        description:
+          error instanceof Error ? error.message : 'Failed to export report. Please try again.',
+        variant: 'error',
+      })
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -404,13 +466,38 @@ export default function CommissionsReportPage() {
 
       {/* Results Table */}
       {hasGeneratedReport && !isLoading && reportResponse && reportResponse.data.length > 0 && (
-        <CommissionReportTable
-          data={reportResponse.data}
-          summary={reportResponse.summary}
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          selectedCity={selectedCity}
-        />
+        <div className="space-y-4">
+          {/* Export Actions */}
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              disabled={isExporting}
+              aria-label="Export commission report to CSV"
+            >
+              {isExporting ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2"></div>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </>
+              )}
+            </Button>
+          </div>
+
+          <CommissionReportTable
+            data={reportResponse.data}
+            summary={reportResponse.summary}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            selectedCity={selectedCity}
+          />
+        </div>
       )}
 
       {/* Empty State - No report generated yet */}

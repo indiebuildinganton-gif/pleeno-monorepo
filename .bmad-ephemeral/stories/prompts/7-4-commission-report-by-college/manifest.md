@@ -25,10 +25,10 @@
 - Notes: Created CommissionReportTable component with full college grouping, expandable drill-down for student payment plans, currency formatting, and visual highlighting. Integrated component with page and connected to API route. Component features: college headers with blue background, clickable branch rows with expand/collapse icons, nested student payment plan tables, summary totals row with color-coded values (green for earned, red for outstanding), and proper accessibility attributes.
 
 ### Task 4: Add CSV Export for Commissions Report
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Implemented CSV export with two sections: (1) Main commission summary by college/branch with totals, (2) Drill-down student payment plan details. Created API route at `/api/reports/commissions/export` (GET) with date range and optional city filtering. Added "Export CSV" button to report page with loading state. CSV includes UTF-8 BOM for Excel compatibility, uses formatCurrencyForCSV() and formatDateISO() from Story 7.2 utilities. Filename format: `commissions_report_YYYY-MM-DD.csv`. Export disabled during loading, proper error handling with toast notifications.
 
 ### Task 5: Create Professional PDF Template for Commissions
 - Status: Not Started
