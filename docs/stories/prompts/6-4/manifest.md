@@ -64,10 +64,26 @@
   - Current polling approach (60s) sufficient for MVP with good UX
 
 ### Task 6: Make Activities Clickable
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Updated ActivityCard component (apps/dashboard/app/components/ActivityCard.tsx) with navigation functionality
+  - Created getActivityLink helper function with comprehensive navigation mapping:
+    - payment/installment → /payments/plans/[payment_plan_id] (from metadata)
+    - payment_plan → /payments/plans/[entity_id]
+    - student → /entities/students/[entity_id]
+    - enrollment → /entities/students/[student_id]?tab=enrollments (from metadata)
+    - Fallback to /dashboard if metadata is missing
+  - Wrapped ActivityCard with Next.js Link component for client-side navigation
+  - Enhanced hover states:
+    - Border color changes to primary/50 on hover
+    - Icon scales to 110% on hover with smooth transition
+    - Description text changes to primary color on hover
+    - All animations coordinated using group hover
+  - Added tooltip via title attribute: "Click to view details"
+  - Implemented error handling with console warnings for missing metadata
+  - All navigation paths follow Next.js App Router conventions
 
 ### Task 7: Integrate into Dashboard Page
 - Status: Not Started
