@@ -32,6 +32,7 @@ interface AgencyResult {
   transitions: {
     pending_to_overdue: number;
   };
+  newly_overdue_ids: string[];
 }
 
 interface NewlyOverdueInstallment {
@@ -53,9 +54,11 @@ interface UpdateResponse {
   success: boolean;
   recordsUpdated: number;
   notificationsCreated: number;
+  emailsSent: number;
   agencies: AgencyResult[];
   error?: string;
   notificationErrors?: string[];
+  emailErrors?: string[];
 }
 
 /**
@@ -254,6 +257,74 @@ async function generateOverdueNotifications(supabase: any): Promise<{
   }
 }
 
+/**
+ * Send email notifications via the send-notifications Edge Function.
+ *
+ * This function:
+ * 1. Calls the send-notifications Edge Function with newly overdue installment IDs
+ * 2. The Edge Function processes notification rules and sends emails
+ * 3. Returns count of emails sent and any errors encountered
+ *
+ * @param installmentIds - Array of newly overdue installment IDs
+ * @returns Object with emailsSent count and errors array
+ */
+async function sendEmailNotifications(installmentIds: string[]): Promise<{
+  emailsSent: number;
+  errors: string[];
+}> {
+  const errors: string[] = [];
+
+  if (installmentIds.length === 0) {
+    return { emailsSent: 0, errors };
+  }
+
+  try {
+    console.log(`Calling send-notifications Edge Function with ${installmentIds.length} installments`);
+
+    // Call the send-notifications Edge Function
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-notifications`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({
+        installmentIds,
+        eventType: 'overdue',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      errors.push(`Send-notifications API failed: ${response.statusText} - ${errorText}`);
+      return { emailsSent: 0, errors };
+    }
+
+    const result = await response.json();
+
+    if (result.error) {
+      errors.push(`Send-notifications returned error: ${result.error}`);
+      return { emailsSent: 0, errors };
+    }
+
+    // Extract email send count from results
+    const emailsSent = result.summary?.sent || 0;
+    const failed = result.summary?.failed || 0;
+
+    if (failed > 0) {
+      errors.push(`${failed} emails failed to send`);
+    }
+
+    console.log(`Email notifications sent: ${emailsSent}, failed: ${failed}, skipped: ${result.summary?.skipped || 0}`);
+
+    return { emailsSent, errors };
+  } catch (error: any) {
+    errors.push(`Failed to call send-notifications Edge Function: ${error.message}`);
+    console.error("Failed to send email notifications:", error);
+    return { emailsSent: 0, errors };
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -315,18 +386,38 @@ serve(async (req) => {
     // Calculate total installments updated across all agencies
     const totalUpdated = results.reduce((sum, r) => sum + r.updated_count, 0);
 
-    // Generate notifications for newly overdue installments
+    // Extract newly overdue installment IDs for email notifications
+    const newlyOverdueIds = results
+      .flatMap((r) => r.newly_overdue_ids || [])
+      .filter((id) => id); // Remove any null/undefined values
+
+    console.log(`Total installments updated: ${totalUpdated}, newly overdue: ${newlyOverdueIds.length}`);
+
+    // Generate in-app notifications for newly overdue installments
     // This runs after status updates to catch all newly overdue installments
     // Errors in notification generation don't fail the overall job
-    console.log("Generating overdue notifications...");
+    console.log("Generating in-app notifications...");
     const { notificationsCreated, errors: notificationErrors } =
       await generateOverdueNotifications(supabase);
 
     if (notificationErrors.length > 0) {
-      console.error("Notification generation errors:", notificationErrors);
+      console.error("In-app notification generation errors:", notificationErrors);
     }
 
-    console.log(`Created ${notificationsCreated} notifications`);
+    console.log(`Created ${notificationsCreated} in-app notifications`);
+
+    // Send email notifications via send-notifications Edge Function
+    // This processes notification rules and sends emails to stakeholders
+    // Errors in email sending don't fail the overall job
+    console.log("Sending email notifications...");
+    const { emailsSent, errors: emailErrors } =
+      await sendEmailNotifications(newlyOverdueIds);
+
+    if (emailErrors.length > 0) {
+      console.error("Email notification errors:", emailErrors);
+    }
+
+    console.log(`Sent ${emailsSent} email notifications`);
 
     // Update jobs_log with success status and detailed results
     // Metadata includes per-agency breakdown for monitoring and debugging
@@ -341,6 +432,8 @@ serve(async (req) => {
           total_agencies_processed: results.length,
           notifications_created: notificationsCreated,
           notification_errors: notificationErrors.length > 0 ? notificationErrors : undefined,
+          emails_sent: emailsSent,
+          email_errors: emailErrors.length > 0 ? emailErrors : undefined,
         },
       })
       .eq("id", jobLog.id);
@@ -350,8 +443,10 @@ serve(async (req) => {
       success: true,
       recordsUpdated: totalUpdated,
       notificationsCreated,
+      emailsSent,
       agencies: results,
       notificationErrors: notificationErrors.length > 0 ? notificationErrors : undefined,
+      emailErrors: emailErrors.length > 0 ? emailErrors : undefined,
     };
 
     return new Response(JSON.stringify(response), {
@@ -381,6 +476,7 @@ serve(async (req) => {
         success: false,
         recordsUpdated: 0,
         notificationsCreated: 0,
+        emailsSent: 0,
         agencies: [],
         error: error.message,
       }),
