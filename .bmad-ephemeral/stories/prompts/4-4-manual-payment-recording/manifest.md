@@ -129,10 +129,28 @@
     - Mark as Paid button remains available for partial payments to record additional payments
 
 ### Task 7: Audit Logging
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Verified existing audit_logs table (created in migration 001_agency_domain/006_email_verification.sql)
+  - Table already includes all required fields: id, agency_id, user_id, entity_type, entity_id, action, old_values, new_values, metadata, ip_address, user_agent, created_at
+  - Created audit logging utility function (packages/database/src/audit-logger.ts):
+    - logAudit(): Generic function for logging any audit entry with old/new values
+    - logPaymentAudit(): Convenience function specifically for payment recording
+    - Follows same non-blocking pattern as activity logger (failures don't block operations)
+    - Includes comprehensive TypeScript types and JSDoc documentation
+  - Exported audit logger from packages/database/src/index.ts
+  - Integrated audit logging into payment recording API (apps/payments/app/api/installments/[id]/record-payment/route.ts):
+    - Added logPaymentAudit import and call after activity logging
+    - Logs old_values (status, paid_date, paid_amount, payment_notes) before update
+    - Logs new_values (status, paid_date, paid_amount, payment_notes) after update
+    - Includes metadata (installment_number, payment_plan_id, payment_plan_completed, earned_commission)
+    - Captures security context (IP address from x-forwarded-for, user agent)
+  - Updated test file to mock audit logger and verify it's called with correct parameters
+  - Audit logging is non-blocking: failures are logged to console but don't prevent payment recording
+  - Satisfies AC 7: All payment recordings are logged with user context, old/new values, and timestamp
+  - Note: No migration needed - audit_logs table already exists with all required schema
 
 ### Task 8: Commission Recalculation
 - Status: Not Started
