@@ -20,6 +20,7 @@ import { requireRole } from '@pleeno/auth'
 import { handleApiError, ForbiddenError, ValidationError } from '@pleeno/utils'
 import { calculateExpectedCommission } from '@pleeno/utils'
 import { exportAsCSVStream } from '@pleeno/utils/csv-formatter'
+import { logReportExport } from '@pleeno/database/activity-logger'
 import type {
   PaymentPlanReportRow,
   ContractStatus,
@@ -451,6 +452,21 @@ export async function GET(request: NextRequest) {
     if (totalRows > STREAMING_THRESHOLD) {
       console.log(`Using streaming export for ${totalRows} rows`)
 
+      // Log export activity asynchronously (don't await to avoid blocking response)
+      logReportExport({
+        client: supabase,
+        agencyId: userAgencyId,
+        userId: user.id,
+        reportType: 'payment_plans',
+        format: 'csv',
+        rowCount: totalRows,
+        filters,
+        columns,
+      }).catch((error) => {
+        console.error('Failed to log export activity:', error)
+        // Swallow error - logging failures shouldn't break export
+      })
+
       // Use streaming approach for large datasets
       return exportAsCSVStream(
         async function* () {
@@ -547,6 +563,21 @@ export async function GET(request: NextRequest) {
 
       // Transform the data
       const filteredData = transformPaymentPlansData(paymentPlans, filters)
+
+      // Log export activity asynchronously (don't await to avoid blocking response)
+      logReportExport({
+        client: supabase,
+        agencyId: userAgencyId,
+        userId: user.id,
+        reportType: 'payment_plans',
+        format: 'csv',
+        rowCount: filteredData.length,
+        filters,
+        columns,
+      }).catch((error) => {
+        console.error('Failed to log export activity:', error)
+        // Swallow error - logging failures shouldn't break export
+      })
 
       // Export as CSV
       return exportAsCSV(filteredData, columns)

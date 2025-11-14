@@ -83,6 +83,18 @@ export function ExportButtons({ filters, columns, reportData }: ExportButtonsPro
       // Alternative: Use fetch + blob for better error handling
       window.location.href = url.toString()
 
+      // NOTE: Activity logging is handled server-side in the API route
+      // (apps/reports/app/api/reports/payment-plans/export/route.ts)
+      // Server-side logging is more reliable because:
+      // 1. It logs after successful data fetch from database
+      // 2. It has access to accurate row counts and applied filters
+      // 3. It runs in the same transaction as the export
+      // 4. window.location.href doesn't provide success/failure feedback for client-side logging
+      //
+      // If implementing client-side backup logging is required, consider switching to:
+      // - fetch() + blob download for better error handling
+      // - Or create a separate API endpoint for logging export attempts
+
       // Show success message
       addToast({
         title: 'Export Started',
