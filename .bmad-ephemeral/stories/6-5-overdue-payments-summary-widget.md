@@ -1,6 +1,6 @@
 # Story 6.5: Overdue Payments Summary Widget
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
