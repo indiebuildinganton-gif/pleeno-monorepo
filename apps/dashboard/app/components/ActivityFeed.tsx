@@ -85,7 +85,7 @@ export function ActivityFeed() {
   if (!data || data.length === 0) return <ActivityFeedEmpty />
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="activity-feed">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Recent Activity</h2>
         {showNewBadge && (
