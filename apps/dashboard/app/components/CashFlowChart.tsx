@@ -86,6 +86,32 @@ function formatCurrencyCompact(value: number, currency: string = 'AUD'): string 
 }
 
 /**
+ * Format date range based on groupBy parameter
+ */
+function formatDateRange(dateStr: string, groupBy: string): string {
+  try {
+    const date = new Date(dateStr)
+
+    switch (groupBy) {
+      case 'day':
+        return format(date, 'MMM dd, yyyy') // "Jan 15, 2025"
+      case 'week': {
+        // Show week range (e.g., "Jan 15-21, 2025")
+        const weekEnd = new Date(date)
+        weekEnd.setDate(date.getDate() + 6)
+        return `${format(date, 'MMM dd')}-${format(weekEnd, 'dd, yyyy')}`
+      }
+      case 'month':
+        return format(date, 'MMMM yyyy') // "January 2025"
+      default:
+        return format(date, 'MMM dd, yyyy')
+    }
+  } catch {
+    return dateStr
+  }
+}
+
+/**
  * Custom Tooltip Component
  */
 interface TooltipPayload {
@@ -100,45 +126,103 @@ interface CustomTooltipProps {
   payload?: TooltipPayload[]
   label?: string
   currency?: string
+  groupBy?: 'day' | 'week' | 'month'
 }
 
-function CustomTooltip({ active, payload, label, currency = 'AUD' }: CustomTooltipProps) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  currency = 'AUD',
+  groupBy = 'week',
+}: CustomTooltipProps) {
   if (!active || !payload || payload.length === 0) {
     return null
   }
 
   const data = payload[0].payload
-  const paidAmount = data.paid_amount
-  const expectedAmount = data.expected_amount
-  const totalAmount = paidAmount + expectedAmount
-  const installmentCount = data.installment_count
+  const { paid_amount, expected_amount, installment_count, installments, date_bucket } = data
+
+  const totalAmount = paid_amount + expected_amount
+
+  // Handle empty bucket
+  if (!installments || installments.length === 0) {
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+        <div className="font-semibold text-gray-900 mb-1">
+          {formatDateRange(date_bucket, groupBy)}
+        </div>
+        <div className="text-sm text-gray-600">No installments in this period</div>
+      </div>
+    )
+  }
+
+  // Get top 5 students
+  const displayInstallments = installments.slice(0, 5)
+  const remainingCount = installments.length - 5
 
   return (
-    <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-      <p className="font-semibold mb-2">{label}</p>
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-600" />
-          <span className="text-sm">
-            <span className="font-medium">Paid: </span>
-            {formatCurrency(paidAmount, currency, 'en-AU')}
+    <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-sm">
+      {/* Date Range */}
+      <div className="font-semibold text-gray-900 mb-2">
+        {formatDateRange(date_bucket, groupBy)}
+      </div>
+
+      {/* Amounts */}
+      <div className="space-y-1 mb-3 text-sm">
+        <div className="flex justify-between">
+          <span className="text-gray-600">Total Expected:</span>
+          <span className="font-medium text-blue-600">
+            {formatCurrency(expected_amount, currency, 'en-AU')}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-blue-500" />
-          <span className="text-sm">
-            <span className="font-medium">Expected: </span>
-            {formatCurrency(expectedAmount, currency, 'en-AU')}
+        <div className="flex justify-between">
+          <span className="text-gray-600">Total Paid:</span>
+          <span className="font-medium text-green-600">
+            {formatCurrency(paid_amount, currency, 'en-AU')}
           </span>
         </div>
-        <div className="text-sm pt-1 border-t border-gray-100">
-          <span className="font-medium">Total: </span>
-          {formatCurrency(totalAmount, currency, 'en-AU')}
-        </div>
-        <div className="text-xs text-gray-500 pt-1">
-          {installmentCount} installment{installmentCount !== 1 ? 's' : ''}
+        <div className="flex justify-between border-t pt-1">
+          <span className="text-gray-900 font-medium">Total for Period:</span>
+          <span className="font-bold text-gray-900">
+            {formatCurrency(totalAmount, currency, 'en-AU')}
+          </span>
         </div>
       </div>
+
+      {/* Installment Count */}
+      <div className="text-sm text-gray-600 mb-2">
+        {installment_count} {installment_count === 1 ? 'installment' : 'installments'}
+      </div>
+
+      {/* Student List */}
+      {displayInstallments.length > 0 && (
+        <div className="border-t pt-2">
+          <div className="text-xs font-medium text-gray-700 mb-1">Students:</div>
+          <div className="space-y-1">
+            {displayInstallments.map((inst, idx) => (
+              <div key={idx} className="text-xs text-gray-600 flex justify-between gap-2">
+                <span className="truncate">{inst.student_name}</span>
+                <span className="whitespace-nowrap">
+                  {formatCurrency(inst.amount, currency, 'en-AU')}
+                  <span
+                    className={`ml-1 ${
+                      inst.status === 'paid' ? 'text-green-600' : 'text-blue-600'
+                    }`}
+                  >
+                    ({inst.status})
+                  </span>
+                </span>
+              </div>
+            ))}
+            {remainingCount > 0 && (
+              <div className="text-xs text-gray-500 italic">
+                ...and {remainingCount} more
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -243,7 +327,7 @@ export function CashFlowChart({ groupBy = 'week', days = 90 }: CashFlowChartProp
               stroke="#6b7280"
               style={{ fontSize: '12px' }}
             />
-            <Tooltip content={<CustomTooltip currency={currency} />} />
+            <Tooltip content={<CustomTooltip currency={currency} groupBy={groupBy} />} />
             <Legend
               wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
               iconType="rect"
