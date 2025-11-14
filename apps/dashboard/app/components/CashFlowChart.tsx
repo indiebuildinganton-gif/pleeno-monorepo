@@ -9,6 +9,7 @@
  * Task 2: Create CashFlowChart Component
  * Task 4: Add View Toggle Controls
  * Task 5: Implement Real-Time Updates
+ * Task 6: Add Widget Header and Controls
  */
 
 'use client'
@@ -25,10 +26,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { format } from 'date-fns'
+import { format, addDays } from 'date-fns'
 import { formatCurrency } from '@pleeno/utils'
-import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { Button } from '@pleeno/ui'
+import { RefreshCw } from 'lucide-react'
 import { useDashboardStore, type CashFlowView } from '@pleeno/stores'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@pleeno/auth'
@@ -233,48 +234,6 @@ function CustomTooltip({
   )
 }
 
-/**
- * Loading Skeleton Component
- */
-function ChartSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="h-6 w-56 bg-gray-200 rounded animate-pulse" />
-      </CardHeader>
-      <CardContent>
-        <div className="w-full h-[400px] bg-gray-100 rounded animate-pulse flex items-center justify-center">
-          <span className="text-gray-400">Loading chart...</span>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-/**
- * Error State Component
- */
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <Card className="border-red-200 bg-red-50">
-      <CardHeader>
-        <CardTitle className="text-red-800 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          Failed to load cash flow projection
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-red-700 mb-4">
-          There was an error loading the cash flow chart. Please try again.
-        </p>
-        <Button onClick={onRetry} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Retry
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
 
 /**
  * Main CashFlowChart Component
@@ -337,65 +296,133 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
     }
   }, [user?.app_metadata?.agency_id, queryClient])
 
-  if (isLoading) {
-    return <ChartSkeleton />
-  }
-
-  if (isError || !data?.data) {
-    return <ErrorState onRetry={() => refetch()} />
-  }
-
-  const chartData = data.data
+  const chartData = data?.data || []
   const currency = 'AUD' // TODO: Get from agency settings
 
+  // Calculate summary metrics
+  const totalExpected = chartData.reduce((sum, d) => sum + d.expected_amount, 0)
+  const totalPaid = chartData.reduce((sum, d) => sum + d.paid_amount, 0)
+  const netProjection = totalExpected + totalPaid
+
+  // Calculate date range
+  const today = new Date()
+  const endDate = addDays(today, days)
+  const dateRange = `${format(today, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`
+
   return (
-    <Card className="relative">
-      {/* Loading Indicator - Top-right corner of card */}
-      {isFetching && !isLoading && (
-        <div className="absolute top-4 right-4 z-10">
-          <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-lg shadow-sm border border-blue-200">
-            <div className="animate-spin h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full" />
-            <span className="text-xs text-blue-600 font-medium">Updating...</span>
+    <div className="w-full bg-white rounded-lg shadow-lg p-6">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">
+            Cash Flow Projection (Next {days} Days)
+          </h2>
+          <p className="text-sm text-gray-600 mt-1">{dateRange}</p>
+        </div>
+
+        {/* Refresh Button */}
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="p-2 rounded-lg hover:bg-gray-100 disabled:opacity-50 transition-colors self-start"
+          title="Refresh data"
+        >
+          <RefreshCw
+            className={`w-5 h-5 text-gray-600 ${isFetching ? 'animate-spin' : ''}`}
+          />
+        </button>
+      </div>
+
+      {/* Summary Metrics */}
+      {!isLoading && !isError && chartData.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="text-sm text-blue-600 font-medium mb-1">Total Expected</div>
+            <div className="text-2xl font-bold text-blue-900">
+              {formatCurrency(totalExpected, currency, 'en-AU')}
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <div className="text-sm text-green-600 font-medium mb-1">Total Paid</div>
+            <div className="text-2xl font-bold text-green-900">
+              {formatCurrency(totalPaid, currency, 'en-AU')}
+            </div>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4">
+            <div className="text-sm text-purple-600 font-medium mb-1">Net Projection</div>
+            <div className="text-2xl font-bold text-purple-900">
+              {formatCurrency(netProjection, currency, 'en-AU')}
+            </div>
           </div>
         </div>
       )}
 
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle>Cash Flow Projection</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Projected cash flow for the next {days} days showing paid and expected payments
-            </p>
-          </div>
+      {/* View Toggle Buttons */}
+      <div className="flex flex-col sm:flex-row justify-end mb-4 gap-2">
+        <Button
+          variant={cashFlowView === 'daily' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setCashFlowView('daily')}
+        >
+          Daily
+        </Button>
+        <Button
+          variant={cashFlowView === 'weekly' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setCashFlowView('weekly')}
+        >
+          Weekly
+        </Button>
+        <Button
+          variant={cashFlowView === 'monthly' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setCashFlowView('monthly')}
+        >
+          Monthly
+        </Button>
+      </div>
 
-          {/* View Toggle Buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant={cashFlowView === 'daily' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCashFlowView('daily')}
-            >
-              Daily
-            </Button>
-            <Button
-              variant={cashFlowView === 'weekly' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCashFlowView('weekly')}
-            >
-              Weekly
-            </Button>
-            <Button
-              variant={cashFlowView === 'monthly' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setCashFlowView('monthly')}
-            >
-              Monthly
-            </Button>
-          </div>
+      {/* Loading State */}
+      {isLoading && (
+        <div className="w-full h-[400px] animate-pulse bg-gray-200 rounded-lg flex items-center justify-center">
+          <span className="text-gray-500">Loading chart...</span>
         </div>
-      </CardHeader>
-      <CardContent>
+      )}
+
+      {/* Error State */}
+      {isError && (
+        <div className="w-full p-8 text-center">
+          <p className="text-red-600 mb-4">Unable to load cash flow projection</p>
+          <Button onClick={() => refetch()} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !isError && chartData.length === 0 && (
+        <div className="w-full p-12 text-center">
+          <div className="text-gray-400 mb-4">
+            <svg
+              className="w-16 h-16 mx-auto"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" />
+            </svg>
+          </div>
+          <p className="text-gray-600 mb-4">
+            No upcoming payments scheduled in the next {days} days
+          </p>
+          <p className="text-sm text-gray-500">
+            Create payment plans to see cash flow projections
+          </p>
+        </div>
+      )}
+
+      {/* Chart */}
+      {!isLoading && !isError && chartData.length > 0 && (
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -435,19 +462,7 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
             />
           </BarChart>
         </ResponsiveContainer>
-
-        {/* Color Legend */}
-        <div className="flex items-center justify-center gap-6 mt-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-green-600" />
-            <span className="text-gray-600">Paid (Already Received)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-blue-500" />
-            <span className="text-gray-600">Expected (Pending Installments)</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   )
 }

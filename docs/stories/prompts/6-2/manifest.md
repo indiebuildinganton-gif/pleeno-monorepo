@@ -82,10 +82,28 @@
   - Payment mutation integration: No existing payment mutations found, but Realtime subscription handles all installment changes from any source
 
 ### Task 6: Add Widget Header and Controls
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully transformed component into complete dashboard widget with:
+  - Widget container with white background, rounded corners, shadow-lg, and padding
+  - Header section with title "Cash Flow Projection (Next {days} Days)" and date range indicator
+  - Refresh button with spinning icon animation during refetch (using RefreshCw from lucide-react)
+  - Summary metrics section with three cards:
+    - Total Expected: Blue background (#10b981), displays sum of expected_amount
+    - Total Paid: Green background (#3b82f6), displays sum of paid_amount
+    - Net Projection: Purple background, displays total expected + paid
+  - View toggle buttons positioned on right side (Daily/Weekly/Monthly)
+  - Responsive layout using Tailwind CSS:
+    - flex-col sm:flex-row for header section
+    - grid-cols-1 sm:grid-cols-3 for summary metrics
+    - Buttons stack on mobile, inline on desktop
+  - Empty state with SVG icon and helpful message when no data
+  - Loading state with animated skeleton (bg-gray-200)
+  - Error state with retry button
+  - All currency formatted using formatCurrency from @pleeno/utils
+  - Removed Card/CardHeader/CardContent components, using semantic div structure instead
+  - Summary metrics only show when data is available (chartData.length > 0)
 
 ### Task 7: Integrate into Dashboard Page
 - Status: Not Started
