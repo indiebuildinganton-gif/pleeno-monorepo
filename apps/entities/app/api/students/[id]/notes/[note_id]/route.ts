@@ -15,6 +15,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { NoteUpdateSchema } from '@pleeno/validations'
@@ -132,16 +133,20 @@ export async function PATCH(
 
     // Log changes to audit trail with old and new content
     if (existingNote.content !== updatedNote.content) {
-      await supabase.from('audit_logs').insert({
-        entity_type: 'student_note',
-        entity_id: noteId,
-        user_id: user.id,
+      await logAudit(supabase, {
+        userId: user.id,
+        agencyId: userAgencyId,
+        entityType: 'student_note',
+        entityId: noteId,
         action: 'update',
-        changes_json: {
-          content: {
-            old: existingNote.content,
-            new: updatedNote.content,
-          },
+        oldValues: {
+          content: existingNote.content,
+        },
+        newValues: {
+          content: updatedNote.content,
+        },
+        metadata: {
+          student_id: studentId,
         },
       })
     }
@@ -218,14 +223,17 @@ export async function DELETE(
 
     // Log deletion before removing the record
     // This creates an immutable audit trail of the deletion
-    await supabase.from('audit_logs').insert({
-      entity_type: 'student_note',
-      entity_id: noteId,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'student_note',
+      entityId: noteId,
       action: 'delete',
-      changes_json: {
-        student_id: studentId,
+      oldValues: {
         content: note.content,
+      },
+      metadata: {
+        student_id: studentId,
       },
     })
 

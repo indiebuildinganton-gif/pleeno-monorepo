@@ -14,6 +14,7 @@ import {
   createSuccessResponse,
   ValidationError,
   ForbiddenError,
+  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database'
@@ -284,17 +285,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Log student creation to audit trail
-    await supabase.from('audit_logs').insert({
-      entity_type: 'student',
-      entity_id: student.id,
-      user_id: user.id,
+    await logAudit(supabase, {
+      userId: user.id,
+      agencyId: userAgencyId,
+      entityType: 'student',
+      entityId: student.id,
       action: 'create',
-      changes_json: {
+      newValues: {
         full_name: student.full_name,
         passport_number: student.passport_number,
         email: student.email,
         phone: student.phone,
         visa_status: student.visa_status,
+        date_of_birth: student.date_of_birth,
+        nationality: student.nationality,
       },
     })
 
