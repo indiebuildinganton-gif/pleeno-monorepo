@@ -46,14 +46,21 @@ export default async function CollegeDetailPage({
     redirect('/auth/login')
   }
 
-  // Get user's agency_id and role for RLS and admin checks
+  // Get user's agency_id from JWT metadata
   const userAgencyId = user.app_metadata?.agency_id
-  const userRole = user.app_metadata?.role
-  const isAdmin = userRole === 'agency_admin'
 
   if (!userAgencyId) {
     redirect('/auth/login')
   }
+
+  // Check if user is admin by querying the users table
+  const { data: currentUser } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = currentUser?.role === 'agency_admin'
 
   // Fetch college data with branches
   const { data: college, error: collegeError } = await supabase

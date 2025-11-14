@@ -14,6 +14,7 @@ import {
   createSuccessResponse,
   ValidationError,
   ForbiddenError,
+  requireAdmin,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole } from '@pleeno/auth'
@@ -174,14 +175,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Create Supabase client
+    const supabase = await createServerClient()
+
     // SECURITY BOUNDARY: Require admin authentication
-    const authResult = await requireRole(request, ['agency_admin'])
+    await requireAdmin(supabase)
 
-    if (authResult instanceof NextResponse) {
-      return authResult // Return 401 or 403 error response
+    // Get authenticated user for audit logging
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new ForbiddenError('User not authenticated')
     }
-
-    const { user } = authResult
 
     // Parse and validate request body
     const body = await request.json()
@@ -201,9 +208,6 @@ export async function POST(request: NextRequest) {
     if (!userAgencyId) {
       throw new ForbiddenError('User not associated with an agency')
     }
-
-    // Create Supabase client
-    const supabase = await createServerClient()
 
     // Create college record
     // RLS policies will enforce agency_id filtering

@@ -16,6 +16,7 @@ import {
   ValidationError,
   ForbiddenError,
   NotFoundError,
+  requireAdmin,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole } from '@pleeno/auth'
@@ -190,14 +191,20 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Create Supabase client
+    const supabase = await createServerClient()
+
     // SECURITY BOUNDARY: Require admin authentication
-    const authResult = await requireRole(request, ['agency_admin'])
+    await requireAdmin(supabase)
 
-    if (authResult instanceof NextResponse) {
-      return authResult // Return 401 or 403 error response
+    // Get authenticated user for audit logging
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new ForbiddenError('User not authenticated')
     }
-
-    const { user } = authResult
 
     // Get user's agency_id from JWT metadata
     const userAgencyId = user.app_metadata?.agency_id
@@ -228,9 +235,6 @@ export async function POST(
     }
 
     const validatedData = result.data
-
-    // Create Supabase client
-    const supabase = await createServerClient()
 
     // First, verify that the college exists and belongs to the user's agency
     const { data: college, error: collegeError } = await supabase
