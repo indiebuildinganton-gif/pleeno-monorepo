@@ -23,8 +23,9 @@
 - Status: Completed
 - Started: 2025-11-13
 - Completed: 2025-11-13
+- Updated: 2025-11-14 (Fixed API endpoint path)
 - Notes: Successfully created React component at apps/dashboard/app/components/CashFlowChart.tsx with:
-  - TanStack Query for data fetching from /api/dashboard/cash-flow-projection
+  - TanStack Query for data fetching from /api/cash-flow-projection
   - Stacked bar chart using Recharts (paid in green #10b981, expected in blue #3b82f6)
   - Responsive container with 400px height
   - Custom tooltip showing paid, expected, total amounts and installment count
@@ -34,6 +35,7 @@
   - Currency formatting using @pleeno/utils formatCurrency
   - Props: groupBy (day/week/month), days (default 90)
   - 5-minute stale time for caching
+  - Fixed: API endpoint path corrected from /api/dashboard/cash-flow-projection to /api/cash-flow-projection
 
 ### Task 3: Implement Interactive Tooltip
 - Status: Not Started
