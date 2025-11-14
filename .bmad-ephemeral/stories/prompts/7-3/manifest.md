@@ -48,7 +48,55 @@
 - Completed: 2025-11-14
 - Notes: Successfully implemented PDF export button with proper loading states and error handling. Button appears next to CSV export button and triggers PDF generation API with current filters.
 
+### Task 8: Add Export Tracking
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully implemented comprehensive activity logging for PDF exports with performance monitoring, page count tracking, and file size analytics. Enhanced existing activity logger to support PDF-specific metrics.
+
 ## Implementation Notes
+
+### Task 8 - Export Tracking (2025-11-14)
+- Enhanced activity logger utility (packages/database/src/activity-logger.ts) to support PDF-specific metrics:
+  * Added optional `pageCount` field for tracking PDF pages
+  * Added optional `durationMs` field for performance monitoring
+  * Added optional `fileSizeBytes` field for analytics
+- Updated PDF export API route (apps/reports/app/api/reports/payment-plans/pdf/route.ts):
+  * Added start time tracking at beginning of request
+  * Calculate page count based on rows per page (30 rows/page)
+  * Track total duration from start to PDF generation complete
+  * Capture file size from PDF buffer
+  * Pass all metrics to logReportExport function
+- Created database migration (supabase/migrations/004_reports_domain/003_activity_log_report_support.sql):
+  * Updated activity_log constraints to support 'report' entity type
+  * Added 'exported' action to valid actions
+- Added comprehensive test coverage:
+  * Tests for PDF-specific metadata (page count, duration, file size)
+  * Tests for optional field handling
+  * Tests for CSV exports (without PDF metrics)
+- Activity log entries include:
+  * User identification (who exported)
+  * Agency isolation (RLS enforced)
+  * Report type: 'payment_plans'
+  * Format: 'pdf'
+  * Row count: number of data rows
+  * Page count: calculated pages
+  * Duration: milliseconds taken
+  * File size: bytes
+  * Filters: applied filters (IDs only for privacy)
+  * Timestamp: when exported
+- Description format: "John Doe exported payment plans report to PDF (150 rows, 5 pages)"
+- Logging is asynchronous and non-blocking (failures don't break exports)
+- Performance metrics enable optimization insights
+- All sensitive data excluded from logs (only IDs, not names)
+
+**Key Technical Decisions:**
+- Extended existing `logReportExport` function rather than creating new logging method
+- Made PDF-specific fields optional to maintain backward compatibility with CSV exports
+- Calculate page count on server-side for accuracy
+- Track duration from request start to PDF buffer generation
+- Log after PDF generation to capture accurate metrics
+- Async logging with error handling (swallow errors to avoid breaking exports)
 
 ### Task 1 - PDF Dependencies (2025-11-14)
 - Installing @react-pdf/renderer in the reports app
@@ -103,7 +151,11 @@
 - packages/ui/src/pdf/PDFReportDocument.tsx - Main PDF document component
 - packages/ui/src/pdf/index.ts - PDF components export barrel
 - apps/reports/app/api/reports/payment-plans/pdf/route.ts - PDF export API endpoint
+- supabase/migrations/004_reports_domain/003_activity_log_report_support.sql - Database migration for report entity type and exported action
 
 ### Modified:
 - packages/ui/src/index.ts - Added PDF components export
 - apps/reports/app/components/ExportButtons.tsx - Implemented PDF export button handler
+- packages/database/src/activity-logger.ts - Enhanced with PDF-specific metrics (pageCount, durationMs, fileSizeBytes)
+- packages/database/src/__tests__/activity-logger.test.ts - Added tests for PDF-specific metrics
+- apps/reports/app/api/reports/payment-plans/pdf/route.ts - Added performance tracking and activity logging
