@@ -90,12 +90,9 @@ describe('GET /api/commission-by-college', () => {
         NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       )
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(401)
@@ -117,12 +114,9 @@ describe('GET /api/commission-by-college', () => {
         role: 'agency_admin',
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(403)
@@ -161,12 +155,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -207,12 +198,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -309,12 +297,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -324,9 +309,7 @@ describe('GET /api/commission-by-college', () => {
       expect(data.data).toHaveLength(2)
 
       // Check University of Sydney
-      const sydney = data.data.find(
-        (item: any) => item.college_name === 'University of Sydney'
-      )
+      const sydney = data.data.find((item: any) => item.college_name === 'University of Sydney')
       expect(sydney).toBeDefined()
       expect(sydney.branch_name).toBe('Sydney Campus')
       expect(sydney.branch_city).toBe('Sydney')
@@ -411,12 +394,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -481,12 +461,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -586,12 +563,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -675,12 +649,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -741,12 +712,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -827,12 +795,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -1022,12 +987,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -1316,12 +1278,9 @@ describe('GET /api/commission-by-college', () => {
     })
 
     it('returns correct response structure', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -1333,12 +1292,9 @@ describe('GET /api/commission-by-college', () => {
     })
 
     it('returns empty array when no commission data', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
@@ -1355,6 +1311,7 @@ describe('GET /api/commission-by-college', () => {
         role: 'agency_admin',
       })
 
+      // Mock agency fetch
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
@@ -1388,6 +1345,7 @@ describe('GET /api/commission-by-college', () => {
         },
       ]
 
+      // Mock payment plans fetch
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
@@ -1397,6 +1355,7 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
+      // Mock installments fetch
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           in: vi.fn().mockReturnValue({
@@ -1414,17 +1373,15 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(200)
 
       const data = await response.json()
+      expect(data.data).toHaveLength(1)
       const sydney = data.data[0]
 
       // Check that values are rounded to 2 decimal places
@@ -1437,14 +1394,15 @@ describe('GET /api/commission-by-college', () => {
   })
 
   describe('Database Errors', () => {
-    beforeEach(() => {
+    it('handles agency fetch error', async () => {
+      vi.clearAllMocks()
+
       vi.mocked(requireRole).mockResolvedValue({
         user: mockUser,
         role: 'agency_admin',
       })
-    })
 
-    it('handles agency fetch error', async () => {
+      // Mock agency fetch with error
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
@@ -1456,12 +1414,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(500)
@@ -1471,6 +1426,14 @@ describe('GET /api/commission-by-college', () => {
     })
 
     it('handles payment plans query error', async () => {
+      vi.clearAllMocks()
+
+      vi.mocked(requireRole).mockResolvedValue({
+        user: mockUser,
+        role: 'agency_admin',
+      })
+
+      // Mock agency fetch success
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
@@ -1482,6 +1445,7 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
+      // Mock payment plans fetch error
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
@@ -1491,12 +1455,9 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       const response = await GET(request)
       expect(response.status).toBe(500)
@@ -1506,6 +1467,14 @@ describe('GET /api/commission-by-college', () => {
     })
 
     it('handles installments query error gracefully', async () => {
+      vi.clearAllMocks()
+
+      vi.mocked(requireRole).mockResolvedValue({
+        user: mockUser,
+        role: 'agency_admin',
+      })
+
+      // Mock agency fetch
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
@@ -1517,15 +1486,39 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
+      // Mock payment plans with some data
+      const mockPaymentPlans = [
+        {
+          id: 'plan-1',
+          total_amount: '10000.00',
+          expected_commission: '1500.00',
+          gst_inclusive: false,
+          created_at: '2025-01-15',
+          enrollments: {
+            id: 'enroll-1',
+            branches: {
+              id: 'branch-1',
+              name: 'Sydney Campus',
+              city: 'Sydney',
+              colleges: {
+                id: 'college-1',
+                name: 'University of Sydney',
+              },
+            },
+          },
+        },
+      ]
+
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockResolvedValue({
-            data: [],
+            data: mockPaymentPlans,
             error: null,
           }),
         }),
       })
 
+      // Mock installments query error
       mockFrom.mockReturnValueOnce({
         select: vi.fn().mockReturnValue({
           in: vi.fn().mockReturnValue({
@@ -1537,16 +1530,19 @@ describe('GET /api/commission-by-college', () => {
         }),
       })
 
-      const request = new NextRequest(
-        'http://localhost:3000/api/commission-by-college',
-        {
-          method: 'GET',
-        }
-      )
+      const request = new NextRequest('http://localhost:3000/api/commission-by-college', {
+        method: 'GET',
+      })
 
       // Should handle installments error gracefully (logged but not thrown)
       const response = await GET(request)
       expect(response.status).toBe(200)
+
+      const data = await response.json()
+      expect(data.success).toBe(true)
+      // Should return commission data without installments data
+      expect(data.data).toHaveLength(1)
+      expect(data.data[0].total_earned_commission).toBe(0) // No installments = no earned commission
     })
   })
 })
