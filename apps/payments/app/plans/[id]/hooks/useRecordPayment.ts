@@ -200,6 +200,13 @@ export function useRecordPayment() {
       queryClient.invalidateQueries({ queryKey: ['payment-plans'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard', 'payment-status'] })
 
+      // Invalidate dashboard widget queries (Task 5: Dashboard Widget Updates)
+      // These widgets display payment data and need to refetch when payments are recorded
+      queryClient.invalidateQueries({ queryKey: ['payment-status-summary'] }) // PaymentStatusWidget
+      queryClient.invalidateQueries({ queryKey: ['overdue-payments'] }) // OverduePaymentsWidget
+      queryClient.invalidateQueries({ queryKey: ['commission-breakdown'] }) // CommissionBreakdownWidget
+      queryClient.invalidateQueries({ queryKey: ['cash-flow-projection'] }) // CashFlowChart
+
       // Show success toast notification
       addToast({
         title: 'Payment recorded successfully',
