@@ -14,6 +14,7 @@ import { Button } from '@pleeno/ui'
 import { Plus, RefreshCw } from 'lucide-react'
 import { PaymentPlansList } from './components/PaymentPlansList'
 import { PaymentPlansFilterPanel } from './components/PaymentPlansFilterPanel'
+import { PaymentPlansSearchBar } from './components/PaymentPlansSearchBar'
 import { Suspense } from 'react'
 
 /**
@@ -62,7 +63,10 @@ export default async function PaymentPlansPage() {
           <PaymentPlansFilterPanel />
         </Suspense>
 
-        {/* TODO: Search Bar will be added in Task 5 */}
+        {/* Search Bar */}
+        <Suspense fallback={<div className="animate-pulse h-10 bg-gray-200 rounded-lg" />}>
+          <PaymentPlansSearchBar />
+        </Suspense>
 
         {/* Payment Plans List */}
         <Suspense fallback={<PaymentPlansListFallback />}>
