@@ -8,11 +8,13 @@
  * Story 6.2: Cash Flow Projection Chart
  * Task 2: Create CashFlowChart Component
  * Task 4: Add View Toggle Controls
+ * Task 5: Implement Real-Time Updates
  */
 
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   BarChart,
   Bar,
@@ -28,6 +30,8 @@ import { formatCurrency } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useDashboardStore, type CashFlowView } from '@pleeno/stores'
+import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@pleeno/auth'
 
 /**
  * Cash Flow Data Type
@@ -282,6 +286,8 @@ interface CashFlowChartProps {
 export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
   // Get view selection from Zustand store
   const { cashFlowView, setCashFlowView } = useDashboardStore()
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   const { data, isLoading, isError, isFetching, refetch } = useQuery<CashFlowResponse>({
     queryKey: ['cash-flow-projection', cashFlowView, days],
@@ -295,7 +301,41 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
       return res.json()
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchInterval: 5 * 60 * 1000, // Background refetch every 5 minutes
   })
+
+  // Set up Supabase Realtime subscription for installments table changes
+  useEffect(() => {
+    const agencyId = user?.app_metadata?.agency_id
+    if (!agencyId) return
+
+    const supabase = createClient()
+
+    // Subscribe to installments table changes for this agency
+    const channel = supabase
+      .channel('cash-flow-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'installments',
+          filter: `agency_id=eq.${agencyId}`,
+        },
+        (payload) => {
+          console.log('Installment changed:', payload)
+          // Invalidate query to trigger refetch
+          queryClient.invalidateQueries({ queryKey: ['cash-flow-projection'] })
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user?.app_metadata?.agency_id, queryClient])
 
   if (isLoading) {
     return <ChartSkeleton />
@@ -309,7 +349,17 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
   const currency = 'AUD' // TODO: Get from agency settings
 
   return (
-    <Card>
+    <Card className="relative">
+      {/* Loading Indicator - Top-right corner of card */}
+      {isFetching && !isLoading && (
+        <div className="absolute top-4 right-4 z-10">
+          <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-lg shadow-sm border border-blue-200">
+            <div className="animate-spin h-3 w-3 border-2 border-blue-600 border-t-transparent rounded-full" />
+            <span className="text-xs text-blue-600 font-medium">Updating...</span>
+          </div>
+        </div>
+      )}
+
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
@@ -346,12 +396,6 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Loading indicator during refetch */}
-        {isFetching && !isLoading && (
-          <div className="absolute top-2 right-2">
-            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
-          </div>
-        )}
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
