@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import InvitationEmail from '../../../emails/invitation'
 import StudentImportNotification from '../../../emails/student-import-notification'
+import PaymentReminderEmail from '../../../emails/payment-reminder'
 
 // Initialize Resend with API key from environment variable
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -351,5 +352,152 @@ export async function sendStudentImportNotification({
     throw new Error(
       `Failed to send student import notification to ${to}: ${error instanceof Error ? error.message : 'Unknown error'}`
     )
+  }
+}
+
+/**
+ * Interface for sending payment reminder emails to students
+ */
+interface SendPaymentReminderEmailParams {
+  to: string
+  studentName: string
+  amount: number
+  dueDate: string
+  paymentInstructions: string
+  agencyName: string
+  agencyContactEmail?: string
+  agencyContactPhone?: string
+}
+
+/**
+ * Result of sending a payment reminder email
+ */
+interface SendPaymentReminderEmailResult {
+  success: boolean
+  messageId?: string
+  error?: string
+}
+
+/**
+ * Sends a payment reminder email to a student
+ * Sent 36 hours before payment due date as part of automated notification system
+ *
+ * @param params - The email parameters
+ * @param params.to - Student email address
+ * @param params.studentName - Student's full name
+ * @param params.amount - Payment amount due
+ * @param params.dueDate - Formatted due date string (e.g., "January 15, 2025")
+ * @param params.paymentInstructions - Instructions for how to make payment
+ * @param params.agencyName - Name of the agency
+ * @param params.agencyContactEmail - Optional agency contact email for support
+ * @param params.agencyContactPhone - Optional agency contact phone for support
+ * @returns Promise resolving to send result with success status and message ID or error
+ *
+ * @example
+ * ```typescript
+ * const result = await sendPaymentReminderEmail({
+ *   to: 'student@example.com',
+ *   studentName: 'John Doe',
+ *   amount: 1500.00,
+ *   dueDate: 'January 15, 2025',
+ *   paymentInstructions: 'Please transfer to account: 123-456-789',
+ *   agencyName: 'Education Agency Inc',
+ *   agencyContactEmail: 'support@agency.com',
+ *   agencyContactPhone: '+61 7 1234 5678'
+ * })
+ * ```
+ */
+export async function sendPaymentReminderEmail(
+  params: SendPaymentReminderEmailParams
+): Promise<SendPaymentReminderEmailResult> {
+  const {
+    to,
+    studentName,
+    amount,
+    dueDate,
+    paymentInstructions,
+    agencyName,
+    agencyContactEmail,
+    agencyContactPhone,
+  } = params
+
+  // Validate required environment variables
+  if (!process.env.RESEND_API_KEY) {
+    const errorMsg = 'RESEND_API_KEY environment variable is not set. Email sending is disabled.'
+    console.error(errorMsg)
+    return {
+      success: false,
+      error: errorMsg,
+    }
+  }
+
+  try {
+    // Send email via Resend API
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'Pleeno <noreply@pleeno.com>',
+      to,
+      subject: `Payment Reminder: $${amount.toFixed(2)} due on ${dueDate}`,
+      react: PaymentReminderEmail({
+        studentName,
+        amount,
+        dueDate,
+        paymentInstructions,
+        agencyName,
+        agencyContactEmail,
+        agencyContactPhone,
+      }),
+    })
+
+    if (error) {
+      const errorMsg = `Failed to send payment reminder email: ${error.message}`
+      console.error(errorMsg, {
+        to,
+        studentName,
+        amount,
+        dueDate,
+      })
+      return {
+        success: false,
+        error: errorMsg,
+      }
+    }
+
+    if (!data?.id) {
+      const errorMsg = 'Email sent but no ID returned from Resend'
+      console.error(errorMsg)
+      return {
+        success: false,
+        error: errorMsg,
+      }
+    }
+
+    console.log('Payment reminder email sent successfully', {
+      messageId: data.id,
+      to,
+      studentName,
+      amount,
+      dueDate,
+    })
+
+    return {
+      success: true,
+      messageId: data.id,
+    }
+  } catch (error) {
+    // Log error for debugging
+    const errorMsg =
+      error instanceof Error ? error.message : 'Unknown error sending payment reminder'
+    console.error('Error sending payment reminder email:', {
+      to,
+      studentName,
+      amount,
+      dueDate,
+      error: errorMsg,
+    })
+
+    return {
+      success: false,
+      error: errorMsg,
+    }
   }
 }

@@ -19,10 +19,10 @@
 - Notes: Successfully implemented all UI components for due soon badges, dashboard widget, and payment plan filters with comprehensive test coverage.
 
 ### Task 3: Create student notification system
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully implemented automated student notification system with database schema for tracking notifications, scheduled job execution via pg_cron, React email template, Resend API integration, and comprehensive unit tests.
 
 ### Task 4: Testing and validation
 - Status: Not Started
@@ -102,6 +102,17 @@
 7. `apps/dashboard/app/components/__tests__/DueSoonWidget.test.tsx` - DueSoonWidget component tests
 8. `apps/payments/app/plans/components/__tests__/InstallmentStatusBadge.test.tsx` - InstallmentStatusBadge component tests
 
+### Created Files (Task 3):
+1. `supabase/migrations/002_entities_domain/010_add_student_contact_preferences.sql` - Migration to add contact_preference to students
+2. `supabase/migrations/004_notifications_domain/003_student_notifications_schema.sql` - Student notifications table and RLS
+3. `supabase/migrations/004_notifications_domain/004_schedule_due_soon_notifications.sql` - pg_cron scheduled job
+4. `emails/payment-reminder.tsx` - React Email template for payment reminders
+5. `supabase/functions/send-due-soon-notifications/index.ts` - Edge Function for sending notifications
+6. `packages/utils/src/__tests__/email-helpers.test.ts` - Unit tests for email helper functions
+
+### Modified Files (Task 3):
+1. `packages/utils/src/email-helpers.ts` - Added sendPaymentReminderEmail function
+
 ### Task 2 Details
 
 **UI Components:**
@@ -157,10 +168,128 @@
 - Blue (blue variant): Pending status - bg-blue-100, text-blue-800
 - Gray (gray variant): Draft/Cancelled status - bg-gray-100, text-gray-800
 
+### Task 3 Details
+
+**Database Migrations:**
+
+1. **Student Contact Preferences** (`supabase/migrations/002_entities_domain/010_add_student_contact_preferences.sql`):
+   - Added `contact_preference` column to students table
+   - CHECK constraint: values must be 'email', 'sms', or 'both'
+   - Default value: 'email'
+   - Created index for notification queries
+
+2. **Student Notifications Table** (`supabase/migrations/004_notifications_domain/003_student_notifications_schema.sql`):
+   - Created `student_notifications` table with fields: id, student_id, installment_id, agency_id, notification_type, sent_at, delivery_status, error_message
+   - UNIQUE constraint on (installment_id, notification_type) to prevent duplicate notifications
+   - notification_type CHECK constraint: 'due_soon' or 'overdue'
+   - delivery_status CHECK constraint: 'sent', 'failed', or 'pending'
+   - Comprehensive RLS policies for agency isolation and service role access
+   - Indexes for agency_id, student_id, installment_id, notification_type, and failed status
+
+3. **pg_cron Scheduled Job** (`supabase/migrations/004_notifications_domain/004_schedule_due_soon_notifications.sql`):
+   - Scheduled job to run daily at 7:00 PM UTC (5:00 AM Brisbane next day)
+   - Job name: 'send-due-soon-notifications'
+   - Calls Supabase Edge Function via HTTP POST with API key authentication
+   - Timing ensures 36-hour advance notice before 5:00 PM cutoff on due date
+
+**Email Template:**
+
+**Payment Reminder Email** (`emails/payment-reminder.tsx`):
+- React Email component with professional styling
+- Displays: student name, amount due (highlighted in amber), due date, payment instructions
+- Optional agency contact information (email and phone)
+- Responsive design with consistent color scheme
+- Uses @react-email/components for cross-email-client compatibility
+
+**Notification Helper Functions:**
+
+**sendPaymentReminderEmail** (`packages/utils/src/email-helpers.ts`):
+- Function signature: `sendPaymentReminderEmail(params): Promise<SendPaymentReminderEmailResult>`
+- Parameters: to, studentName, amount, dueDate, paymentInstructions, agencyName, agencyContactEmail, agencyContactPhone
+- Returns: `{ success: boolean, messageId?: string, error?: string }`
+- Integrates with Resend API for email sending
+- Graceful error handling - returns error object instead of throwing
+- Validates RESEND_API_KEY environment variable
+- Uses RESEND_FROM_EMAIL or defaults to 'Pleeno <noreply@pleeno.com>'
+- Comprehensive logging for debugging and monitoring
+
+**Supabase Edge Function:**
+
+**send-due-soon-notifications** (`supabase/functions/send-due-soon-notifications/index.ts`):
+- Deno-based Edge Function for scheduled notification sending
+- API key authentication via X-API-Key header
+- Query logic:
+  - Selects installments with status='pending' and student_due_date = CURRENT_DATE + 1 day
+  - Joins with payment_plans, enrollments, students, and agencies tables
+  - Filters by student contact preference (email or both)
+- Duplicate prevention:
+  - Checks student_notifications table for existing notification
+  - Unique constraint prevents duplicate sends at database level
+- Email sending:
+  - Generates inline HTML email template (Deno-compatible)
+  - Sends via Resend API with exponential backoff retry logic (1s, 2s, 4s)
+  - Handles transient errors (network, timeout) vs permanent errors
+- Notification logging:
+  - Logs all attempts to student_notifications table
+  - Tracks delivery_status: 'sent', 'failed', or 'pending'
+  - Stores error_message for failed notifications
+- Job logging:
+  - Creates jobs_log entry at start with status='running'
+  - Updates on completion with status='success' or 'failed'
+  - Metadata includes: installments_processed, notifications_sent, notifications_failed, errors array
+
+**Unit Tests:**
+
+**email-helpers.test.ts** (`packages/utils/src/__tests__/email-helpers.test.ts`):
+- 21 comprehensive unit tests for sendPaymentReminderEmail function
+- Test categories:
+  - Successful email sending (5 tests)
+  - Error handling (7 tests)
+  - Edge cases (9 tests)
+- Mocks Resend API and React Email template
+- Tests include:
+  - All required fields
+  - Optional agency contact information
+  - Currency formatting in subject line
+  - Default from email
+  - Missing RESEND_API_KEY error
+  - Resend API error responses
+  - Missing message ID handling
+  - Network and timeout errors
+  - Non-Error exceptions
+  - Large payment amounts
+  - Decimal amount formatting
+  - Long payment instructions
+  - Special characters and unicode in names
+
+**Key Implementation Decisions:**
+
+1. **Timezone Handling:**
+   - pg_cron job runs at 7:00 PM UTC = 5:00 AM Brisbane next day
+   - Queries installments where student_due_date = CURRENT_DATE + 1 day
+   - Provides 36-hour advance notice before 5:00 PM cutoff
+
+2. **Duplicate Prevention:**
+   - Database-level unique constraint on (installment_id, notification_type)
+   - Application-level check before sending
+   - Two-layer protection ensures no duplicate notifications
+
+3. **Error Handling:**
+   - Graceful degradation - failures don't crash the job
+   - All errors logged to student_notifications table
+   - Retry logic for transient errors only
+   - Permanent errors (bad email, etc.) logged but not retried
+
+4. **Email vs SMS:**
+   - Currently implemented email-only notifications
+   - Database schema supports SMS via contact_preference field
+   - SMS implementation can be added in future sprint
+
 ## Next Steps
 
-Task 2 completed. Ready to proceed with Task 3: Create student notification system
-- Requires implementing scheduled job for sending due soon notifications
-- Will create student_notifications table for tracking
-- Integrate with Resend API for email sending
-- See task-3-prompt.md for implementation details
+Task 3 completed. Ready to proceed with Task 4: Testing and validation
+- Run database migrations in test environment
+- Test Edge Function locally and in staging
+- Verify pg_cron scheduling
+- Test end-to-end notification flow
+- See task-4-prompt.md for testing procedures

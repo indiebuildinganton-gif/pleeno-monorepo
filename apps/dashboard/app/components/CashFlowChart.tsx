@@ -196,10 +196,10 @@ interface CashFlowChartProps {
 
 export function CashFlowChart({ groupBy = 'week', days = 90 }: CashFlowChartProps) {
   const { data, isLoading, isError, refetch } = useQuery<CashFlowResponse>({
-    queryKey: ['dashboard', 'cash-flow-projection', groupBy, days],
+    queryKey: ['cash-flow-projection', groupBy, days],
     queryFn: async () => {
       const res = await fetch(
-        `/api/dashboard/cash-flow-projection?groupBy=${groupBy}&days=${days}`
+        `/api/cash-flow-projection?groupBy=${groupBy}&days=${days}`
       )
       if (!res.ok) {
         throw new Error('Failed to fetch cash flow projection')
