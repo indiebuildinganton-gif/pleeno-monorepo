@@ -183,6 +183,9 @@ function transformPaymentPlansData(
  * @returns PDF file download or error response
  */
 export async function GET(request: NextRequest) {
+  // Track start time for performance monitoring
+  const startTime = Date.now()
+
   try {
     // SECURITY BOUNDARY: Require authentication
     const authResult = await requireRole(request, ['agency_admin', 'agency_user'])
@@ -328,6 +331,28 @@ export async function GET(request: NextRequest) {
       const pdfBuffer = await renderToBuffer(pdfDocument)
       const filename = generatePDFFilename('payment_plans')
 
+      // Calculate performance metrics for empty result
+      const durationMs = Date.now() - startTime
+      const fileSizeBytes = pdfBuffer.byteLength
+      const pageCount = 1 // Empty PDF still has 1 page
+
+      // Log export activity asynchronously
+      logReportExport({
+        client: supabase,
+        agencyId: userAgencyId,
+        userId: user.id,
+        reportType: 'payment_plans',
+        format: 'pdf',
+        rowCount: 0,
+        filters,
+        columns: PDF_COLUMNS.map((c) => c.key),
+        pageCount,
+        durationMs,
+        fileSizeBytes,
+      }).catch((error) => {
+        console.error('Failed to log export activity:', error)
+      })
+
       return new Response(pdfBuffer, {
         status: 200,
         headers: {
@@ -341,19 +366,10 @@ export async function GET(request: NextRequest) {
     // Transform the data
     const filteredData = transformPaymentPlansData(paymentPlans, filters)
 
-    // Log export activity asynchronously
-    logReportExport({
-      client: supabase,
-      agencyId: userAgencyId,
-      userId: user.id,
-      reportType: 'payment_plans',
-      format: 'pdf',
-      rowCount: filteredData.length,
-      filters,
-      columns: PDF_COLUMNS.map((c) => c.key),
-    }).catch((error) => {
-      console.error('Failed to log export activity:', error)
-    })
+    // Calculate page count (30 rows per page + 1 page for summary)
+    const rowsPerPage = 30
+    const dataPages = Math.ceil(filteredData.length / rowsPerPage)
+    const pageCount = dataPages > 0 ? dataPages : 1 // At least 1 page even if empty
 
     // Generate PDF using PDFReportDocument component
     // This includes the summary totals section on the last page (Task 6)
@@ -367,11 +383,32 @@ export async function GET(request: NextRequest) {
       columns: PDF_COLUMNS,
       data: filteredData,
       currency: filteredData[0]?.currency || 'AUD',
-      rowsPerPage: 30,
+      rowsPerPage,
     })
 
     // Render PDF to buffer
     const pdfBuffer = await renderToBuffer(pdfDocument)
+
+    // Calculate performance metrics
+    const durationMs = Date.now() - startTime
+    const fileSizeBytes = pdfBuffer.byteLength
+
+    // Log export activity asynchronously with performance metrics
+    logReportExport({
+      client: supabase,
+      agencyId: userAgencyId,
+      userId: user.id,
+      reportType: 'payment_plans',
+      format: 'pdf',
+      rowCount: filteredData.length,
+      filters,
+      columns: PDF_COLUMNS.map((c) => c.key),
+      pageCount,
+      durationMs,
+      fileSizeBytes,
+    }).catch((error) => {
+      console.error('Failed to log export activity:', error)
+    })
 
     // Generate filename with timestamp
     const filename = generatePDFFilename('payment_plans')

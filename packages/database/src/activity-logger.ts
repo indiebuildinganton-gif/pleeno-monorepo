@@ -204,6 +204,12 @@ export interface ReportExportParams {
   filters: Record<string, any>
   /** Columns included in the export */
   columns: string[]
+  /** Number of pages (PDF only) */
+  pageCount?: number
+  /** Duration of export in milliseconds (for performance monitoring) */
+  durationMs?: number
+  /** File size in bytes (for analytics) */
+  fileSizeBytes?: number
 }
 
 /**
@@ -279,7 +285,19 @@ export interface ReportExportParams {
  * ```
  */
 export async function logReportExport(params: ReportExportParams): Promise<void> {
-  const { client, agencyId, userId, reportType, format, rowCount, filters, columns } = params
+  const {
+    client,
+    agencyId,
+    userId,
+    reportType,
+    format,
+    rowCount,
+    filters,
+    columns,
+    pageCount,
+    durationMs,
+    fileSizeBytes,
+  } = params
 
   try {
     // Get user name for description
@@ -297,7 +315,34 @@ export async function logReportExport(params: ReportExportParams): Promise<void>
     const userName = user ? `${user.first_name} ${user.last_name}` : 'User'
 
     // Generate human-readable description
-    const description = `${userName} exported ${reportType.replace(/_/g, ' ')} report to ${format.toUpperCase()} (${rowCount} rows)`
+    let description = `${userName} exported ${reportType.replace(/_/g, ' ')} report to ${format.toUpperCase()} (${rowCount} rows`
+    if (format === 'pdf' && pageCount !== undefined) {
+      description += `, ${pageCount} pages`
+    }
+    description += ')'
+
+    // Build metadata with optional performance metrics
+    const metadata: Record<string, any> = {
+      report_type: reportType,
+      format,
+      row_count: rowCount,
+      filters,
+      columns,
+      exported_at: new Date().toISOString(),
+    }
+
+    // Add PDF-specific metrics if available
+    if (pageCount !== undefined) {
+      metadata.page_count = pageCount
+    }
+
+    if (durationMs !== undefined) {
+      metadata.duration_ms = durationMs
+    }
+
+    if (fileSizeBytes !== undefined) {
+      metadata.file_size_bytes = fileSizeBytes
+    }
 
     // Log the export activity
     await logActivity(client, {
@@ -307,14 +352,7 @@ export async function logReportExport(params: ReportExportParams): Promise<void>
       entityId: '', // Reports don't have a specific entity_id
       action: 'exported',
       description,
-      metadata: {
-        report_type: reportType,
-        format,
-        row_count: rowCount,
-        filters,
-        columns,
-        exported_at: new Date().toISOString(),
-      },
+      metadata,
     })
   } catch (error) {
     console.error('Failed to log report export:', error)
