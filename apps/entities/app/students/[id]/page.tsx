@@ -23,6 +23,7 @@ import { redirect, notFound } from 'next/navigation'
 import { Badge } from '@pleeno/ui'
 import { EnrollmentsSection } from './components/EnrollmentsSection'
 import { StudentActions } from './components/StudentActions'
+import { DocumentViewer } from '../components/DocumentViewer'
 import Link from 'next/link'
 
 interface StudentDetailPageProps {
@@ -249,6 +250,11 @@ export default async function StudentDetailPage({
 
       {/* Enrollments Section - Story 3.3 Task 6 */}
       <EnrollmentsSection studentId={studentId} />
+
+      {/* Document Management Section - Story 3.2 Task 14 */}
+      <div className="mt-8">
+        <DocumentViewer studentId={studentId} />
+      </div>
     </div>
   )
 }
