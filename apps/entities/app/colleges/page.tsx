@@ -7,6 +7,7 @@ import { Button } from '@pleeno/ui/src/components/ui/button'
 import { Plus } from 'lucide-react'
 import { createClient } from '@pleeno/database/client'
 import { useRouter } from 'next/navigation'
+import { isAdmin } from '@pleeno/utils'
 import type { User } from '@supabase/supabase-js'
 
 /**
@@ -36,10 +37,11 @@ export default function CollegesPage() {
   const [page, setPage] = useState(1)
   const [user, setUser] = useState<User | null>(null)
   const [isLoadingAuth, setIsLoadingAuth] = useState(true)
+  const [userIsAdmin, setUserIsAdmin] = useState(false)
 
   const { data, isLoading, error } = useColleges({ page, per_page: 20 })
 
-  // Check authentication and get user info
+  // Check authentication and admin status
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient()
@@ -53,6 +55,10 @@ export default function CollegesPage() {
       }
 
       setUser(user)
+
+      // Check if user is admin using the new utility
+      const adminStatus = await isAdmin(supabase)
+      setUserIsAdmin(adminStatus)
       setIsLoadingAuth(false)
     }
 
@@ -78,8 +84,6 @@ export default function CollegesPage() {
     )
   }
 
-  const isAdmin = user?.app_metadata?.role === 'agency_admin'
-
   return (
     <div className="container mx-auto py-8 max-w-7xl space-y-6">
       {/* Header */}
@@ -90,7 +94,7 @@ export default function CollegesPage() {
             Manage your college registry and branches
           </p>
         </div>
-        {isAdmin && (
+        {userIsAdmin && (
           <Button onClick={handleAddCollege}>
             <Plus className="h-4 w-4 mr-2" />
             Add College
@@ -124,7 +128,7 @@ export default function CollegesPage() {
           <p className="text-muted-foreground mb-4">
             Get started by adding your first college to the registry.
           </p>
-          {isAdmin && (
+          {userIsAdmin && (
             <Button onClick={handleAddCollege}>
               <Plus className="h-4 w-4 mr-2" />
               Add College
