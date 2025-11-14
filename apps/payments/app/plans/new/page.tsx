@@ -143,9 +143,10 @@ export default function NewPaymentPlanPage() {
           />
         )}
 
-        {currentStep === 2 && (
+        {currentStep === 2 && step1Data && (
           <PaymentPlanWizardStep2
             initialData={step2Data || undefined}
+            step1Data={step1Data}
             onNext={handleStep2Next}
             onBack={handleStep2Back}
           />
