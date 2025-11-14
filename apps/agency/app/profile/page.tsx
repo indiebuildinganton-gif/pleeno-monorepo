@@ -42,6 +42,7 @@ export default async function ProfilePage() {
       role,
       status,
       agency_id,
+      email_notifications_enabled,
       agencies (
         id,
         name
@@ -75,6 +76,7 @@ export default async function ProfilePage() {
           full_name: user.full_name || '',
           role: user.role,
           agency_name: agency?.name || 'Unknown Agency',
+          email_notifications_enabled: user.email_notifications_enabled || false,
         }}
       />
     </div>

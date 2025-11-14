@@ -27,3 +27,6 @@ export * from './note.schema'
 
 // Export enrollment schemas and types
 export * from './enrollment.schema'
+
+// Export notification schemas and types
+export * from './notification.schema'
