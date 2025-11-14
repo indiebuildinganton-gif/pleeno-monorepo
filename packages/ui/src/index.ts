@@ -27,3 +27,6 @@ export * from './components/enrollments'
 
 // Utils
 export { cn } from './lib/utils'
+
+// PDF Components
+export * from './pdf'
