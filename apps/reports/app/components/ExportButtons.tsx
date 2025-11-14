@@ -214,8 +214,17 @@ export function ExportButtons({ filters, columns, reportData }: ExportButtonsPro
         className="flex items-center"
         aria-label="Export report to PDF format"
       >
-        <Download className="mr-2 h-4 w-4" aria-hidden="true" />
-        Export PDF
+        {isExportingPDF ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+            Generating PDF...
+          </>
+        ) : (
+          <>
+            <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+            Export PDF
+          </>
+        )}
       </Button>
     </div>
   )
