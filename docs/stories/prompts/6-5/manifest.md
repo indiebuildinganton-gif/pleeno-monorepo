@@ -75,10 +75,27 @@
   - Component placement at apps/dashboard/app/page.tsx:75
 
 ### Task 6: Add Auto-Refresh for Real-Time Updates
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully implemented auto-refresh with visual indicators:
+  - TanStack Query configuration verified in useOverduePayments hook:
+    * staleTime: 300000 (5 minutes)
+    * refetchInterval: 300000 (auto-refresh every 5 minutes)
+    * refetchOnWindowFocus: true (refresh when user returns to tab)
+  - Change detection logic added to OverduePaymentsWidget:
+    * useRef to track previous count (no re-renders)
+    * useEffect to compare current vs previous count
+    * Detects when total_count increases
+  - Visual indicator implemented (Option A - Flash Border):
+    * Flash border animation using animate-pulse when new overdue detected
+    * "New overdue payment detected" badge with AlertTriangle icon
+    * Red background (bg-red-600) for high visibility
+    * Auto-dismisses after 3 seconds
+    * Proper cleanup with clearTimeout on unmount
+  - Border color changes from border-red-500 to border-red-600 when hasNewOverdue is true
+  - Smooth transition-all for border color changes
+  - Accessibility maintained with aria-hidden on decorative icon
 
 ### Task 7: Testing
 - Status: Not Started
