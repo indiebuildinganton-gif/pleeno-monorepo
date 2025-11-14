@@ -35,10 +35,22 @@
   - Component is ready for Task 3 integration with useRecordPayment mutation hook
 
 ### Task 3: TanStack Query Mutation for Payment Recording
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Created useRecordPayment.ts hook in apps/payments/app/plans/[id]/hooks/
+  - Implemented TanStack Query mutation with POST to /api/installments/[id]/record-payment
+  - Implemented optimistic update logic with automatic cache updates before API call
+  - Optimistic updates: installment status, payment plan status (if all paid), earned_commission
+  - Implemented rollback on error: reverts cache to previous state on API failure
+  - Added query invalidation on success: ['payment-plans', planId], ['payment-plans'], ['dashboard', 'payment-status']
+  - Integrated toast notifications: success message with installment number, error message from API
+  - Exported typed mutation function with isPending, isError, error states
+  - Wired up useRecordPayment hook in MarkAsPaidModal component
+  - Updated MarkAsPaidModal to use mutation's isPending state instead of local isSubmitting
+  - Updated modal close and success callback handlers to work with mutation callbacks
+  - Removed manual toast handling from modal (now handled by mutation hook)
 
 ### Task 4: Payment Plan Detail Page Updates
 - Status: Not Started
