@@ -30,3 +30,6 @@ export * from './enrollment.schema'
 
 // Export notification schemas and types
 export * from './notification.schema'
+
+// Export payment plan wizard schemas and types
+export * from './payment-plan-wizard.schema'
