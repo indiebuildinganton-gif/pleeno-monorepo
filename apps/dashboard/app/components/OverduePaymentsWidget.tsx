@@ -14,7 +14,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '@pleeno/utils'
@@ -217,6 +217,7 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
  * - Color-coded severity indicators
  * - Clickable navigation to payment plan details
  * - Responsive layout (table on desktop, cards on mobile)
+ * - Auto-refresh with visual indicator for new overdue payments
  *
  * Fetches data using useOverduePayments hook with:
  * - Auto-refresh every 5 minutes
@@ -228,9 +229,37 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
  * - Error: Shows error message with retry
  * - Empty: Shows "All Payments Current" message
  * - Success: Renders list of overdue payments
+ *
+ * New Overdue Detection:
+ * - Tracks previous count using useRef
+ * - Shows flash border animation when count increases
+ * - Displays "New overdue payment" badge for 3 seconds
+ * - Auto-dismisses visual indicator
  */
 export function OverduePaymentsWidget() {
   const { data, isLoading, error, refetch } = useOverduePayments()
+  const [hasNewOverdue, setHasNewOverdue] = useState(false)
+  const prevCountRef = useRef<number>()
+
+  // Detect new overdue payments by comparing current vs previous count
+  useEffect(() => {
+    if (data && prevCountRef.current !== undefined) {
+      if (data.total_count > prevCountRef.current) {
+        // New overdue payment detected - show visual indicator
+        setHasNewOverdue(true)
+
+        // Auto-dismiss after 3 seconds
+        const timeout = setTimeout(() => {
+          setHasNewOverdue(false)
+        }, 3000)
+
+        // Cleanup: cancel timeout on unmount or when dependency changes
+        return () => clearTimeout(timeout)
+      }
+    }
+    // Update previous count reference
+    prevCountRef.current = data?.total_count
+  }, [data?.total_count])
 
   // Loading state
   if (isLoading) {
@@ -249,7 +278,20 @@ export function OverduePaymentsWidget() {
 
   // Success state - render overdue payments
   return (
-    <div className="border-2 border-red-500 rounded-lg p-4 bg-red-50">
+    <div
+      className={`
+        border-2 rounded-lg p-4 bg-red-50 transition-all
+        ${hasNewOverdue ? 'border-red-600 animate-pulse' : 'border-red-500'}
+      `}
+    >
+      {/* New overdue payment indicator */}
+      {hasNewOverdue && (
+        <div className="mb-3 px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-full inline-flex items-center gap-2 animate-fade-in">
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          New overdue payment detected
+        </div>
+      )}
+
       {/* Header with count badge and total amount */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-red-900 flex items-center gap-2">
