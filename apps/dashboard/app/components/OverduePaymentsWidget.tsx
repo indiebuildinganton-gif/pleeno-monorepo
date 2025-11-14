@@ -14,6 +14,7 @@
 
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '@pleeno/utils'
@@ -53,17 +54,42 @@ function getUrgencyBgColor(days: number): string {
  * Loading Skeleton Component
  *
  * Displays animated skeleton while data is being fetched
+ * Matches the layout of the actual widget for smooth transition
  */
 function OverduePaymentsSkeleton() {
   return (
-    <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50 animate-pulse">
+    <div
+      className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50 animate-pulse"
+      aria-busy="true"
+      aria-label="Loading overdue payments"
+    >
+      {/* Header skeleton - matches actual widget header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="h-6 w-48 bg-gray-300 rounded"></div>
-        <div className="h-8 w-32 bg-gray-300 rounded"></div>
+        <div className="flex items-center gap-2">
+          <div className="h-6 w-40 bg-gray-300 rounded"></div>
+          <div className="h-6 w-8 bg-gray-300 rounded-full"></div>
+        </div>
+        <div>
+          <div className="h-4 w-24 bg-gray-300 rounded mb-1"></div>
+          <div className="h-8 w-32 bg-gray-300 rounded"></div>
+        </div>
       </div>
+
+      {/* Payment item skeletons - 3 rows matching actual payment items */}
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-gray-200 rounded"></div>
+          <div key={i} className="p-3 rounded-lg border border-gray-300 bg-white">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="h-5 w-32 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 w-48 bg-gray-300 rounded"></div>
+              </div>
+              <div className="text-right">
+                <div className="h-5 w-20 bg-gray-300 rounded mb-2"></div>
+                <div className="h-4 w-24 bg-gray-300 rounded"></div>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     </div>
@@ -74,16 +100,29 @@ function OverduePaymentsSkeleton() {
  * Error State Component
  *
  * Displays error message with retry button
+ * Logs error to console for debugging
+ * Includes accessibility attributes for screen readers
  */
-function OverduePaymentsError({ onRetry }: { onRetry: () => void }) {
+function OverduePaymentsError({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  // Log error for debugging
+  useEffect(() => {
+    console.error('Overdue payments fetch error:', error)
+  }, [error])
+
   return (
-    <div className="border-2 border-red-300 rounded-lg p-6 bg-red-50">
+    <div
+      className="border-2 border-red-300 rounded-lg p-6 bg-red-50"
+      role="alert"
+      aria-live="polite"
+    >
       <div className="flex items-center gap-3 mb-4">
-        <AlertTriangle className="h-6 w-6 text-red-600" />
-        <h3 className="text-lg font-semibold text-red-900">Failed to Load</h3>
+        <AlertTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
+        <h3 className="text-lg font-semibold text-red-900">
+          Unable to load overdue payments
+        </h3>
       </div>
       <p className="text-sm text-red-700 mb-4">
-        Unable to fetch overdue payments. Please try again.
+        There was an error fetching the data. Please try again.
       </p>
       <button
         onClick={onRetry}
@@ -200,7 +239,7 @@ export function OverduePaymentsWidget() {
 
   // Error state
   if (error) {
-    return <OverduePaymentsError onRetry={() => refetch()} />
+    return <OverduePaymentsError error={error} onRetry={() => refetch()} />
   }
 
   // Empty state
