@@ -1027,7 +1027,9 @@ describe('CommissionBreakdownTable', () => {
       renderWithQuery(<CommissionBreakdownTable />)
 
       await waitFor(() => {
-        const summaryGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4')
+        const summaryGrid = document.querySelector(
+          '.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4'
+        )
         expect(summaryGrid).toBeInTheDocument()
       })
     })
@@ -1143,6 +1145,345 @@ describe('CommissionBreakdownTable', () => {
         expect(summaryCards?.compareDocumentPosition(filterControls!)).toBe(
           Node.DOCUMENT_POSITION_FOLLOWING
         )
+      })
+    })
+  })
+
+  describe('TanStack Table Sorting - Task 2', () => {
+    it('should render table with sortable column headers', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('College')).toBeInTheDocument()
+        expect(screen.getByText('Branch')).toBeInTheDocument()
+        expect(screen.getByText('Commissions')).toBeInTheDocument()
+        expect(screen.getByText('GST')).toBeInTheDocument()
+        expect(screen.getByText('Total (+ GST)')).toBeInTheDocument()
+        expect(screen.getByText('Expected')).toBeInTheDocument()
+        expect(screen.getByText('Earned')).toBeInTheDocument()
+        expect(screen.getByText('Outstanding')).toBeInTheDocument()
+      })
+    })
+
+    it('should display sort indicators on column headers', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        // ArrowDown icon should be present (default sort on Earned DESC)
+        const icons = document.querySelectorAll('svg')
+        const hasArrowIcon = Array.from(icons).some(
+          (icon) =>
+            icon.classList.contains('lucide-arrow-down') ||
+            icon.classList.contains('lucide-arrow-up') ||
+            icon.classList.contains('lucide-arrow-up-down')
+        )
+        expect(hasArrowIcon).toBe(true)
+      })
+    })
+
+    it('should default sort by earned commission in descending order', async () => {
+      const sortedData = {
+        success: true,
+        data: [
+          {
+            ...mockCommissionData.data[0],
+            total_earned_commission: 20000,
+          },
+          {
+            ...mockCommissionData.data[1],
+            total_earned_commission: 15000,
+          },
+          {
+            ...mockCommissionData.data[1],
+            college_id: '3',
+            branch_id: 'b3',
+            college_name: 'University of Brisbane',
+            total_earned_commission: 10000,
+          },
+        ],
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => sortedData,
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const rows = document.querySelectorAll('tbody tr')
+        expect(rows.length).toBe(3)
+
+        // First row should be highest earner (20000)
+        expect(rows[0].textContent).toContain('University of Sydney')
+
+        // Second row should be second highest (15000)
+        expect(rows[1].textContent).toContain('University of Melbourne')
+
+        // Third row should be lowest (10000)
+        expect(rows[2].textContent).toContain('University of Brisbane')
+      })
+    })
+
+    it('should toggle sort direction when clicking column header', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('College')).toBeInTheDocument()
+      })
+
+      // Find the College column header
+      const collegeHeader = screen.getByText('College').closest('th')
+      expect(collegeHeader).toBeInTheDocument()
+
+      // Click to sort by college name
+      fireEvent.click(collegeHeader!)
+
+      await waitFor(() => {
+        // Should now be sorted ascending by college name
+        const rows = document.querySelectorAll('tbody tr')
+        expect(rows.length).toBe(2)
+      })
+
+      // Click again to toggle to descending
+      fireEvent.click(collegeHeader!)
+
+      await waitFor(() => {
+        const rows = document.querySelectorAll('tbody tr')
+        expect(rows.length).toBe(2)
+      })
+    })
+
+    it('should sort numeric columns correctly', async () => {
+      const numericData = {
+        success: true,
+        data: [
+          {
+            ...mockCommissionData.data[0],
+            total_commissions: 5000,
+          },
+          {
+            ...mockCommissionData.data[1],
+            total_commissions: 15000,
+          },
+          {
+            ...mockCommissionData.data[1],
+            college_id: '3',
+            branch_id: 'b3',
+            college_name: 'Test College 3',
+            total_commissions: 10000,
+          },
+        ],
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/api/commission-by-college')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => numericData,
+          })
+        } else if (url.includes('/api/entities/colleges')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockColleges,
+          })
+        } else if (url.includes('/api/entities/branches')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockBranches,
+          })
+        }
+        return Promise.reject(new Error('Unknown URL'))
+      })
+
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Commissions')).toBeInTheDocument()
+      })
+
+      // Click the Commissions header to sort
+      const commissionsHeader = screen.getByText('Commissions').closest('th')
+      fireEvent.click(commissionsHeader!)
+
+      await waitFor(() => {
+        const rows = document.querySelectorAll('tbody tr')
+        expect(rows.length).toBe(3)
+      })
+    })
+
+    it('should show ArrowUp icon when sorted ascending', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('College')).toBeInTheDocument()
+      })
+
+      // Click to sort by college (will be ascending by default)
+      const collegeHeader = screen.getByText('College').closest('th')
+      fireEvent.click(collegeHeader!)
+
+      await waitFor(() => {
+        // Should show ArrowUp icon for ascending sort
+        const icons = document.querySelectorAll('svg')
+        const hasArrowUpIcon = Array.from(icons).some((icon) =>
+          icon.classList.contains('lucide-arrow-up')
+        )
+        expect(hasArrowUpIcon).toBe(true)
+      })
+    })
+
+    it('should show ArrowDown icon when sorted descending', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Earned')).toBeInTheDocument()
+      })
+
+      // Earned should be sorted DESC by default, so ArrowDown should be present
+      await waitFor(() => {
+        const icons = document.querySelectorAll('svg')
+        const hasArrowDownIcon = Array.from(icons).some((icon) =>
+          icon.classList.contains('lucide-arrow-down')
+        )
+        expect(hasArrowDownIcon).toBe(true)
+      })
+    })
+
+    it('should show ArrowUpDown icon on unsorted columns', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('GST')).toBeInTheDocument()
+      })
+
+      // GST column should show the neutral sort icon (not currently sorted)
+      await waitFor(() => {
+        const icons = document.querySelectorAll('svg')
+        const hasArrowUpDownIcon = Array.from(icons).some((icon) =>
+          icon.classList.contains('lucide-arrow-up-down')
+        )
+        expect(hasArrowUpDownIcon).toBe(true)
+      })
+    })
+
+    it('should apply cursor-pointer class to sortable headers', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const collegeHeader = screen.getByText('College').closest('th')
+        const headerDiv = collegeHeader?.querySelector('.cursor-pointer')
+        expect(headerDiv).toBeInTheDocument()
+      })
+    })
+
+    it('should not show sort icon on Actions column', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const actionsHeader = screen.getByText('Actions').closest('th')
+        expect(actionsHeader).toBeInTheDocument()
+
+        // Actions column should not have cursor-pointer class
+        const headerDiv = actionsHeader?.querySelector('.cursor-pointer')
+        expect(headerDiv).not.toBeInTheDocument()
+      })
+    })
+
+    it('should maintain sort state when filters change', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        expect(screen.getByText('College')).toBeInTheDocument()
+      })
+
+      // Sort by College
+      const collegeHeader = screen.getByText('College').closest('th')
+      fireEvent.click(collegeHeader!)
+
+      await waitFor(() => {
+        const rows = document.querySelectorAll('tbody tr')
+        expect(rows.length).toBeGreaterThan(0)
+      })
+
+      // Change filter
+      const periodDropdown = screen.getByLabelText('Time Period') as HTMLSelectElement
+      fireEvent.change(periodDropdown, { target: { value: 'year' } })
+
+      // Sort indicator should still be present after filter change
+      await waitFor(() => {
+        const icons = document.querySelectorAll('svg')
+        const hasArrowIcon = Array.from(icons).some(
+          (icon) =>
+            icon.classList.contains('lucide-arrow-up') ||
+            icon.classList.contains('lucide-arrow-down')
+        )
+        expect(hasArrowIcon).toBe(true)
+      })
+    })
+
+    it('should align numeric column headers to the right', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const commissionsHeader = screen.getByText('Commissions').closest('th')
+        expect(commissionsHeader).toHaveClass('text-right')
+
+        const gstHeader = screen.getByText('GST').closest('th')
+        expect(gstHeader).toHaveClass('text-right')
+
+        const earnedHeader = screen.getByText('Earned').closest('th')
+        expect(earnedHeader).toHaveClass('text-right')
+      })
+    })
+
+    it('should align text column headers to the left', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const collegeHeader = screen.getByText('College').closest('th')
+        expect(collegeHeader).toHaveClass('text-left')
+
+        const branchHeader = screen.getByText('Branch').closest('th')
+        expect(branchHeader).toHaveClass('text-left')
+      })
+    })
+
+    it('should center align Actions column header', async () => {
+      setupMocks()
+      renderWithQuery(<CommissionBreakdownTable />)
+
+      await waitFor(() => {
+        const actionsHeader = screen.getByText('Actions').closest('th')
+        expect(actionsHeader).toHaveClass('text-center')
       })
     })
   })
