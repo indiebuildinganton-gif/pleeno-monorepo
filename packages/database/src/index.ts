@@ -62,3 +62,6 @@ export * from './types/database.types'
 
 // Export activity logger types and functions
 export * from './activity-logger'
+
+// Export audit logger types and functions
+export * from './audit-logger'

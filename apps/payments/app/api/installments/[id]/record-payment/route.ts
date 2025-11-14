@@ -23,6 +23,7 @@ import {
 import { RecordPaymentSchema } from '@pleeno/validations'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database/activity-logger'
+import { logPaymentAudit } from '@pleeno/database/audit-logger'
 
 /**
  * POST /api/installments/[id]/record-payment
@@ -209,7 +210,7 @@ export async function POST(
 
     const userName = userData ? `${userData.first_name} ${userData.last_name}` : 'User'
 
-    // Log activity for audit trail
+    // Log activity for audit trail (activity feed)
     await logActivity(supabase, {
       agencyId: userAgencyId,
       userId: user.id,
@@ -231,6 +232,28 @@ export async function POST(
         payment_plan_completed: allPaid,
         earned_commission: updatedPaymentPlan.earned_commission,
       },
+    })
+
+    // Log detailed audit entry (compliance audit trail)
+    await logPaymentAudit(supabase, {
+      agencyId: userAgencyId,
+      userId: user.id,
+      installmentId: installmentId,
+      oldValues: oldValues,
+      newValues: {
+        status: updatedInstallment.status,
+        paid_date: updatedInstallment.paid_date!,
+        paid_amount: updatedInstallment.paid_amount!,
+        payment_notes: updatedInstallment.payment_notes,
+      },
+      metadata: {
+        installment_number: installment.installment_number,
+        payment_plan_id: installment.payment_plan_id,
+        payment_plan_completed: allPaid,
+        earned_commission: updatedPaymentPlan.earned_commission,
+      },
+      ipAddress: request.headers.get('x-forwarded-for'),
+      userAgent: request.headers.get('user-agent'),
     })
 
     // Return updated installment and payment plan data
