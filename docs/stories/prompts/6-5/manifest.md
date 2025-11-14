@@ -45,10 +45,22 @@
   - Reinforces desired behavior through positive feedback
 
 ### Task 4: Add Loading and Error States
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully enhanced loading and error states with:
+  - Enhanced OverduePaymentsSkeleton component with detailed layout matching actual widget
+  - Added accessibility attributes (aria-busy, aria-label) to skeleton
+  - Enhanced OverduePaymentsError component with error logging to console
+  - Added accessibility attributes (role="alert", aria-live="polite") to error state
+  - Error component now accepts error object and logs it via useEffect
+  - Retry button functionality with refetch on click
+  - Comprehensive test suite created with 13 test cases covering:
+    * Loading state structure and accessibility
+    * Error state rendering and retry functionality
+    * Error logging verification
+    * State transitions (loading → success, loading → error)
+    * Empty state and success state rendering
 
 ### Task 5: Integrate Widget into Dashboard
 - Status: Not Started
