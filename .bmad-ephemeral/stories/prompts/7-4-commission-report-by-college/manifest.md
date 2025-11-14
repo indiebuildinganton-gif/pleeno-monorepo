@@ -13,10 +13,10 @@
 - Notes: Created comprehensive commission report page with date range filter (preset options: Last 30 days, Last 90 days, This year, Custom), city filter dropdown, Generate Report button, placeholder table with mock data, and loading states. Installed required dependencies: date-fns, react-hook-form, @hookform/resolvers, zod, @tanstack/react-query. Page follows established patterns from payment-plans report.
 
 ### Task 2: Implement Commission Report API Route
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Created commission report API with database function approach for optimal performance. Implemented TypeScript types, PostgreSQL function for aggregation, and API route with full validation and error handling. Function supports date range filtering (required), optional city filtering, and returns commission data grouped by college/branch with drill-down student payment plan details.
 
 ### Task 3: Display Commission Report Results
 - Status: Not Started
@@ -88,3 +88,76 @@
 - Task 2 will implement the actual API route at `/api/reports/commissions`
 - City filter will be updated to fetch from branches table via API
 - Mock data in the table will be replaced with real API responses
+
+### Task 2 Implementation Details
+
+**Files Created**:
+1. `apps/reports/app/types/commissions-report.ts` - TypeScript type definitions
+2. `supabase/migrations/004_reports_domain/004_commission_report_function.sql` - Database function
+3. `apps/reports/app/api/reports/commissions/route.ts` - API route handler
+
+**Database Function**: `get_commission_report`
+- **Signature**: `get_commission_report(p_agency_id UUID, p_date_from DATE, p_date_to DATE, p_city TEXT)`
+- **Returns**: Table with commission data grouped by college/branch
+- **Features**:
+  - SECURITY DEFINER function with explicit agency_id filtering on all tables
+  - Uses FILTER clauses for earned_commission and outstanding_commission calculations
+  - Aggregates payment plan drill-down data as JSONB
+  - Efficient single query with all necessary joins
+  - Handles NULL cases with COALESCE
+  - Date filtering on installments.student_due_date
+  - Optional city filtering on branches.city
+
+**Commission Calculations**:
+- **earned_commission**: `SUM(paid_amount * (rate/100)) FILTER (WHERE paid_date IS NOT NULL AND generates_commission = true)`
+- **outstanding_commission**: `SUM(amount * (rate/100)) FILTER (WHERE paid_date IS NULL AND student_due_date < CURRENT_DATE AND generates_commission = true AND status NOT IN ('cancelled', 'draft'))`
+- **total_paid**: `SUM(paid_amount) FILTER (WHERE paid_date IS NOT NULL)`
+
+**API Route**: `POST /api/reports/commissions`
+- **Authentication**: Requires agency_admin or agency_user role
+- **Request Body**:
+  - `date_from`: string (required, YYYY-MM-DD format)
+  - `date_to`: string (required, YYYY-MM-DD format)
+  - `city`: string (optional)
+- **Validation**:
+  - Required field validation
+  - Date format validation (YYYY-MM-DD)
+  - Date range validation (from <= to)
+- **Response**:
+  - `data`: Array of CommissionReportRow (one per branch)
+  - `summary`: { total_paid, total_earned, total_outstanding }
+- **Error Handling**: Uses handleApiError for consistent error responses
+
+**TypeScript Types**:
+- `CommissionsReportRequest` - Request body interface
+- `CommissionReportRow` - Data row interface with all fields
+- `CommissionPaymentPlan` - Drill-down payment plan details
+- `CommissionsSummary` - Summary totals interface
+- `CommissionsReportResponse` - Complete response interface
+
+**Security**:
+- RLS enforcement via agency_id parameter to database function
+- Authentication required via requireRole middleware
+- Input validation for all request parameters
+- Prevents SQL injection via parameterized queries
+
+**Migration Instructions**:
+To apply the database migration, run:
+```bash
+npx supabase db push
+```
+Or apply the migration file directly through Supabase dashboard.
+
+**Testing Notes**:
+The API route is ready to use once the migration is applied. Test with:
+```bash
+curl -X POST http://localhost:3005/api/reports/commissions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"date_from":"2025-01-01","date_to":"2025-12-31"}'
+```
+
+**Next Steps**:
+- Task 3 will integrate this API with the UI to display commission report results
+- City dropdown will be updated to fetch actual cities from branches table
+- Mock data in table will be replaced with real API response data
