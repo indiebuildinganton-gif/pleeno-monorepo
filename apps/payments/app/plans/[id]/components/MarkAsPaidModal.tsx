@@ -14,11 +14,11 @@ import {
   Input,
   Label,
   Textarea,
-  useToast,
 } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils/formatters'
-import { formatDateWithPreset, DateFormatPresets } from '@pleeno/utils/date-helpers'
+import { formatDateWithPreset } from '@pleeno/utils/date-helpers'
 import { RecordPaymentSchema, type RecordPayment, type Installment } from '@pleeno/validations/installment.schema'
+import { useRecordPayment } from '../hooks/useRecordPayment'
 
 /**
  * MarkAsPaidModal Component Props
@@ -49,7 +49,8 @@ interface MarkAsPaidModalProps {
  * - Keyboard shortcuts (Esc to close, Enter to submit)
  * - Accessibility attributes
  * - Loading states
- * - Optimistic UI updates (will be implemented in Task 3)
+ * - TanStack Query mutation with optimistic UI updates
+ * - Automatic cache invalidation and rollback on error
  *
  * @example
  * ```tsx
@@ -58,16 +59,16 @@ interface MarkAsPaidModalProps {
  *   isOpen={isModalOpen}
  *   onClose={() => setIsModalOpen(false)}
  *   onSuccess={() => {
- *     // Refresh data
- *     refetch()
+ *     // Optional callback after successful payment recording
  *   }}
  * />
  * ```
  */
 export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: MarkAsPaidModalProps) {
-  const { addToast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [notesCharCount, setNotesCharCount] = useState(0)
+
+  // TanStack Query mutation for recording payment
+  const { mutate: recordPayment, isPending } = useRecordPayment()
 
   // Get today's date in YYYY-MM-DD format for default and max values
   const today = new Date().toISOString().split('T')[0]
@@ -111,45 +112,25 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
 
   /**
    * Handle form submission
-   * TODO: Task 3 will implement the actual mutation using TanStack Query
+   * Uses the useRecordPayment mutation hook with optimistic updates
    */
-  const onSubmit = async (data: RecordPayment) => {
-    setIsSubmitting(true)
-
-    try {
-      // TODO: Task 3 - Call useRecordPayment mutation here
-      // For now, just simulate an API call
-      console.log('Recording payment:', {
-        installment_id: installment.id,
+  const onSubmit = (data: RecordPayment) => {
+    recordPayment(
+      {
+        installmentId: installment.id,
+        paymentPlanId: installment.payment_plan_id,
         ...data,
-      })
+      },
+      {
+        onSuccess: () => {
+          // Call success callback
+          onSuccess?.()
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Show success toast
-      addToast({
-        title: 'Payment recorded',
-        description: `Installment #${installment.installment_number} marked as paid`,
-        variant: 'default',
-      })
-
-      // Call success callback
-      onSuccess?.()
-
-      // Close modal
-      onClose()
-    } catch (error) {
-      // Show error toast
-      const errorMessage = error instanceof Error ? error.message : 'Failed to record payment'
-      addToast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'error',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+          // Close modal
+          onClose()
+        },
+      }
+    )
   }
 
   /**
@@ -158,7 +139,7 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
    * - Enter: Submit form when valid (handled by form onSubmit)
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && isValid && !isSubmitting) {
+    if (e.key === 'Enter' && !e.shiftKey && isValid && !isPending) {
       e.preventDefault()
       handleSubmit(onSubmit)()
     }
@@ -194,7 +175,7 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
                 id="paid_date"
                 type="date"
                 max={today}
-                disabled={isSubmitting}
+                disabled={isPending}
                 aria-required="true"
                 aria-invalid={!!errors.paid_date}
                 aria-describedby={errors.paid_date ? 'paid_date-error' : undefined}
@@ -221,7 +202,7 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
                 step="0.01"
                 min="0.01"
                 placeholder="Enter amount paid"
-                disabled={isSubmitting}
+                disabled={isPending}
                 aria-required="true"
                 aria-invalid={!!errors.paid_amount}
                 aria-describedby={errors.paid_amount ? 'paid_amount-error' : 'paid_amount-help'}
@@ -245,7 +226,7 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
                 placeholder="Add any notes about this payment (e.g., payment method, reference number)"
                 rows={3}
                 maxLength={500}
-                disabled={isSubmitting}
+                disabled={isPending}
                 aria-invalid={!!errors.notes}
                 aria-describedby={errors.notes ? 'notes-error' : 'notes-counter'}
                 {...register('notes')}
@@ -275,16 +256,16 @@ export function MarkAsPaidModal({ installment, isOpen, onClose, onSuccess }: Mar
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !isValid}
-              aria-busy={isSubmitting}
+              disabled={isPending || !isValid}
+              aria-busy={isPending}
             >
-              {isSubmitting ? (
+              {isPending ? (
                 <>
                   <span className="mr-2">Recording...</span>
                   <span className="animate-spin">⏳</span>
