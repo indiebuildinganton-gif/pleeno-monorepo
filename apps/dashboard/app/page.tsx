@@ -17,7 +17,7 @@ import { SeasonalCommissionChart } from './components/SeasonalCommissionChart'
 import { CommissionBySchoolWidget } from './components/CommissionBySchoolWidget'
 import { CommissionByCountryWidget } from './components/CommissionByCountryWidget'
 import PaymentStatusWidget from './components/PaymentStatusWidget'
-import { OverduePaymentsSummary } from './components/OverduePaymentsSummary'
+import { OverduePaymentsWidget } from './components/OverduePaymentsWidget'
 import { CommissionBreakdownWidget } from './components/CommissionBreakdownWidget'
 import { ActivityFeed } from './components/ActivityFeed'
 import { CashFlowChart } from './components/CashFlowChart'
@@ -72,7 +72,7 @@ export default function Dashboard() {
 
       {/* Overdue Payments Section - TOP PRIORITY */}
       <div className="mb-8">
-        <OverduePaymentsSummary />
+        <OverduePaymentsWidget />
       </div>
 
       {/* Main grid layout with sidebar */}
