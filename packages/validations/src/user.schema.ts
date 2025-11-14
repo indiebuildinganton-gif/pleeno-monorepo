@@ -2,14 +2,16 @@ import { z } from 'zod'
 
 /**
  * Zod schema for user profile updates
- * Used for validating profile information updates (name)
+ * Used for validating profile information updates (name, email notifications)
  */
 export const ProfileUpdateSchema = z.object({
   full_name: z
     .string()
     .min(2, 'Full name must be at least 2 characters')
     .max(255, 'Full name must be less than 255 characters')
-    .trim(),
+    .trim()
+    .optional(),
+  email_notifications_enabled: z.boolean().optional(),
 })
 
 /**

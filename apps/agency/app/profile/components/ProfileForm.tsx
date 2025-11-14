@@ -16,7 +16,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ProfileUpdateSchema, type ProfileUpdate } from '@pleeno/validations'
-import { Button, Input, Label, Card, useToast } from '@pleeno/ui'
+import { Button, Input, Label, Card, useToast, Checkbox } from '@pleeno/ui'
 import { ChangePasswordDialog } from './ChangePasswordDialog'
 import { UpdateEmailDialog } from './UpdateEmailDialog'
 import { RequestEmailChangeDialog } from './RequestEmailChangeDialog'
@@ -28,6 +28,7 @@ interface ProfileFormProps {
     full_name: string
     role: 'agency_admin' | 'agency_user'
     agency_name: string
+    email_notifications_enabled: boolean
   }
 }
 
@@ -42,12 +43,17 @@ export function ProfileForm({ user }: ProfileFormProps) {
     register,
     handleSubmit,
     formState: { errors, isDirty },
+    watch,
+    setValue,
   } = useForm<ProfileUpdate>({
     resolver: zodResolver(ProfileUpdateSchema),
     defaultValues: {
       full_name: user.full_name,
+      email_notifications_enabled: user.email_notifications_enabled,
     },
   })
+
+  const emailNotificationsEnabled = watch('email_notifications_enabled')
 
   const onSubmit = async (data: ProfileUpdate) => {
     setLoading(true)
@@ -165,6 +171,28 @@ export function ProfileForm({ user }: ProfileFormProps) {
               {errors.full_name && (
                 <p className="text-sm text-red-500">{errors.full_name.message}</p>
               )}
+            </div>
+          </div>
+
+          {/* Notification Preferences Section */}
+          <div className="space-y-4 pb-6 border-b">
+            <h2 className="text-lg font-semibold">Notification Preferences</h2>
+
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="email_notifications_enabled"
+                checked={emailNotificationsEnabled}
+                onCheckedChange={(checked) => setValue('email_notifications_enabled', checked, { shouldDirty: true })}
+              />
+              <div className="flex-1">
+                <Label htmlFor="email_notifications_enabled" className="cursor-pointer">
+                  Receive email notifications
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Get notified when students have overdue payments, upcoming due dates, and payment
+                  confirmations
+                </p>
+              </div>
             </div>
           </div>
 
