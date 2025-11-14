@@ -75,10 +75,28 @@
   - All components follow project conventions: formatCurrency for amounts, status badge styling consistent with Story 4.3
 
 ### Task 5: Dashboard Widget Updates
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
 - Notes:
+  - Identified all dashboard widgets that display payment data:
+    1. PaymentStatusWidget (apps/dashboard/app/components/PaymentStatusWidget.tsx) - Query key: ['payment-status-summary']
+    2. OverduePaymentsWidget (apps/dashboard/app/components/OverduePaymentsWidget.tsx) - Query key: ['overdue-payments']
+    3. CommissionBreakdownWidget (apps/dashboard/app/components/CommissionBreakdownWidget.tsx) - Query key: ['commission-breakdown']
+    4. CashFlowChart (apps/dashboard/app/components/CashFlowChart.tsx) - Query key: ['cash-flow-projection']
+  - Updated useRecordPayment hook (apps/payments/app/plans/[id]/hooks/useRecordPayment.ts) to invalidate all dashboard widget queries on success:
+    - Invalidates ['payment-status-summary'] for PaymentStatusWidget (shows pending/due soon/overdue/paid counts)
+    - Invalidates ['overdue-payments'] for OverduePaymentsWidget (shows overdue installments list)
+    - Invalidates ['commission-breakdown'] for CommissionBreakdownWidget (shows expected vs earned commission)
+    - Invalidates ['cash-flow-projection'] for CashFlowChart (shows paid vs expected cash flow)
+  - Verified all widgets have proper loading states:
+    - PaymentStatusWidget: Shows skeleton during isLoading, automatically refetches when query invalidated
+    - OverduePaymentsWidget: Shows skeleton during isLoading, automatically refetches when query invalidated
+    - CommissionBreakdownWidget: Shows skeleton during isLoading, spinner in refresh button during isRefetching
+    - CashFlowChart: Shows loading skeleton during isLoading, spinner in refresh button during isFetching
+  - Dashboard widgets will now automatically update when a payment is recorded via the Mark as Paid functionality
+  - All widgets use TanStack Query with proper staleTime (5 minutes) and refetchOnWindowFocus (true)
+  - Real-time updates work without page refresh - when user records payment, all dashboard metrics update immediately
 
 ### Task 6: Partial Payment Display
 - Status: Not Started
