@@ -53,10 +53,19 @@
   - Color-coded status indicators (green for paid, blue for expected)
 
 ### Task 4: Add View Toggle Controls
-- Status: Not Started
-- Started:
-- Completed:
-- Notes:
+- Status: Completed
+- Started: 2025-11-14
+- Completed: 2025-11-14
+- Notes: Successfully added view toggle controls with:
+  - Three toggle buttons (Daily, Weekly, Monthly) in CardHeader
+  - Integration with Zustand dashboard store for state persistence
+  - CashFlowView type exported from @pleeno/stores
+  - Active button styling using variant="default" vs variant="outline"
+  - Automatic refetch when view changes via TanStack Query
+  - Default view set to "Weekly"
+  - Loading spinner indicator during refetch (isFetching state)
+  - Removed groupBy prop, now using store state
+  - View persists across page refreshes via Zustand persist middleware
 
 ### Task 5: Implement Real-Time Updates
 - Status: Not Started
