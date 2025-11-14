@@ -7,6 +7,7 @@
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.2: Cash Flow Projection Chart
  * Task 2: Create CashFlowChart Component
+ * Task 4: Add View Toggle Controls
  */
 
 'use client'
@@ -26,6 +27,7 @@ import { format } from 'date-fns'
 import { formatCurrency } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { useDashboardStore, type CashFlowView } from '@pleeno/stores'
 
 /**
  * Cash Flow Data Type
@@ -274,16 +276,18 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
  * Main CashFlowChart Component
  */
 interface CashFlowChartProps {
-  groupBy?: 'day' | 'week' | 'month'
   days?: number
 }
 
-export function CashFlowChart({ groupBy = 'week', days = 90 }: CashFlowChartProps) {
-  const { data, isLoading, isError, refetch } = useQuery<CashFlowResponse>({
-    queryKey: ['cash-flow-projection', groupBy, days],
+export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
+  // Get view selection from Zustand store
+  const { cashFlowView, setCashFlowView } = useDashboardStore()
+
+  const { data, isLoading, isError, isFetching, refetch } = useQuery<CashFlowResponse>({
+    queryKey: ['cash-flow-projection', cashFlowView, days],
     queryFn: async () => {
       const res = await fetch(
-        `/api/cash-flow-projection?groupBy=${groupBy}&days=${days}`
+        `/api/cash-flow-projection?groupBy=${cashFlowView}&days=${days}`
       )
       if (!res.ok) {
         throw new Error('Failed to fetch cash flow projection')
@@ -307,18 +311,53 @@ export function CashFlowChart({ groupBy = 'week', days = 90 }: CashFlowChartProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cash Flow Projection</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Projected cash flow for the next {days} days showing paid and expected payments
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle>Cash Flow Projection</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Projected cash flow for the next {days} days showing paid and expected payments
+            </p>
+          </div>
+
+          {/* View Toggle Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant={cashFlowView === 'daily' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setCashFlowView('daily')}
+            >
+              Daily
+            </Button>
+            <Button
+              variant={cashFlowView === 'weekly' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setCashFlowView('weekly')}
+            >
+              Weekly
+            </Button>
+            <Button
+              variant={cashFlowView === 'monthly' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setCashFlowView('monthly')}
+            >
+              Monthly
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
+        {/* Loading indicator during refetch */}
+        {isFetching && !isLoading && (
+          <div className="absolute top-2 right-2">
+            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+          </div>
+        )}
         <ResponsiveContainer width="100%" height={400}>
           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="date_bucket"
-              tickFormatter={(date) => formatDateLabel(date, groupBy)}
+              tickFormatter={(date) => formatDateLabel(date, cashFlowView)}
               stroke="#6b7280"
               style={{ fontSize: '12px' }}
             />
@@ -327,7 +366,7 @@ export function CashFlowChart({ groupBy = 'week', days = 90 }: CashFlowChartProp
               stroke="#6b7280"
               style={{ fontSize: '12px' }}
             />
-            <Tooltip content={<CustomTooltip currency={currency} groupBy={groupBy} />} />
+            <Tooltip content={<CustomTooltip currency={currency} groupBy={cashFlowView} />} />
             <Legend
               wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
               iconType="rect"

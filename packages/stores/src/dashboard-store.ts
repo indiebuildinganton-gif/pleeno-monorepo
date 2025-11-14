@@ -3,11 +3,12 @@
  *
  * This store manages:
  * - Commission filter state (period, college, branch)
+ * - Cash flow view selection (daily, weekly, monthly)
  * - Filter persistence across page navigations
  *
  * Epic 6: Dashboard & Reporting Zone
  * Story 6.3: Commission Breakdown by College
- * Task 3: Implement Filter Controls
+ * Story 6.2: Cash Flow Projection Chart
  */
 
 import { create } from 'zustand'
@@ -26,6 +27,11 @@ export interface CommissionFilters {
 }
 
 /**
+ * Cash flow view grouping type
+ */
+export type CashFlowView = 'daily' | 'weekly' | 'monthly'
+
+/**
  * Dashboard store state and actions
  */
 interface DashboardStore {
@@ -35,6 +41,10 @@ interface DashboardStore {
   setCommissionFilters: (filters: Partial<CommissionFilters>) => void
   /** Reset all filters to default values */
   clearCommissionFilters: () => void
+  /** Cash flow chart view selection */
+  cashFlowView: CashFlowView
+  /** Update cash flow view */
+  setCashFlowView: (view: CashFlowView) => void
 }
 
 /**
@@ -47,7 +57,7 @@ const defaultFilters: CommissionFilters = {
 }
 
 /**
- * Dashboard store with persistent commission filters
+ * Dashboard store with persistent commission filters and cash flow view
  *
  * Usage:
  * ```typescript
@@ -61,6 +71,10 @@ const defaultFilters: CommissionFilters = {
  *
  * // Reset all filters
  * clearCommissionFilters()
+ *
+ * // Cash flow view
+ * const { cashFlowView, setCashFlowView } = useDashboardStore()
+ * setCashFlowView('weekly')
  * ```
  *
  * Persistence:
@@ -78,6 +92,10 @@ export const useDashboardStore = create<DashboardStore>()(
         })),
 
       clearCommissionFilters: () => set({ commissionFilters: defaultFilters }),
+
+      cashFlowView: 'weekly',
+
+      setCashFlowView: (view: CashFlowView) => set({ cashFlowView: view }),
     }),
     {
       name: 'dashboard-store',
