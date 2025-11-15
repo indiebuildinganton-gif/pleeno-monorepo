@@ -9,14 +9,17 @@
  * - Paid amount (if paid/partial)
  * - Status badge
  * - Mark as Paid button (for pending and partial installments)
+ * - History button to view payment timeline
  *
  * Epic 4: Payments Domain
  * Story 4.4: Manual Payment Recording
  * Task 4: Payment Plan Detail Page Updates
+ * Task 10: Payment History Timeline (Optional)
  */
 
 'use client'
 
+import { useState } from 'react'
 import {
   Table,
   TableBody,
@@ -26,10 +29,16 @@ import {
   TableRow,
   Button,
   Progress,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils/formatters'
 import { format, parseISO } from 'date-fns'
+import { History } from 'lucide-react'
 import { InstallmentStatusBadge } from '../../components/InstallmentStatusBadge'
+import { PaymentHistoryTimeline } from './PaymentHistoryTimeline'
 import type { Installment } from '@pleeno/validations/installment.schema'
 
 /**
@@ -48,7 +57,7 @@ interface InstallmentsListProps {
  * InstallmentsList Component
  *
  * Displays installments in a responsive table with "Mark as Paid" buttons
- * for pending and partial installments.
+ * for pending and partial installments, and "History" buttons to view payment timeline.
  *
  * @example
  * ```tsx
@@ -63,24 +72,30 @@ interface InstallmentsListProps {
  * ```
  */
 export function InstallmentsList({ installments, currency, onMarkAsPaid }: InstallmentsListProps) {
+  // State for payment history modal
+  const [selectedInstallmentForHistory, setSelectedInstallmentForHistory] = useState<Installment | null>(
+    null
+  )
+
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>#</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            <TableHead>Paid Date</TableHead>
-            <TableHead className="text-right">Paid Amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {installments.map((installment) => (
-            <>
-              <TableRow key={installment.id}>
+    <>
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>#</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Paid Date</TableHead>
+              <TableHead className="text-right">Paid Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {installments.map((installment) => (
+              <>
+                <TableRow key={installment.id}>
                 {/* Installment Number */}
                 <TableCell className="font-medium">
                   {installment.installment_number}
@@ -136,17 +151,32 @@ export function InstallmentsList({ installments, currency, onMarkAsPaid }: Insta
                   <InstallmentStatusBadge status={installment.status} />
                 </TableCell>
 
-                {/* Actions - Mark as Paid Button */}
+                {/* Actions - Mark as Paid and History Buttons */}
                 <TableCell>
-                  {(installment.status === 'pending' || installment.status === 'partial') && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onMarkAsPaid(installment)}
-                    >
-                      Mark as Paid
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {/* Mark as Paid - shown for pending/partial only */}
+                    {(installment.status === 'pending' || installment.status === 'partial') && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onMarkAsPaid(installment)}
+                      >
+                        Mark as Paid
+                      </Button>
+                    )}
+
+                    {/* History Button - shown for paid/partial installments */}
+                    {(installment.status === 'paid' || installment.status === 'partial') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedInstallmentForHistory(installment)}
+                        title="View payment history"
+                      >
+                        <History className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
 
@@ -181,5 +211,31 @@ export function InstallmentsList({ installments, currency, onMarkAsPaid }: Insta
         </TableBody>
       </Table>
     </div>
+
+    {/* Payment History Timeline Modal */}
+    <Dialog
+      open={!!selectedInstallmentForHistory}
+      onOpenChange={(open) => {
+        if (!open) {
+          setSelectedInstallmentForHistory(null)
+        }
+      }}
+    >
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            Payment History - Installment #{selectedInstallmentForHistory?.installment_number}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="mt-4">
+          <PaymentHistoryTimeline
+            installmentId={selectedInstallmentForHistory?.id || null}
+            currency={currency}
+            timezone="UTC"
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   )
 }

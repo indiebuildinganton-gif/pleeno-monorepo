@@ -1,8 +1,9 @@
 # Story 4-4 Implementation Manifest
 
 **Story**: Manual Payment Recording
-**Status**: In Progress
+**Status**: Completed
 **Started**: 2025-11-14
+**Completed**: 2025-11-15
 
 ## Task Progress
 
@@ -255,10 +256,42 @@
     - Accessibility testing included in component tests
 
 ### Task 10: Payment History Timeline (Optional)
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-15
+- Completed: 2025-11-15
 - Notes:
+  - Created PaymentHistoryTimeline component (apps/payments/app/plans/[id]/components/PaymentHistoryTimeline.tsx)
+  - Created useAuditLogs hook for fetching installment audit logs (apps/payments/app/plans/[id]/hooks/useAuditLogs.ts)
+  - Created audit logs API endpoint (/api/installments/[id]/audit-logs) with RLS enforcement
+  - Implemented TimelineEntry sub-component with visual indicators:
+    - Icons for different action types (DollarSign for payments, Edit for updates)
+    - Color coding: green for full payments, yellow for partial payments, blue for updates
+    - Connecting lines between timeline events
+    - Displays date/time, action, amount, payment notes, and user who performed action
+  - Integrated timeline into InstallmentsList component:
+    - Added History button (ghost variant with History icon) for paid and partial installments
+    - Displays timeline in responsive Dialog modal (max-width 2xl, scrollable)
+    - Modal shows installment number in title
+  - Timeline features:
+    - Fetches audit logs filtered by entity_type='installment' and entity_id
+    - Orders events by created_at descending (most recent first)
+    - Loading state with animated Clock icon
+    - Empty state when no payment history exists
+    - Error handling with user-friendly messages
+    - Uses formatCurrency and formatDateInAgencyTimezone utilities
+  - Satisfies all acceptance criteria:
+    - ✅ Timeline shows payment recorded events, partial payments, and updates
+    - ✅ Each entry displays date/time, action, amount, user, and notes
+    - ✅ Visual indicators with icons and color coding
+    - ✅ Integrated into payment plan detail page with modal
+    - ✅ Loading and empty states implemented
+    - ✅ Foundation laid for Epic 8: Payment History & Audit Trail
+  - API endpoint features:
+    - RLS enforcement via agency_id verification
+    - Returns audit logs with expanded user information (name, email)
+    - Filters to payment-related actions only (payment_recorded, updated)
+    - Proper authentication and authorization checks (401, 403, 404 errors)
+    - Uses server-side Supabase client with JWT authentication
 
 ## Implementation Notes
 
