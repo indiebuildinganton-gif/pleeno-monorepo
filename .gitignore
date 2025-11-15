@@ -58,3 +58,6 @@ Thumbs.db
 
 # Misc
 *.log
+
+# Development logs
+logs/

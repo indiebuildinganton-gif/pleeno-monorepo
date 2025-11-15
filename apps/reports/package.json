@@ -11,6 +11,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@pleeno/auth": "workspace:*",
+    "@pleeno/database": "workspace:*",
+    "@pleeno/ui": "workspace:*",
+    "@pleeno/utils": "workspace:*",
     "@react-pdf/renderer": "4.3.1",
     "@supabase/ssr": "^0.5.2",
     "@tanstack/react-query": "5.90.7",

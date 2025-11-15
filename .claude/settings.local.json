@@ -8,7 +8,20 @@
       "Bash(cat:*)",
       "Bash(node:*)",
       "SlashCommand(/bmad:bmm:workflows:story-context)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(docker ps:*)",
+      "Bash(cp:*)",
+      "Bash(npx supabase start)",
+      "Bash(docker login:*)",
+      "Bash(docker logout:*)",
+      "Bash(pnpm install:*)",
+      "Bash(npm:*)",
+      "Bash(export PNPM_HOME=\"/Users/brenttudas/Library/pnpm\")",
+      "Bash(export PATH=\"$PNPM_HOME:$PATH\")",
+      "Bash(chmod:*)",
+      "Bash(pnpm list:*)",
+      "Bash(timeout 30 pnpm run build:*)",
+      "Bash(pnpm run type-check:*)"
     ],
     "deny": [],
     "ask": []
