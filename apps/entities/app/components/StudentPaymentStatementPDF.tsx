@@ -22,6 +22,7 @@ import {
   StyleSheet,
   Image,
 } from '@react-pdf/renderer'
+import { formatCurrency, formatDate } from '@pleeno/utils'
 
 // ============================================================
 // TypeScript Interfaces
@@ -281,23 +282,11 @@ const styles = StyleSheet.create({
 // Helper Functions
 // ============================================================
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: 'AUD',
-  }).format(amount)
-}
-
-const formatDate = (dateString: string | null): string => {
-  if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-AU', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
+/**
+ * Get status badge style based on status value
+ * @param status - Payment status (paid, pending, overdue)
+ * @returns Style object for status badge
+ */
 const getStatusStyle = (status: string): any => {
   switch (status.toLowerCase()) {
     case 'paid':
@@ -337,7 +326,8 @@ export const StudentPaymentStatementPDF: React.FC<
           </View>
           <Text style={styles.title}>Payment Statement</Text>
           <Text style={styles.subtitle}>
-            Period: {formatDate(filters.date_from)} - {formatDate(filters.date_to)}
+            Period: {formatDate(filters.date_from, 'MMM d, yyyy', 'en-AU')} -{' '}
+            {formatDate(filters.date_to, 'MMM d, yyyy', 'en-AU')}
           </Text>
         </View>
 
@@ -358,7 +348,9 @@ export const StudentPaymentStatementPDF: React.FC<
           </View>
           <View style={styles.studentInfoRow}>
             <Text style={styles.label}>Statement Date:</Text>
-            <Text style={styles.value}>{formatDate(new Date().toISOString())}</Text>
+            <Text style={styles.value}>
+              {formatDate(new Date().toISOString(), 'MMM d, yyyy', 'en-AU')}
+            </Text>
           </View>
         </View>
 
@@ -380,8 +372,8 @@ export const StudentPaymentStatementPDF: React.FC<
                     Program: {plan.program_name}
                   </Text>
                   <Text style={styles.paymentPlanDetails}>
-                    Total Amount: {formatCurrency(plan.plan_total_amount)} | Start Date:{' '}
-                    {formatDate(plan.plan_start_date)}
+                    Total Amount: {formatCurrency(plan.plan_total_amount, 'AUD', 'en-AU')} |
+                    Start Date: {formatDate(plan.plan_start_date, 'MMM d, yyyy', 'en-AU')}
                   </Text>
                 </View>
 
@@ -397,14 +389,21 @@ export const StudentPaymentStatementPDF: React.FC<
                   {plan.installments.map((inst) => (
                     <View key={inst.installment_id} style={styles.tableRow}>
                       <Text style={styles.col1}>{inst.installment_number}</Text>
-                      <Text style={styles.col2}>{formatDate(inst.due_date)}</Text>
-                      <Text style={styles.col3}>{formatCurrency(inst.amount)}</Text>
+                      <Text style={styles.col2}>
+                        {formatDate(inst.due_date, 'MMM d, yyyy', 'en-AU')}
+                      </Text>
+                      <Text style={styles.col3}>
+                        {formatCurrency(inst.amount, 'AUD', 'en-AU')}
+                      </Text>
                       <Text style={styles.col4}>
-                        {inst.paid_amount ? formatCurrency(inst.paid_amount) : '-'}
+                        {inst.paid_amount
+                          ? formatCurrency(inst.paid_amount, 'AUD', 'en-AU')
+                          : '-'}
                       </Text>
                       <Text style={[styles.col5, getStatusStyle(inst.status)]}>
                         {inst.status.toUpperCase()}
-                        {inst.paid_at && ` (${formatDate(inst.paid_at)})`}
+                        {inst.paid_at &&
+                          ` (${formatDate(inst.paid_at, 'MMM d, yyyy', 'en-AU')})`}
                       </Text>
                     </View>
                   ))}
@@ -420,13 +419,13 @@ export const StudentPaymentStatementPDF: React.FC<
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Paid:</Text>
             <Text style={[styles.summaryValue, styles.summaryPaid]}>
-              {formatCurrency(summary.total_paid)}
+              {formatCurrency(summary.total_paid, 'AUD', 'en-AU')}
             </Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Outstanding:</Text>
             <Text style={[styles.summaryValue, styles.summaryOutstanding]}>
-              {formatCurrency(summary.total_outstanding)}
+              {formatCurrency(summary.total_outstanding, 'AUD', 'en-AU')}
             </Text>
           </View>
           <View style={styles.summaryRow}>
