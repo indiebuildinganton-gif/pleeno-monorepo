@@ -1,6 +1,6 @@
 # Story 1.2: Multi-Tenant Database Schema with RLS
 
-Status: ready-for-dev
+Status: completed
 
 ## Story
 

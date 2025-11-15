@@ -24,6 +24,7 @@ import { Badge } from '@pleeno/ui'
 import { EnrollmentsSection } from './components/EnrollmentsSection'
 import { StudentActions } from './components/StudentActions'
 import { DocumentViewer } from '../components/DocumentViewer'
+import { PaymentHistorySection } from './components/PaymentHistorySection'
 import Link from 'next/link'
 
 interface StudentDetailPageProps {
@@ -250,6 +251,11 @@ export default async function StudentDetailPage({
 
       {/* Enrollments Section - Story 3.3 Task 6 */}
       <EnrollmentsSection studentId={studentId} />
+
+      {/* Payment History Section - Story 7.5 Task 5 */}
+      <div className="mt-8">
+        <PaymentHistorySection studentId={studentId} />
+      </div>
 
       {/* Document Management Section - Story 3.2 Task 14 */}
       <div className="mt-8">

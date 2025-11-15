@@ -25,6 +25,12 @@ vi.mock('@pleeno/database/activity-logger', () => ({
   logActivity: vi.fn().mockResolvedValue(undefined),
 }))
 
+// Mock audit logger
+vi.mock('@pleeno/database/audit-logger', () => ({
+  logPaymentAudit: vi.fn().mockResolvedValue(undefined),
+  logAudit: vi.fn().mockResolvedValue(undefined),
+}))
+
 // Mock createServerClient
 vi.mock('@pleeno/database/server', () => ({
   createServerClient: vi.fn(() => ({
@@ -38,6 +44,7 @@ vi.mock('@pleeno/database/server', () => ({
 // Import mocked functions
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database/activity-logger'
+import { logPaymentAudit } from '@pleeno/database/audit-logger'
 
 describe('POST /api/installments/[id]/record-payment', () => {
   const mockUser = {
@@ -201,6 +208,26 @@ describe('POST /api/installments/[id]/record-payment', () => {
           entityType: 'installment',
           entityId: 'installment-123',
           action: 'recorded',
+        })
+      )
+      expect(logPaymentAudit).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          agencyId: 'agency-123',
+          userId: 'user-123',
+          installmentId: 'installment-123',
+          oldValues: expect.objectContaining({
+            status: 'pending',
+            paid_date: null,
+            paid_amount: null,
+            payment_notes: null,
+          }),
+          newValues: expect.objectContaining({
+            status: 'paid',
+            paid_date: '2025-01-15',
+            paid_amount: 1000,
+            payment_notes: 'Payment received via bank transfer',
+          }),
         })
       )
     })
