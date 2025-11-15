@@ -54,8 +54,9 @@ export function PaymentPlanDetail({ plan }: PaymentPlanDetailProps) {
   const totalInstallments = plan.installments.length
 
   // Calculate amount progress
+  // Include both 'paid' and 'partial' installments to match commission calculation
   const paidAmount = plan.installments
-    .filter(i => i.status === 'paid' && i.paid_amount !== null)
+    .filter(i => (i.status === 'paid' || i.status === 'partial') && i.paid_amount !== null)
     .reduce((sum, i) => sum + (i.paid_amount || 0), 0)
   const totalAmount = plan.total_amount
 
@@ -133,24 +134,41 @@ export function PaymentPlanDetail({ plan }: PaymentPlanDetailProps) {
           </div>
         </div>
 
-        {/* Commission Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-          <div>
-            <div className="text-sm text-gray-600">Expected Commission</div>
-            <div className="text-lg font-semibold mt-1">
-              {formatCurrency(plan.expected_commission, plan.currency)}
+        {/* Commission Tracking */}
+        <div className="space-y-4 pt-4 border-t">
+          <div className="text-sm font-medium text-gray-700">Commission Tracking</div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Expected Commission</div>
+              <div className="text-lg font-semibold">
+                {formatCurrency(plan.expected_commission, plan.currency)}
+              </div>
+            </div>
+
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Earned Commission</div>
+              <div className="text-lg font-semibold text-green-700">
+                {formatCurrency(plan.earned_commission, plan.currency)}
+              </div>
             </div>
           </div>
+
           <div>
-            <div className="text-sm text-gray-600">Earned Commission</div>
-            <div className="text-lg font-semibold mt-1">
-              {formatCurrency(plan.earned_commission, plan.currency)}
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-600">Commission Progress</span>
+              <span className="text-sm font-medium text-green-700">
+                {plan.expected_commission > 0
+                  ? `${Math.round((plan.earned_commission / plan.expected_commission) * 100)}% earned`
+                  : '0% earned'}
+              </span>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {plan.expected_commission > 0
-                ? `${Math.round((plan.earned_commission / plan.expected_commission) * 100)}% of expected`
-                : '0% of expected'}
-            </div>
+            <Progress
+              value={plan.expected_commission > 0
+                ? (plan.earned_commission / plan.expected_commission) * 100
+                : 0}
+              className="h-2"
+            />
           </div>
         </div>
       </CardContent>

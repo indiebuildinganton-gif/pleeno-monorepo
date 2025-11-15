@@ -19,6 +19,7 @@ import {
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
+  calculateEarnedCommission,
 } from '@pleeno/utils'
 import { RecordPaymentSchema } from '@pleeno/validations'
 import { createServerClient } from '@pleeno/database/server'
@@ -166,17 +167,22 @@ export async function POST(
     const allPaid = allInstallments?.every((inst) => inst.status === 'paid') ?? false
 
     // Calculate earned commission
-    // Formula: (SUM(paid_amount WHERE status='paid') / total_amount) * expected_commission
+    // Formula: (SUM(paid_amount WHERE status IN ('paid', 'partial')) / total_amount) * expected_commission
+    // Include both 'paid' and 'partial' installments as partial payments contribute to earned commission
     const totalPaidAmount =
       allInstallments
-        ?.filter((inst) => inst.status === 'paid' && inst.paid_amount !== null)
+        ?.filter(
+          (inst) =>
+            (inst.status === 'paid' || inst.status === 'partial') && inst.paid_amount !== null
+        )
         .reduce((sum, inst) => sum + (inst.paid_amount || 0), 0) || 0
 
     const paymentPlan = installment.payment_plans
-    const earnedCommission =
-      paymentPlan.total_amount > 0
-        ? (totalPaidAmount / paymentPlan.total_amount) * paymentPlan.expected_commission
-        : 0
+    const earnedCommission = calculateEarnedCommission(
+      totalPaidAmount,
+      paymentPlan.total_amount,
+      paymentPlan.expected_commission
+    )
 
     // Update payment plan status and earned commission
     const paymentPlanUpdate: {
