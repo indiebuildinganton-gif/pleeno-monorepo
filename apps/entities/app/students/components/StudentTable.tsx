@@ -9,7 +9,7 @@ import {
   type ColumnDef,
   type SortingState,
 } from '@tanstack/react-table'
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, Receipt } from 'lucide-react'
 import {
   Table,
   TableHeader,
@@ -23,6 +23,7 @@ import { Button } from '@pleeno/ui/src/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { getRelativeTime } from '@pleeno/utils/src/date-helpers'
 import type { Student, PaginationMeta } from '../../../hooks/useStudents'
+import Link from 'next/link'
 
 interface StudentTableProps {
   data: Student[]
@@ -172,6 +173,27 @@ export function StudentTable({
             </div>
           )
         },
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+          const studentId = row.original.id
+          return (
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/students/${studentId}#payment-history`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 rounded-md transition-colors"
+                title="View Payment History"
+              >
+                <Receipt className="h-4 w-4" />
+                Payments
+              </Link>
+            </div>
+          )
+        },
+        enableSorting: false,
       },
     ],
     []
