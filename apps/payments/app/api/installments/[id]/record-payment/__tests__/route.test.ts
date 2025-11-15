@@ -331,6 +331,108 @@ describe('POST /api/installments/[id]/record-payment', () => {
       expect(data.data.payment_plan.status).toBe('active')
     })
 
+    it('should include partial payments in earned commission calculation', async () => {
+      // Mock installment fetch
+      mockFrom.mockReturnValueOnce({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: mockInstallment,
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      })
+
+      // Mock installment update - adding another partial payment
+      mockFrom.mockReturnValueOnce({
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: {
+                  ...mockInstallment,
+                  paid_date: '2025-01-15',
+                  paid_amount: 600,
+                  status: 'partial',
+                  payment_notes: 'Second partial payment',
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      })
+
+      // Mock fetch all installments - mix of paid, partial, and pending
+      mockFrom.mockReturnValueOnce({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({
+            data: [
+              { id: 'installment-123', status: 'partial', paid_amount: 600, amount: 1000 },
+              { id: 'installment-124', status: 'paid', paid_amount: 1000, amount: 1000 },
+              { id: 'installment-125', status: 'partial', paid_amount: 400, amount: 1000 },
+              { id: 'installment-126', status: 'pending', paid_amount: null, amount: 1000 },
+            ],
+            error: null,
+          }),
+        }),
+      })
+
+      // Mock payment plan update
+      // Total paid: 600 + 1000 + 400 = 2000
+      // Total amount: 10000
+      // Earned commission: (2000 / 10000) * 1500 = 300
+      mockFrom.mockReturnValueOnce({
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            select: vi.fn().mockReturnValue({
+              single: vi.fn().mockResolvedValue({
+                data: {
+                  id: 'plan-123',
+                  status: 'active',
+                  earned_commission: 300,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      })
+
+      // Mock user data fetch
+      mockFrom.mockReturnValueOnce({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: mockUserData,
+              error: null,
+            }),
+          }),
+        }),
+      })
+
+      const request = new NextRequest('http://localhost:3000/api/installments/installment-123/record-payment', {
+        method: 'POST',
+        body: JSON.stringify({
+          paid_date: '2025-01-15',
+          paid_amount: 600,
+          notes: 'Second partial payment',
+        }),
+      })
+
+      const response = await POST(request, { params: Promise.resolve({ id: 'installment-123' }) })
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.success).toBe(true)
+      // Verify that earned commission includes both paid and partial installments
+      expect(data.data.payment_plan.earned_commission).toBe(300)
+      expect(data.data.payment_plan.status).toBe('active')
+    })
+
     it('should mark payment plan as completed when all installments are paid', async () => {
       // Mock installment fetch
       mockFrom.mockReturnValueOnce({

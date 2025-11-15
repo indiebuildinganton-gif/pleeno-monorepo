@@ -153,10 +153,30 @@
   - Note: No migration needed - audit_logs table already exists with all required schema
 
 ### Task 8: Commission Recalculation
-- Status: Not Started
-- Started:
-- Completed:
+- Status: Completed
+- Started: 2025-11-15
+- Completed: 2025-11-15
 - Notes:
+  - Verified existing commission calculation utility (packages/utils/src/commission-calculator.ts) includes calculateEarnedCommission function
+  - Updated API endpoint (apps/payments/app/api/installments/[id]/record-payment/route.ts) to:
+    - Import and use calculateEarnedCommission utility function
+    - Include both 'paid' AND 'partial' installments in commission calculation (previously only included 'paid')
+    - Added comment explaining that partial payments contribute to earned commission
+  - Updated payment plan detail UI (apps/payments/app/plans/[id]/components/PaymentPlanDetail.tsx) to:
+    - Include partial payments in amount progress calculation
+    - Enhanced commission tracking section with visual progress bar
+    - Added green highlighting for earned commission
+    - Shows commission progress percentage with progress bar
+    - Displays expected vs earned commission side-by-side
+  - Updated optimistic update logic (apps/payments/app/plans/[id]/hooks/useRecordPayment.ts) to:
+    - Include partial payments in earned commission calculation (matches API logic)
+    - Ensures UI updates correctly before API response
+  - Added comprehensive test case for partial payment commission calculation:
+    - Tests scenario with mix of paid, partial, and pending installments
+    - Verifies that earned commission includes all paid amounts from both 'paid' and 'partial' statuses
+  - Dashboard widgets already configured to invalidate commission-related queries (from Task 5):
+    - CommissionBreakdownWidget will automatically refresh when payments are recorded
+    - All commission data updates reflected in real-time without page refresh
 
 ### Task 9: Testing
 - Status: Not Started
