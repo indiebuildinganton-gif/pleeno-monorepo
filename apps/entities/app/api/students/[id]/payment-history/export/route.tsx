@@ -13,22 +13,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToStream } from '@react-pdf/renderer'
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole } from '@pleeno/auth'
-import { handleApiError, ForbiddenError, ValidationError } from '@pleeno/utils'
+import {
+  handleApiError,
+  ForbiddenError,
+  ValidationError,
+  generatePDF,
+  fetchAgencyLogo,
+  generateTimestampedFilename,
+} from '@pleeno/utils'
 import { StudentPaymentStatementPDF } from '@/components/StudentPaymentStatementPDF'
-
-/**
- * Helper function to sanitize filename
- * Removes special characters and replaces spaces with underscores
- */
-function sanitizeFilename(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '_') // Replace spaces with underscores
-    .toLowerCase()
-}
 
 /**
  * GET /api/students/[id]/payment-history/export
@@ -122,6 +117,9 @@ export async function GET(
       )
     }
 
+    // Fetch agency logo if available and convert to data URL
+    const logoDataUrl = await fetchAgencyLogo(agency.logo_url)
+
     // Fetch payment history using the database function
     const { data: paymentHistoryData, error: historyError } = await supabase.rpc(
       'get_student_payment_history',
@@ -201,24 +199,22 @@ export async function GET(
       percentage_paid,
     }
 
-    // Generate PDF
+    // Generate PDF using shared utility
     const pdfDocument = (
       <StudentPaymentStatementPDF
         student={student}
         paymentHistory={paymentHistory}
         summary={summary}
         filters={{ date_from, date_to }}
-        agency={agency}
+        agency={{ ...agency, logo_url: logoDataUrl }}
       />
     )
 
-    // Render PDF to stream
-    const stream = await renderToStream(pdfDocument)
+    // Render PDF to stream using shared utility
+    const stream = await generatePDF(pdfDocument)
 
-    // Generate filename with sanitized student name
-    const sanitizedName = sanitizeFilename(student.full_name)
-    const dateStr = new Date().toISOString().split('T')[0]
-    const filename = `payment_statement_${sanitizedName}_${dateStr}.pdf`
+    // Generate filename using shared utility
+    const filename = generateTimestampedFilename('payment_statement', student.full_name)
 
     // Set response headers
     const headers = new Headers()
