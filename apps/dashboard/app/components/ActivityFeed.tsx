@@ -16,6 +16,7 @@ import { ActivityCard } from './ActivityCard'
 import { ActivityFeedSkeleton } from './ActivityFeedSkeleton'
 import { ActivityFeedError } from './ActivityFeedError'
 import { ActivityFeedEmpty } from './ActivityFeedEmpty'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 interface Activity {
   id: string
@@ -56,7 +57,7 @@ export function ActivityFeed() {
   const { data, isLoading, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['activities'],
     queryFn: async () => {
-      const res = await fetch('/api/activity-log?limit=20')
+      const res = await fetch(getApiUrl('/api/activity-log?limit=20'))
       if (!res.ok) throw new Error('Failed to fetch activities')
       const json = await res.json()
       return json.data as Activity[]

@@ -22,6 +22,7 @@
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@pleeno/ui'
+import { getApiUrl } from '../hooks/useApiUrl'
 import {
   Clock,
   AlertCircle,
@@ -213,7 +214,7 @@ export default function PaymentStatusWidget() {
   const { data, isLoading, isError, refetch } = useQuery<PaymentStatusResponse>({
     queryKey: ['payment-status-summary'],
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/payment-status-summary')
+      const response = await fetch(getApiUrl('/api/dashboard/payment-status-summary'))
       if (!response.ok) {
         throw new Error('Failed to fetch payment status')
       }

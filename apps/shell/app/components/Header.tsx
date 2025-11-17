@@ -14,10 +14,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient, getCurrentAgencyId } from '@pleeno/database'
+import { createClient, getCurrentAgencyId } from '@pleeno/database/client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { NotificationBell } from './NotificationBell'
+import { NetworkActivityPanel } from './NetworkActivityPanel'
 
 export function Header() {
   const [agencyName, setAgencyName] = useState<string>('')
@@ -114,6 +115,9 @@ export function Header() {
 
             {/* Notification Bell */}
             <NotificationBell />
+
+            {/* Network Activity Panel */}
+            <NetworkActivityPanel />
           </nav>
         </div>
       </div>

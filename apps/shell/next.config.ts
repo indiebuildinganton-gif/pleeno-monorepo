@@ -1,27 +1,29 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+// import { withSentryConfig } from "@sentry/nextjs";
 
 const isDev = process.env.NODE_ENV === 'development';
 
 const ZONE_URLS = {
-  dashboard: isDev
-    ? 'http://localhost:3001'
-    : process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://pleeno-dashboard.vercel.app',
-  agency: isDev
-    ? 'http://localhost:3002'
-    : process.env.NEXT_PUBLIC_AGENCY_URL || 'https://pleeno-agency.vercel.app',
-  entities: isDev
-    ? 'http://localhost:3003'
-    : process.env.NEXT_PUBLIC_ENTITIES_URL || 'https://pleeno-entities.vercel.app',
-  payments: isDev
-    ? 'http://localhost:3004'
-    : process.env.NEXT_PUBLIC_PAYMENTS_URL || 'https://pleeno-payments.vercel.app',
   reports: isDev
-    ? 'http://localhost:3005'
+    ? 'http://localhost:3000'
     : process.env.NEXT_PUBLIC_REPORTS_URL || 'https://pleeno-reports.vercel.app',
+  entities: isDev
+    ? 'http://localhost:3001'
+    : process.env.NEXT_PUBLIC_ENTITIES_URL || 'https://pleeno-entities.vercel.app',
+  dashboard: isDev
+    ? 'http://localhost:3002'
+    : process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://pleeno-dashboard.vercel.app',
+  payments: isDev
+    ? 'http://localhost:3003'
+    : process.env.NEXT_PUBLIC_PAYMENTS_URL || 'https://pleeno-payments.vercel.app',
+  agency: isDev
+    ? 'http://localhost:3004'
+    : process.env.NEXT_PUBLIC_AGENCY_URL || 'https://pleeno-agency.vercel.app',
 };
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [],
+  transpilePackages: ['@pleeno/database', '@pleeno/auth', '@pleeno/ui', '@pleeno/utils', '@pleeno/validations'],
   async rewrites() {
     return [
       {
@@ -68,12 +70,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-const sentryWebpackPluginOptions = {
-  // Upload source maps during production build
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-};
+// Sentry temporarily disabled for builds
+// const sentryWebpackPluginOptions = {
+//   // Upload source maps during production build
+//   silent: true,
+//   org: process.env.SENTRY_ORG,
+//   project: process.env.SENTRY_PROJECT,
+//   authToken: process.env.SENTRY_AUTH_TOKEN,
+// };
 
-export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);
+export default nextConfig;
+// export default withSentryConfig(nextConfig, sentryWebpackPluginOptions);

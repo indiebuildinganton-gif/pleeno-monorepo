@@ -21,6 +21,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import Link from 'next/link'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * Due Soon Count Response Type
@@ -133,7 +134,7 @@ export function DueSoonWidget() {
   const { data, isLoading, isError, refetch } = useQuery<DueSoonResponse>({
     queryKey: ['dashboard', 'due-soon-count'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/due-soon-count')
+      const res = await fetch(getApiUrl('/api/dashboard/due-soon-count'))
       if (!res.ok) {
         throw new Error('Failed to fetch due soon count')
       }

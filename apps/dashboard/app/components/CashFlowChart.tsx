@@ -16,6 +16,7 @@
 
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { getApiUrl } from '../hooks/useApiUrl'
 import {
   BarChart,
   Bar,
@@ -31,7 +32,7 @@ import { formatCurrency } from '@pleeno/utils'
 import { Button } from '@pleeno/ui'
 import { RefreshCw } from 'lucide-react'
 import { useDashboardStore, type CashFlowView } from '@pleeno/stores'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@pleeno/database/client'
 import { useAuth } from '@pleeno/auth'
 
 /**
@@ -252,7 +253,7 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
     queryKey: ['cash-flow-projection', cashFlowView, days],
     queryFn: async () => {
       const res = await fetch(
-        `/api/cash-flow-projection?groupBy=${cashFlowView}&days=${days}`
+        getApiUrl(`/api/cash-flow-projection?groupBy=${cashFlowView}&days=${days}`)
       )
       if (!res.ok) {
         throw new Error('Failed to fetch cash flow projection')

@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
 import {
   handleApiError,
-  createSuccessResponse,
   requireRole,
+  createSuccessResponse,
   logInfo,
   getRequestId,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 
 /**
  * Example admin-only endpoint that requires agency_admin role

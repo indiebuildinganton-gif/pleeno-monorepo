@@ -46,6 +46,21 @@ log_section "Development Server Initialization Started"
 log "Log file: $LOG_FILE"
 log "Error log: $ERROR_LOG"
 
+# Load nvm if available
+if [ -s "$HOME/.nvm/nvm.sh" ]; then
+    source "$HOME/.nvm/nvm.sh"
+    log "nvm loaded successfully"
+
+    # Use Node version from .nvmrc if it exists
+    if [ -f ".nvmrc" ]; then
+        log "Found .nvmrc file, attempting to use specified Node version..."
+        nvm use || {
+            log_warning "Node version from .nvmrc not installed, installing now..."
+            nvm install || log_error "Failed to install Node version from .nvmrc"
+        }
+    fi
+fi
+
 # Environment checks
 log_section "Environment Information"
 log "Node version: $(node --version)"

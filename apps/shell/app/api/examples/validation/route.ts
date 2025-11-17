@@ -5,7 +5,7 @@ import {
   ValidationError,
   logInfo,
   getRequestId,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 import { z } from 'zod'
 
 /**

@@ -3,8 +3,18 @@ import InvitationEmail from '../../../emails/invitation'
 import StudentImportNotification from '../../../emails/student-import-notification'
 import PaymentReminderEmail from '../../../emails/payment-reminder'
 
-// Initialize Resend with API key from environment variable
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization of Resend client to ensure env vars are loaded
+let resendInstance: Resend | null = null
+
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY environment variable is not set. Email sending is disabled.')
+    }
+    resendInstance = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendInstance
+}
 
 /**
  * Replace template placeholders with actual data
@@ -94,9 +104,8 @@ export async function sendEmail({
   html: string
   from?: string
 }) {
-  const resendClient = new Resend(process.env.RESEND_API_KEY)
-
   try {
+    const resendClient = getResendClient()
     const response = await resendClient.emails.send({
       from,
       to,
@@ -211,6 +220,7 @@ export async function sendInvitationEmail({
 
   try {
     // Send email via Resend API
+    const resend = getResendClient()
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Pleeno <noreply@pleeno.com>',
       to,
@@ -317,6 +327,7 @@ export async function sendStudentImportNotification({
 
   try {
     // Send email via Resend API
+    const resend = getResendClient()
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Pleeno <noreply@pleeno.com>',
       to,
@@ -433,6 +444,7 @@ export async function sendPaymentReminderEmail(
 
   try {
     // Send email via Resend API
+    const resend = getResendClient()
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Pleeno <noreply@pleeno.com>',
       to,

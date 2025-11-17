@@ -23,6 +23,7 @@ import {
   ReferenceDot,
   Legend,
 } from 'recharts'
+import { getApiUrl } from '../hooks/useApiUrl'
 import { format } from 'date-fns'
 import { formatCurrency as formatCurrencyUtil } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
@@ -189,7 +190,7 @@ export function SeasonalCommissionChart() {
   const { data, isLoading, isError, refetch } = useQuery<SeasonalCommissionResponse>({
     queryKey: ['dashboard', 'seasonal-commission'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/seasonal-commission')
+      const res = await fetch(getApiUrl('/api/dashboard/seasonal-commission'))
       if (!res.ok) {
         throw new Error('Failed to fetch seasonal commission data')
       }

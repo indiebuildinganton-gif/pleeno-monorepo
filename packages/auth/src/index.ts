@@ -21,5 +21,7 @@
 // Hooks
 export * from './hooks/useAuth'
 
-// Utilities
-export * from './utils/permissions'
+// Utilities - Export only client-safe functions (no server imports)
+// Note: Server-side functions (requireRole, requireRoleForPage, etc.) should be imported from '@pleeno/auth/server'
+export type { UserRole } from './utils/permissions-client'
+export { hasRole, hasAnyRole, isAgencyAdmin, getUserRole } from './utils/permissions-client'

@@ -1,11 +1,11 @@
 import { NextRequest } from 'next/server'
 import {
   handleApiError,
-  createSuccessResponse,
   getCurrentUser,
+  createSuccessResponse,
   logInfo,
   getRequestId,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 
 /**
  * Example protected endpoint that requires authentication

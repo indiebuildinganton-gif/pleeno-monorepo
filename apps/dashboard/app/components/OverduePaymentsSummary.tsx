@@ -23,6 +23,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { AlertTriangle } from 'lucide-react'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * Payment Status Category
@@ -115,7 +116,7 @@ export function OverduePaymentsSummary() {
   const { data, isLoading, error } = useQuery<PaymentStatusResponse>({
     queryKey: ['payment-status-summary'],
     queryFn: async () => {
-      const response = await fetch('/api/dashboard/payment-status-summary')
+      const response = await fetch(getApiUrl('/api/dashboard/payment-status-summary'))
       if (!response.ok) {
         throw new Error('Failed to fetch payment status')
       }

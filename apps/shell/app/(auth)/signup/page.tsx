@@ -100,7 +100,7 @@ export default function SignupPage() {
               {...register('full_name')}
               type="text"
               id="full_name"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="John Doe"
             />
             {errors.full_name && (
@@ -116,7 +116,7 @@ export default function SignupPage() {
               {...register('agency_name')}
               type="text"
               id="agency_name"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="My Agency"
             />
             {errors.agency_name && (
@@ -132,7 +132,7 @@ export default function SignupPage() {
               {...register('email')}
               type="email"
               id="email"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="you@example.com"
             />
             {errors.email && (
@@ -148,7 +148,7 @@ export default function SignupPage() {
               {...register('password')}
               type="password"
               id="password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
               placeholder="••••••••"
             />
             {errors.password && (

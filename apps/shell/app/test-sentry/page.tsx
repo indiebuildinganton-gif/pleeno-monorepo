@@ -1,5 +1,6 @@
 'use client'
 
+// Import only client-safe utils to avoid bundling server code
 import { captureException, captureMessage } from '@pleeno/utils'
 
 export default function TestSentryPage() {

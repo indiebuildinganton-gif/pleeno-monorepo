@@ -16,9 +16,9 @@ import {
   handleApiError,
   createSuccessResponse,
   ForbiddenError,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 

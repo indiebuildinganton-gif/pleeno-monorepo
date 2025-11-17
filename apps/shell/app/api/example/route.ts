@@ -7,7 +7,7 @@ import {
   UnauthorizedError,
   ForbiddenError,
   withErrorHandling
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 
 /**
  * Example GET endpoint - demonstrates success response

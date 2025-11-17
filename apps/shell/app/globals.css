@@ -76,3 +76,65 @@ body {
   color: hsl(var(--foreground));
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ensure input fields have proper text visibility */
+input,
+textarea,
+select {
+  color: #171717 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  color: #171717 !important;
+}
+
+/* Ensure placeholder text is visible with good contrast */
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+/* Handle autofill styling to ensure visibility */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #171717 !important;
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  box-shadow: 0 0 0 30px white inset !important;
+}
+
+/* Firefox autofill */
+input:-moz-autofill,
+input:-moz-autofill:hover,
+input:-moz-autofill:focus {
+  color: #171717 !important;
+  background-color: white !important;
+}
+
+/* Ensure labels and form text are visible */
+label {
+  color: hsl(var(--foreground));
+}
+
+/* Ensure any text elements are visible */
+p, span, div {
+  color: inherit;
+}
+
+/* Fix text color visibility - ensure dark text shows properly */
+h1, h2, h3, h4, h5, h6 {
+  color: inherit;
+}
+
+/* Ensure Tailwind color utilities work properly */
+.text-gray-900 {
+  color: #111827 !important;
+}
+
+.text-gray-600 {
+  color: #4b5563 !important;
+}

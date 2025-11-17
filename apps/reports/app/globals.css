@@ -24,3 +24,35 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ensure input fields have proper text visibility */
+input,
+textarea,
+select {
+  color: var(--foreground);
+}
+
+/* Ensure placeholder text is visible with good contrast */
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280;
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af;
+    opacity: 1;
+  }
+}
+
+/* Ensure labels and form text are visible */
+label {
+  color: var(--foreground);
+}
+
+/* Ensure any text elements are visible */
+p, span, div {
+  color: inherit;
+}

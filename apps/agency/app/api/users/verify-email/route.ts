@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@pleeno/database'
+import { createServerClient } from '@pleeno/database/server'
 import { handleApiError, ValidationError } from '@pleeno/utils'
 import { createClient } from '@supabase/supabase-js'
 

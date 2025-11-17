@@ -21,7 +21,7 @@ import {
   SUPPORTED_CURRENCIES,
   SUPPORTED_TIMEZONES,
 } from '@pleeno/validations'
-import { createClient, getCurrentAgencyId } from '@pleeno/database'
+import { createClient, getCurrentAgencyId } from '@pleeno/database/client'
 import { Button, Input, Label, Card } from '@pleeno/ui'
 
 interface Agency {

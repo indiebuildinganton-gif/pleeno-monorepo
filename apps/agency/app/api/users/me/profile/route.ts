@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@pleeno/database'
+import { createServerClient } from '@pleeno/database/server'
 import { handleApiError, UnauthorizedError } from '@pleeno/utils'
 import { ProfileUpdateSchema } from '@pleeno/validations'
 

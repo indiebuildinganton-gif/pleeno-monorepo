@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { ArrowUp, ArrowDown, ArrowRight, AlertTriangle, RefreshCw } from 'lucide-react'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * School Commission Data Type
@@ -190,7 +191,7 @@ export function CommissionBySchoolWidget() {
   const { data, isLoading, isError, refetch } = useQuery<CommissionBySchoolResponse>({
     queryKey: ['dashboard', 'commission-by-school'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/commission-by-school')
+      const res = await fetch(getApiUrl('/api/dashboard/commission-by-school'))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by school data')
       }

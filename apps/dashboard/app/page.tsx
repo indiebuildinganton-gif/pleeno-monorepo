@@ -88,7 +88,7 @@ export default function Dashboard() {
           {/* Row 2: Seasonal Trends */}
           <section>
             <h2 className="text-2xl font-bold mb-4">Seasonal Trends</h2>
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="card rounded-lg shadow p-6">
               <SeasonalCommissionChart />
             </div>
           </section>
@@ -97,10 +97,10 @@ export default function Dashboard() {
           <section>
             <h2 className="text-2xl font-bold mb-4">Commission Breakdown</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="card rounded-lg shadow p-6">
                 <CommissionBySchoolWidget />
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="card rounded-lg shadow p-6">
                 <CommissionByCountryWidget />
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
         {/* Sidebar with activity feed (right side) */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="card rounded-lg shadow p-6">
             <ActivityFeed />
           </div>
         </div>

@@ -14,7 +14,7 @@
  * Acceptance Criteria: 1, 4, 5
  */
 
-import { createServerClient } from '@pleeno/database'
+import { createServerClient } from '@pleeno/database/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from './components/ProfileForm'
 

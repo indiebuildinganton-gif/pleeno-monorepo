@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { ArrowUp, ArrowDown, ArrowRight, AlertTriangle, RefreshCw, Globe } from 'lucide-react'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * Country Commission Data Type
@@ -251,7 +252,7 @@ export function CommissionByCountryWidget() {
   const { data, isLoading, isError, refetch } = useQuery<CommissionByCountryResponse>({
     queryKey: ['dashboard', 'commission-by-country'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/commission-by-country')
+      const res = await fetch(getApiUrl('/api/dashboard/commission-by-country'))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by country data')
       }

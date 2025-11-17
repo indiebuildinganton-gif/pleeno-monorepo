@@ -15,9 +15,9 @@ import {
   handleApiError,
   createSuccessResponse,
   ForbiddenError,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 
 // Cache configuration: 5 minutes (shorter than other widgets due to urgency)
 export const revalidate = 300

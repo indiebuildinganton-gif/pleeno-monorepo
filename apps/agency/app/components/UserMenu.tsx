@@ -9,7 +9,7 @@
  * Task 13: Add navigation link to profile
  */
 
-import { createServerClient } from '@pleeno/database'
+import { createServerClient } from '@pleeno/database/server'
 import { UserMenuClient } from './UserMenuClient'
 
 export async function UserMenu() {

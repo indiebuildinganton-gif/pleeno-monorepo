@@ -20,6 +20,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useDashboardStore } from '@pleeno/stores'
 import { formatCurrency, getDateRangeLabel } from '@pleeno/utils'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
+import { getApiUrl } from '../hooks/useApiUrl'
 import {
   RefreshCw,
   Download,
@@ -34,7 +35,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo } from 'react'
-import { cn } from '@pleeno/ui/lib/utils'
+import { cn } from '@pleeno/ui'
 
 /**
  * Commission breakdown data type
@@ -105,7 +106,7 @@ async function fetchCommissionBreakdown(
  * Fetch colleges
  */
 async function fetchColleges(): Promise<College[]> {
-  const response = await fetch('/api/entities/colleges')
+  const response = await fetch(getApiUrl('/api/entities/colleges'))
   if (!response.ok) {
     throw new Error('Failed to fetch colleges')
   }

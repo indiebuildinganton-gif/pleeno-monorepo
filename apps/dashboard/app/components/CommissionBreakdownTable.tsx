@@ -44,6 +44,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * Commission breakdown data type
@@ -114,7 +115,7 @@ async function fetchCommissionBreakdown(
  * Fetch colleges
  */
 async function fetchColleges(): Promise<College[]> {
-  const response = await fetch('/api/entities/colleges')
+  const response = await fetch(getApiUrl('/api/entities/colleges'))
   if (!response.ok) {
     throw new Error('Failed to fetch colleges')
   }

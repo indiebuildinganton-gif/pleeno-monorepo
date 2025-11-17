@@ -10,9 +10,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { handleApiError, createSuccessResponse, ForbiddenError } from '@pleeno/utils'
+import { handleApiError, createSuccessResponse, ForbiddenError } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import {
   startOfYear,
   endOfYear,

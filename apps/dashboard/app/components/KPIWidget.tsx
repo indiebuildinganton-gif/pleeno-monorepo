@@ -23,6 +23,7 @@ import {
   ArrowRight,
   RefreshCw,
 } from 'lucide-react'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
  * KPI Metrics Response Type
@@ -196,7 +197,7 @@ export function KPIWidget() {
   const { data, isLoading, isError, refetch } = useQuery<KPIResponse>({
     queryKey: ['dashboard', 'kpis'],
     queryFn: async () => {
-      const res = await fetch('/api/kpis')
+      const res = await fetch(getApiUrl('/api/kpis'))
       if (!res.ok) {
         throw new Error('Failed to fetch KPI metrics')
       }

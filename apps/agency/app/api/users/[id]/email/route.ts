@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@pleeno/database'
+import { createServerClient } from '@pleeno/database/server'
 import { handleApiError, UnauthorizedError, ForbiddenError, ValidationError } from '@pleeno/utils'
 import { EmailUpdateSchema } from '@pleeno/validations'
-import { Resend } from 'resend'
+import { resend } from '../../../../../lib/resend-client'
 import { EmailVerificationEmail } from '../../../../../../../emails/email-verification'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * PATCH /api/users/{id}/email

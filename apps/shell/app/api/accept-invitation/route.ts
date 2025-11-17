@@ -17,7 +17,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@pleeno/database/server'
-import { handleApiError, ValidationError, NotFoundError, isInvitationExpired } from '@pleeno/utils'
+import { handleApiError, ValidationError, NotFoundError, isInvitationExpired } from '@pleeno/utils/server'
 import { InvitationAcceptanceSchema } from '@pleeno/validations'
 
 export async function POST(request: NextRequest) {

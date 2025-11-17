@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createSuccessResponse, handleApiError, logInfo } from '@pleeno/utils'
+import { handleApiError, createSuccessResponse, logInfo } from '@pleeno/utils/server'
 
 /**
  * Health check endpoint to verify environment variables are loaded correctly
