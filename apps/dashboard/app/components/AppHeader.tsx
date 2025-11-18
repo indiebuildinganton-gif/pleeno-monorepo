@@ -9,8 +9,11 @@
  * Task 1: Create Dashboard Page and Layout
  */
 
+'use client'
+
 import Link from 'next/link'
 import { LayoutDashboard, CreditCard, FileText } from 'lucide-react'
+import { NetworkActivityPanel } from './NetworkActivityPanel'
 
 export function AppHeader() {
   return (
@@ -48,9 +51,10 @@ export function AppHeader() {
           </nav>
         </div>
 
-        {/* User Info Placeholder - can be enhanced later */}
+        {/* User Info and Network Activity */}
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">Agency User</span>
+          <NetworkActivityPanel />
         </div>
       </div>
     </header>

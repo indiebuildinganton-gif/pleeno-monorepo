@@ -1,7 +1,8 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { initNetworkLogger } from '@/lib/network-logger'
 
 /**
  * TanStack Query Provider
@@ -27,6 +28,11 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         },
       })
   )
+
+  // Initialize network activity logger
+  useEffect(() => {
+    initNetworkLogger()
+  }, [])
 
   return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 }
