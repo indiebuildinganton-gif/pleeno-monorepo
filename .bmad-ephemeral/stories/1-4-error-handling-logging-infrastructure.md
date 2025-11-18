@@ -1,6 +1,6 @@
 # Story 1.4: Error Handling & Logging Infrastructure
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 

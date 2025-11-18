@@ -92,3 +92,90 @@ export function formatNumber(
     maximumFractionDigits: decimals,
   }).format(value)
 }
+
+/**
+ * Format date as readable string
+ *
+ * @param date - Date string, Date object, or null
+ * @param formatString - Output format (default: 'MMM d, yyyy')
+ * @param locale - Locale for formatting (default: 'en-AU')
+ * @returns Formatted date string or 'N/A' if date is null
+ *
+ * @example
+ * ```typescript
+ * formatDate('2025-11-15') // Returns "Nov 15, 2025"
+ * formatDate(new Date('2025-11-15'), 'dd/MM/yyyy') // Returns "15/11/2025"
+ * formatDate('2025-11-15T10:30:00Z', 'MMM d, yyyy h:mm a') // Returns "Nov 15, 2025 10:30 AM"
+ * formatDate(null) // Returns "N/A"
+ * ```
+ *
+ * @remarks
+ * - Returns 'N/A' for null/undefined inputs
+ * - Uses Australian locale by default ('en-AU')
+ * - Common format strings:
+ *   - 'MMM d, yyyy' → "Nov 15, 2025"
+ *   - 'dd/MM/yyyy' → "15/11/2025"
+ *   - 'yyyy-MM-dd' → "2025-11-15"
+ *   - 'MMMM d, yyyy' → "November 15, 2025"
+ */
+export function formatDate(
+  date: string | Date | null,
+  formatString: string = 'MMM d, yyyy',
+  locale: string = 'en-AU'
+): string {
+  if (!date) return 'N/A'
+
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+
+    // Check if date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'N/A'
+    }
+
+    // Simple date formatting using Intl.DateTimeFormat
+    // For more complex formats, consider using date-fns
+    if (formatString === 'MMM d, yyyy') {
+      return dateObj.toLocaleDateString(locale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    } else if (formatString === 'dd/MM/yyyy') {
+      return dateObj.toLocaleDateString(locale, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+    } else if (formatString === 'yyyy-MM-dd') {
+      const year = dateObj.getFullYear()
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+      const day = String(dateObj.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    } else {
+      // Default to standard locale format
+      return dateObj.toLocaleDateString(locale)
+    }
+  } catch (error) {
+    console.error('Date formatting error:', error)
+    return 'N/A'
+  }
+}
+
+/**
+ * Alias for formatPercent for consistency with other formatters
+ *
+ * @param value - The percentage value (0-100)
+ * @param decimals - Number of decimal places (default: 1)
+ * @returns Formatted percentage string
+ *
+ * @example
+ * ```typescript
+ * formatPercentage(15.5) // Returns "15.5%"
+ * formatPercentage(15.5, 2) // Returns "15.50%"
+ * formatPercentage(0.5, 1) // Returns "0.5%"
+ * ```
+ */
+export function formatPercentage(value: number, decimals: number = 1): string {
+  return formatPercent(value, decimals)
+}

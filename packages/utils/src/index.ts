@@ -12,10 +12,5 @@ export * from './file-upload'
 export * from './formatters'
 export * from './enrollment-helpers'
 export * from './csv-formatter'
-
-// Server-only exports (use next/headers or database/server)
-// Import these directly from the file in server components/API routes
-// export * from './api-error-handler'  // Uses database/server
-// export * from './api-auth'  // Uses database/server
-// export * from './require-admin'  // Uses database/server
-// export * from './audit-logger'  // Uses database/server
+export * from './pdf-generator'
+export * from './pdf-styles'

@@ -25,6 +25,8 @@ import { EnrollmentsSection } from './components/EnrollmentsSection'
 import { StudentActions } from './components/StudentActions'
 import { DocumentViewer } from '../components/DocumentViewer'
 import { PaymentHistorySection } from './components/PaymentHistorySection'
+import { Breadcrumb } from './components/Breadcrumb'
+import { StudentDetailNavigation } from './components/StudentDetailNavigation'
 import Link from 'next/link'
 
 interface StudentDetailPageProps {
@@ -133,25 +135,26 @@ export default async function StudentDetailPage({
 
   return (
     <div className="container mx-auto py-8 max-w-6xl">
-      {/* Header with back link */}
-      <div className="mb-6">
-        <Link
-          href="/students"
-          className="text-sm text-muted-foreground hover:text-foreground mb-2 inline-block"
-        >
-          ← Back to Students
-        </Link>
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        items={[
+          { label: 'Students', href: '/students' },
+          { label: student.full_name },
+        ]}
+      />
 
-        {/* Student name and action buttons */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{student.full_name}</h1>
-          <StudentActions studentId={studentId} studentName={student.full_name} />
-        </div>
+      {/* Header with Navigation and Quick-Access Buttons */}
+      <div className="mb-6">
+        <StudentDetailNavigation
+          studentId={studentId}
+          studentName={student.full_name}
+        />
       </div>
 
       {/* Student Profile Card */}
-      <div className="bg-card rounded-lg border p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Student Information</h2>
+      <section id="student-info" className="scroll-mt-8">
+        <div className="bg-card rounded-lg border p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Student Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="text-sm font-medium text-muted-foreground">
@@ -247,20 +250,23 @@ export default async function StudentDetailPage({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </section>
 
       {/* Enrollments Section - Story 3.3 Task 6 */}
-      <EnrollmentsSection studentId={studentId} />
+      <section id="enrollments" className="scroll-mt-8">
+        <EnrollmentsSection studentId={studentId} />
+      </section>
 
       {/* Payment History Section - Story 7.5 Task 5 */}
-      <div className="mt-8">
+      <section id="payment-history" className="mt-8 scroll-mt-8">
         <PaymentHistorySection studentId={studentId} />
-      </div>
+      </section>
 
       {/* Document Management Section - Story 3.2 Task 14 */}
-      <div className="mt-8">
+      <section id="documents" className="mt-8 scroll-mt-8">
         <DocumentViewer studentId={studentId} />
-      </div>
+      </section>
     </div>
   )
 }

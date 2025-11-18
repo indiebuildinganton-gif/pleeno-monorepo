@@ -148,9 +148,10 @@ export function useRecordPayment() {
         const allPaid = updatedInstallments?.every((i: any) => i.status === 'paid') ?? false
 
         // Calculate earned commission optimistically
+        // Include both 'paid' and 'partial' installments to match API calculation
         const totalPaidAmount =
           updatedInstallments
-            ?.filter((i: any) => i.status === 'paid' && i.paid_amount !== null)
+            ?.filter((i: any) => (i.status === 'paid' || i.status === 'partial') && i.paid_amount !== null)
             .reduce((sum: number, i: any) => sum + (i.paid_amount || 0), 0) || 0
 
         const totalAmount = old.data.total_amount || 0
