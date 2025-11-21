@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react'
 import { Download, Trash2, Eye, EyeOff, Activity, X, Save, CheckCircle } from 'lucide-react'
 import { getNetworkLogger, type NetworkLog } from '@/lib/network-logger'
+import { getApiUrl } from '../hooks/useApiUrl'
 
 export function NetworkActivityPanel() {
   const [isOpen, setIsOpen] = useState(false)
@@ -82,7 +83,7 @@ export function NetworkActivityPanel() {
     setSaveSuccess(null)
 
     try {
-      const response = await fetch('/api/network-logs', {
+      const response = await fetch(getApiUrl('/api/network-logs'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -158,21 +158,20 @@ RESEND_API_KEY=<your-resend-api-key>
 For the **shell app only**, also add these zone URL variables:
 
 ```
-NEXT_PUBLIC_DASHBOARD_URL=<your-dashboard-vercel-url>
-NEXT_PUBLIC_AGENCY_URL=<your-agency-vercel-url>
-NEXT_PUBLIC_ENTITIES_URL=<your-entities-vercel-url>
-NEXT_PUBLIC_PAYMENTS_URL=<your-payments-vercel-url>
-NEXT_PUBLIC_REPORTS_URL=<your-reports-vercel-url>
+NEXT_PUBLIC_DASHBOARD_URL=https://app.pleeno.com
+NEXT_PUBLIC_AGENCY_URL=https://app.pleeno.com
+NEXT_PUBLIC_ENTITIES_URL=https://app.pleeno.com
+NEXT_PUBLIC_PAYMENTS_URL=https://app.pleeno.com
+NEXT_PUBLIC_REPORTS_URL=https://app.pleeno.com
+COOKIE_DOMAIN=.pleeno.com
 ```
 
-**Example:**
-```
-NEXT_PUBLIC_DASHBOARD_URL=https://pleeno-dashboard.vercel.app
-NEXT_PUBLIC_AGENCY_URL=https://pleeno-agency.vercel.app
-NEXT_PUBLIC_ENTITIES_URL=https://pleeno-entities.vercel.app
-NEXT_PUBLIC_PAYMENTS_URL=https://pleeno-payments.vercel.app
-NEXT_PUBLIC_REPORTS_URL=https://pleeno-reports.vercel.app
-```
+**Important:** All zones MUST be deployed under the same root domain (`app.pleeno.com`) to enable cross-zone authentication cookie sharing. Each zone will be accessible via its basePath:
+- Dashboard: `https://app.pleeno.com/dashboard`
+- Agency: `https://app.pleeno.com/agency`
+- Entities: `https://app.pleeno.com/entities`
+- Payments: `https://app.pleeno.com/payments`
+- Reports: `https://app.pleeno.com/reports`
 
 ### Adding Environment Variables in Vercel
 
@@ -187,14 +186,51 @@ NEXT_PUBLIC_REPORTS_URL=https://pleeno-reports.vercel.app
 
 ## Post-Deployment Configuration
 
+### Single Domain Multi-Zone Architecture
+
+This application uses a **single domain, multi-zone architecture** to enable seamless authentication across all zones. Here's how it works:
+
+**Architecture Overview:**
+```
+https://app.pleeno.com (Shell App - Entry Point)
+├─> /dashboard → Dashboard Zone (port 3002 in dev)
+├─> /agency → Agency Zone (port 3004 in dev)
+├─> /entities → Entities Zone (port 3001 in dev)
+├─> /payments → Payments Zone (port 3003 in dev)
+└─> /reports → Reports Zone (port 3000 in dev)
+```
+
+**Why Single Domain?**
+- **Shared Authentication**: Cookies set at `.pleeno.com` work across all zones
+- **Seamless UX**: Users stay logged in when navigating between zones
+- **Security**: HTTP-only cookies cannot be accessed by client-side JavaScript
+- **Simplicity**: No complex cross-domain auth token passing
+
+**Vercel Deployment Setup:**
+
+1. Deploy the **shell app** to `app.pleeno.com`
+2. Deploy each **zone app** to Vercel (e.g., `pleeno-dashboard.vercel.app`)
+3. Configure **rewrites** in shell app to proxy requests to zone deployments
+4. Set `COOKIE_DOMAIN=.pleeno.com` in all zone environment variables
+
+**Domain Configuration in Vercel:**
+
+1. Add custom domain `app.pleeno.com` to your shell app project
+2. Configure DNS records to point to Vercel
+3. Each zone deployment gets rewritten by the shell app:
+   - User visits: `https://app.pleeno.com/dashboard`
+   - Shell rewrites to: `https://pleeno-dashboard.vercel.app/dashboard`
+   - User sees: `https://app.pleeno.com/dashboard` (seamless!)
+
 ### Update Zone URLs
 
-After deploying all zones, you'll have actual Vercel URLs. Update the shell app's environment variables:
+After deploying all zones, verify the shell app's environment variables are set correctly:
 
 1. Go to **Shell App** project in Vercel
 2. Navigate to **Settings** > **Environment Variables**
-3. Update the `NEXT_PUBLIC_*_URL` variables with actual deployment URLs
-4. Trigger a **new deployment** for the changes to take effect
+3. Verify all `NEXT_PUBLIC_*_URL` variables point to `https://app.pleeno.com`
+4. Verify `COOKIE_DOMAIN=.pleeno.com` is set
+5. Trigger a **new deployment** if any changes were made
 
 ### Configure Automatic Deployments
 

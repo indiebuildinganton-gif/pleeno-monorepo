@@ -5,11 +5,11 @@
  * 1. Validates input data (email, password)
  * 2. Authenticates user via Supabase Auth
  * 3. Returns user and session data
- * 4. JWT tokens are automatically stored in HTTP-only cookies by Supabase
+ * 4. JWT tokens are stored in HTTP-only cookies with domain='localhost' for dev
  */
 
-import { createServerClient } from '@pleeno/database/server'
-import { NextResponse } from 'next/server'
+import { createAPIRouteClient } from '@pleeno/database/api-route'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 /**
@@ -22,12 +22,13 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 })
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email, password } = loginSchema.parse(body)
 
-    const supabase = await createServerClient()
+    // Create Supabase client for API routes
+    const { supabase, response: applyAuthCookies } = createAPIRouteClient(request)
 
     // Authenticate user with Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -42,12 +43,22 @@ export async function POST(request: Request) {
       )
     }
 
-    // JWT tokens are automatically stored in HTTP-only cookies
-    // by the Supabase client cookie handlers
-    return NextResponse.json({
+    // Create response with user data
+    const response = NextResponse.json({
       user: data.user,
       session: data.session,
     })
+
+    // Apply auth cookies to the response (including domain='localhost' for dev)
+    const finalResponse = applyAuthCookies(response)
+
+    // Debug: Log all cookies being set
+    console.log('🍪 Login - Cookies being set:')
+    finalResponse.cookies.getAll().forEach(cookie => {
+      console.log(`  ${cookie.name}: value length=${cookie.value.length}`)
+    })
+
+    return finalResponse
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 })

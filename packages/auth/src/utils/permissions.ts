@@ -59,7 +59,8 @@ export type UserRole = 'agency_admin' | 'agency_user'
 export function hasRole(user: User | null, role: UserRole): boolean {
   if (!user) return false
 
-  const userRole = user.app_metadata?.role as UserRole
+  // Check both app_metadata and user_metadata for role
+  const userRole = (user.app_metadata?.role || user.user_metadata?.role) as UserRole
 
   // Agency admin has access to everything
   if (userRole === 'agency_admin') return true
@@ -87,7 +88,8 @@ export function hasRole(user: User | null, role: UserRole): boolean {
 export function hasAnyRole(user: User | null, roles: UserRole[]): boolean {
   if (!user) return false
 
-  const userRole = user.app_metadata?.role as UserRole
+  // Check both app_metadata and user_metadata for role
+  const userRole = (user.app_metadata?.role || user.user_metadata?.role) as UserRole
   return roles.includes(userRole)
 }
 
@@ -126,22 +128,59 @@ export async function requireRole(
   request: NextRequest,
   allowedRoles: UserRole[]
 ): Promise<{ user: User; role: UserRole } | NextResponse> {
+  console.log('========================================')
+  console.log('requireRole called')
+  console.log('NODE_ENV:', process.env.NODE_ENV)
+  console.log('DISABLE_AUTH:', process.env.DISABLE_AUTH)
+  console.log('Request URL:', request.url)
+  console.log('Request cookies:', request.cookies.getAll())
+  console.log('========================================')
+
+  // BYPASS AUTH IN DEV MODE if DISABLE_AUTH=true
+  if (process.env.NODE_ENV === 'development' && process.env.DISABLE_AUTH === 'true') {
+    console.log('🔓 AUTH BYPASS ACTIVE - Returning mock user')
+    // Return a mock user for development
+    const mockUser = {
+      id: 'dev-user',
+      email: 'dev@test.local',
+      app_metadata: { role: 'agency_admin', agency_id: '20000000-0000-0000-0000-000000000001' },
+      user_metadata: { full_name: 'Dev User', role: 'agency_admin', agency_id: '20000000-0000-0000-0000-000000000001' },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    } as unknown as User
+
+    return { user: mockUser, role: 'agency_admin' }
+  }
+
+  console.log('🔒 AUTH BYPASS NOT ACTIVE - Checking authentication')
+
   const supabase = await createServerClient()
 
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('User from Supabase:', user ? `${user.email} (${user.id})` : 'null')
+
   if (!user) {
+    console.log('❌ NO USER - Returning 401')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const userRole = user.app_metadata?.role as UserRole
+  // Check both app_metadata and user_metadata for role
+  // Some Supabase configurations store role in user_metadata instead of app_metadata
+  const userRole = (user.app_metadata?.role || user.user_metadata?.role) as UserRole
+  console.log('User role:', userRole)
+  console.log('  - from app_metadata:', user.app_metadata?.role)
+  console.log('  - from user_metadata:', user.user_metadata?.role)
+  console.log('Allowed roles:', allowedRoles)
 
   if (!userRole || !allowedRoles.includes(userRole)) {
+    console.log('❌ INSUFFICIENT PERMISSIONS - Returning 403')
     return NextResponse.json({ error: 'Forbidden - insufficient permissions' }, { status: 403 })
   }
 
+  console.log('✅ AUTH SUCCESS - User authorized')
   return { user, role: userRole }
 }
 
@@ -173,7 +212,7 @@ export function isAgencyAdmin(user: User | null): boolean {
 /**
  * Get user's role from JWT metadata
  *
- * Returns the user's role as stored in JWT app_metadata.
+ * Returns the user's role as stored in JWT app_metadata or user_metadata.
  * Returns null if user is not authenticated or role is not set.
  *
  * @param user - User object from Supabase Auth
@@ -191,7 +230,33 @@ export function isAgencyAdmin(user: User | null): boolean {
  */
 export function getUserRole(user: User | null): UserRole | null {
   if (!user) return null
-  return (user.app_metadata?.role as UserRole) || null
+  // Check both app_metadata and user_metadata for role
+  return (user.app_metadata?.role || user.user_metadata?.role) as UserRole || null
+}
+
+/**
+ * Get user's agency ID from JWT metadata
+ *
+ * Returns the user's agency_id as stored in JWT app_metadata or user_metadata.
+ * Returns null if user is not authenticated or agency_id is not set.
+ *
+ * @param user - User object from Supabase Auth
+ * @returns The user's agency ID, or null if not available
+ *
+ * @example
+ * ```typescript
+ * const { user } = authResult
+ * const agencyId = getUserAgencyId(user)
+ *
+ * if (!agencyId) {
+ *   throw new ForbiddenError('User not associated with an agency')
+ * }
+ * ```
+ */
+export function getUserAgencyId(user: User | null): string | null {
+  if (!user) return null
+  // Check both app_metadata and user_metadata for agency_id
+  return (user.app_metadata?.agency_id || user.user_metadata?.agency_id) as string || null
 }
 
 /**
@@ -234,7 +299,8 @@ export async function requireRoleForPage(
     throw new Error('Redirecting to login')
   }
 
-  const userRole = user.app_metadata?.role as UserRole
+  // Check both app_metadata and user_metadata for role
+  const userRole = (user.app_metadata?.role || user.user_metadata?.role) as UserRole
 
   if (!userRole || !allowedRoles.includes(userRole)) {
     redirect('/dashboard?error=unauthorized')

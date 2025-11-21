@@ -1,26 +1,14 @@
 /**
- * Next.js Middleware for Authentication
+ * Dashboard Zone Middleware for Authentication
  *
  * This middleware:
- * - Validates JWT tokens on protected routes
- * - Automatically refreshes expired tokens
+ * - Validates JWT tokens and refreshes them automatically
+ * - Handles authentication state across multi-zone setup
  * - Redirects unauthenticated users to login
- * - Redirects authenticated users away from auth pages
- * - Preserves original URL for post-login redirect
- * - Handles cookie updates across multi-zone routing
  *
- * Protected Routes:
- * - /dashboard/* - Main dashboard
- * - /agency/* - Agency management (admin only)
- * - /entities/* - Entity management
- * - /payments/* - Payment processing
- * - /reports/* - Reporting features
- *
- * Security Features:
- * - HTTP-only cookies prevent XSS attacks
- * - SameSite=Lax prevents CSRF attacks
- * - Automatic token refresh for expired sessions
- * - Redirect loop prevention
+ * Important: In development, each zone runs on a separate port.
+ * Access the dashboard through the shell app at http://localhost:3000/dashboard
+ * to ensure cookies are properly shared.
  */
 
 import { createServerClient } from '@supabase/ssr'
@@ -100,29 +88,23 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protected routes require authentication
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith('/dashboard') ||
-    request.nextUrl.pathname.startsWith('/agency') ||
-    request.nextUrl.pathname.startsWith('/entities') ||
-    request.nextUrl.pathname.startsWith('/payments') ||
-    request.nextUrl.pathname.startsWith('/reports')
+  // Skip auth check for API routes - they handle their own auth via requireRole
+  const isApiRoute = request.nextUrl.pathname.startsWith('/dashboard/api')
 
-  // Redirect to login if accessing protected route without auth
-  if (isProtectedRoute && !user) {
-    const redirectUrl = new URL('/login', request.url)
+  if (!isApiRoute && !user) {
+    // Redirect to shell zone login
+    const isDev = process.env.NODE_ENV === 'development'
+    const shellUrl = isDev
+      ? 'http://localhost:3000'
+      : process.env.NEXT_PUBLIC_SHELL_URL || 'https://app.pleeno.com'
+
+    const redirectUrl = new URL('/login', shellUrl)
     // Store the original URL to redirect back after login
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    // Remove the /dashboard basePath prefix for the redirect
+    const originalPath = request.nextUrl.pathname.replace(/^\/dashboard/, '') || '/'
+    redirectUrl.searchParams.set('redirectTo', `/dashboard${originalPath}`)
+
     return NextResponse.redirect(redirectUrl)
-  }
-
-  // Redirect to dashboard if accessing auth pages while authenticated
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/signup')
-
-  if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return response
@@ -137,6 +119,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

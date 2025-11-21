@@ -32,14 +32,16 @@ class NetworkActivityLogger {
   }
 
   private setupInterceptor() {
-    // Override the global fetch function
-    window.fetch = async (...args: Parameters<typeof fetch>): Promise<Response> => {
-      if (!this.isEnabled) {
-        return this.originalFetch(...args)
+    const self = this
+
+    // Override the global fetch function with proper binding
+    window.fetch = async function(...args: Parameters<typeof fetch>): Promise<Response> {
+      if (!self.isEnabled) {
+        return self.originalFetch.apply(this, args)
       }
 
       const [resource, config] = args
-      const url = typeof resource === 'string' ? resource : resource.url
+      const url = typeof resource === 'string' ? resource : (resource instanceof Request ? resource.url : resource.toString())
       const method = config?.method || 'GET'
       const startTime = Date.now()
 
@@ -49,13 +51,13 @@ class NetworkActivityLogger {
         timestamp: new Date().toISOString(),
         method,
         url,
-        requestHeaders: this.extractHeaders(config?.headers),
-        requestBody: config?.body ? this.parseBody(config.body) : undefined,
+        requestHeaders: self.extractHeaders(config?.headers),
+        requestBody: config?.body ? self.parseBody(config.body) : undefined,
       }
 
       try {
-        // Make the actual request
-        const response = await this.originalFetch(...args)
+        // Make the actual request with proper context
+        const response = await self.originalFetch.apply(this, args)
         const endTime = Date.now()
 
         // Clone the response so we can read it
@@ -64,7 +66,7 @@ class NetworkActivityLogger {
         // Extract response data
         logEntry.status = response.status
         logEntry.statusText = response.statusText
-        logEntry.responseHeaders = this.extractResponseHeaders(response.headers)
+        logEntry.responseHeaders = self.extractResponseHeaders(response.headers)
         logEntry.duration = endTime - startTime
 
         // Try to parse response body
@@ -80,14 +82,14 @@ class NetworkActivityLogger {
         }
 
         // Add to logs
-        this.addLog(logEntry)
+        self.addLog(logEntry)
 
         return response
       } catch (error) {
         const endTime = Date.now()
         logEntry.duration = endTime - startTime
         logEntry.error = error instanceof Error ? error.message : String(error)
-        this.addLog(logEntry)
+        self.addLog(logEntry)
         throw error
       }
     }

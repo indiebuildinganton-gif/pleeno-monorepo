@@ -10,6 +10,7 @@
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
     "./middleware": "./src/middleware.ts",
+    "./api-route": "./src/api-route.ts",
     "./types": "./src/types/database.types.ts"
   },
   "scripts": {

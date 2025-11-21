@@ -19,7 +19,7 @@ import {
   ForbiddenError,
 } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth/server'
+import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 import { startOfDay, addDays, format } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 import { z } from 'zod'
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     const { user } = authResult
 
     // Get user's agency_id from JWT metadata
-    const userAgencyId = user.app_metadata?.agency_id
+    const userAgencyId = getUserAgencyId(user)
 
     if (!userAgencyId) {
       throw new ForbiddenError('User not associated with an agency')

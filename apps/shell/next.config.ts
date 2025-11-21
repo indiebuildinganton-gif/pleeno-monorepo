@@ -6,19 +6,19 @@ const isDev = process.env.NODE_ENV === 'development';
 const ZONE_URLS = {
   reports: isDev
     ? 'http://localhost:3000'
-    : process.env.NEXT_PUBLIC_REPORTS_URL || 'https://pleeno-reports.vercel.app',
+    : process.env.NEXT_PUBLIC_REPORTS_URL || 'https://app.pleeno.com',
   entities: isDev
     ? 'http://localhost:3001'
-    : process.env.NEXT_PUBLIC_ENTITIES_URL || 'https://pleeno-entities.vercel.app',
+    : process.env.NEXT_PUBLIC_ENTITIES_URL || 'https://app.pleeno.com',
   dashboard: isDev
     ? 'http://localhost:3002'
-    : process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://pleeno-dashboard.vercel.app',
+    : process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://app.pleeno.com',
   payments: isDev
     ? 'http://localhost:3003'
-    : process.env.NEXT_PUBLIC_PAYMENTS_URL || 'https://pleeno-payments.vercel.app',
+    : process.env.NEXT_PUBLIC_PAYMENTS_URL || 'https://app.pleeno.com',
   agency: isDev
     ? 'http://localhost:3004'
-    : process.env.NEXT_PUBLIC_AGENCY_URL || 'https://pleeno-agency.vercel.app',
+    : process.env.NEXT_PUBLIC_AGENCY_URL || 'https://app.pleeno.com',
 };
 
 const nextConfig: NextConfig = {

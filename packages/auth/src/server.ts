@@ -20,4 +20,4 @@ export type { UserRole } from './utils/permissions-client'
 export { hasRole, hasAnyRole, isAgencyAdmin, getUserRole } from './utils/permissions-client'
 
 // Server-only exports
-export { requireRole, requireRoleForPage } from './utils/permissions'
+export { requireRole, requireRoleForPage, getUserAgencyId } from './utils/permissions'

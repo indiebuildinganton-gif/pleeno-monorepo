@@ -64,7 +64,11 @@
       "Bash(rm:*)",
       "Bash(while read file)",
       "Bash(do sed -i '' \"s|from ''''@pleeno/utils''''|from ''''@pleeno/utils/server''''|g\" \"$file\" echo \"Updated: $file\" done)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(xargs:*)",
+      "Bash(export PATH=\"/Users/brenttudas/Library/pnpm:$PATH\")",
+      "Bash(.env.local)",
+      "Bash(/Users/brenttudas/Pleeno/test-auth.sh)"
     ],
     "deny": [],
     "ask": []

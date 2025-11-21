@@ -56,7 +56,29 @@ export async function createServerClient() {
          */
         set(name: string, value: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value, ...options })
+            // Set cookie domain to allow cross-zone/cross-port sharing
+            const isProd = process.env.NODE_ENV === 'production'
+            const isDev = process.env.NODE_ENV === 'development'
+
+            const cookieOptions = isProd
+              ? {
+                  name,
+                  value,
+                  ...options,
+                  domain: process.env.COOKIE_DOMAIN || '.pleeno.com',
+                }
+              : isDev
+              ? {
+                  name,
+                  value,
+                  ...options,
+                  // In development, set domain to 'localhost' (without port)
+                  // This allows cookies to be shared across all localhost ports
+                  domain: 'localhost',
+                }
+              : { name, value, ...options }
+
+            cookieStore.set(cookieOptions)
           } catch (error) {
             // Handle cookie setting errors in middleware
             // This can happen when cookies are set after headers are sent

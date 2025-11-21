@@ -94,22 +94,26 @@ pnpm dev
 ```
 
 This starts all 6 zones in parallel:
-- **Shell:** http://localhost:3000
-- **Dashboard:** http://localhost:3001 (or access via /dashboard)
-- **Agency:** http://localhost:3002 (or access via /agency)
-- **Entities:** http://localhost:3003 (or access via /entities)
-- **Payments:** http://localhost:3004 (or access via /payments)
-- **Reports:** http://localhost:3005 (or access via /reports)
+- **Shell:** http://localhost:3005 (main entry point)
+- **Reports:** http://localhost:3000
+- **Entities:** http://localhost:3001
+- **Dashboard:** http://localhost:3002
+- **Payments:** http://localhost:3003
+- **Agency:** http://localhost:3004
 - **Supabase Studio:** http://localhost:54323
+
+**Important:** Always access the application through the shell zone at http://localhost:3005
 
 ### 7. Verify Setup
 
-Open http://localhost:3000 in your browser. You should see the shell app running.
+Open http://localhost:3005 in your browser. You should see the shell app running.
 
 Check API health:
 ```bash
-curl http://localhost:3000/api/health
+curl http://localhost:3005/api/health
 ```
+
+**Troubleshooting:** If you encounter authentication issues, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for detailed troubleshooting.
 
 ## 📦 Project Structure
 

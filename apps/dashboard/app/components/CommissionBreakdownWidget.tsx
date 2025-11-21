@@ -93,7 +93,7 @@ async function fetchCommissionBreakdown(
   if (collegeId) params.set('college_id', collegeId)
   if (branchId) params.set('branch_id', branchId)
 
-  const response = await fetch(`/api/commission-by-college?${params}`)
+  const response = await fetch(getApiUrl(`/api/commission-by-college?${params}`))
   if (!response.ok) {
     throw new Error('Failed to fetch commission breakdown')
   }
@@ -122,7 +122,7 @@ async function fetchBranches(collegeId: string | null): Promise<Branch[]> {
   const params = new URLSearchParams()
   if (collegeId) params.set('college_id', collegeId)
 
-  const response = await fetch(`/api/entities/branches?${params}`)
+  const response = await fetch(getApiUrl(`/api/entities/branches?${params}`))
   if (!response.ok) {
     throw new Error('Failed to fetch branches')
   }
