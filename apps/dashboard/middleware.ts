@@ -101,6 +101,11 @@ export async function middleware(request: NextRequest) {
       requestHeaders.set('x-user-role', userRole)
     }
 
+    const agencyId = (user.app_metadata?.agency_id || user.user_metadata?.agency_id) as string
+    if (agencyId) {
+      requestHeaders.set('x-user-agency-id', agencyId)
+    }
+
     // Create a new response with the updated request headers
     // This ensures the API route receives these headers
     const newResponse = NextResponse.next({
@@ -115,7 +120,12 @@ export async function middleware(request: NextRequest) {
       newResponse.cookies.set(cookie)
     })
 
+    console.log('[Middleware] Setting headers for user:', user.id)
+    console.log('[Middleware] Request path:', request.nextUrl.pathname)
+    
     response = newResponse
+  } else {
+    console.log('[Middleware] No user found')
   }
 
   // Skip auth check for API routes - they handle their own auth via requireRole
@@ -149,6 +159,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/dashboard/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/dashboard/:path*',
+    '/api/:path*',
   ],
 }

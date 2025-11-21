@@ -158,6 +158,7 @@ export async function requireRole(
   // Check for headers passed from middleware (Strategy A: Fix Race Condition)
   const headerUserId = request.headers.get('x-user-id')
   const headerUserRole = request.headers.get('x-user-role') as UserRole | null
+  const headerAgencyId = request.headers.get('x-user-agency-id')
 
   if (headerUserId && headerUserRole) {
     console.log('✅ AUTH SUCCESS (via headers) - User authorized')
@@ -165,8 +166,8 @@ export async function requireRole(
     const user = {
       id: headerUserId,
       email: request.headers.get('x-user-email') || undefined,
-      app_metadata: { role: headerUserRole },
-      user_metadata: { role: headerUserRole },
+      app_metadata: { role: headerUserRole, agency_id: headerAgencyId },
+      user_metadata: { role: headerUserRole, agency_id: headerAgencyId },
       aud: 'authenticated',
       created_at: new Date().toISOString(),
     } as unknown as User

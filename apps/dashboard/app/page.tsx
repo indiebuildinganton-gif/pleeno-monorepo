@@ -112,40 +112,6 @@ export default function Dashboard() {
             <PaymentStatusWidget />
           </section>
 
-          {/* Row 5: Commission Breakdown by College (Story 6.3) */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Commission Performance by College</h2>
-            <ErrorBoundary
-              fallback={
-                <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-red-800">
-                    <svg
-                      className="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="font-medium">Unable to load commission breakdown widget</span>
-                  </div>
-                  <p className="text-sm text-red-700 mt-2">
-                    An error occurred while loading the commission breakdown. Please refresh the page or
-                    contact support if the issue persists.
-                  </p>
-                </div>
-              }
-              onError={(error, errorInfo) => {
-                console.error('Commission breakdown widget error:', error, errorInfo)
-              }}
-            >
-              <CommissionBreakdownWidget />
-            </ErrorBoundary>
-          </section>
         </div>
 
         {/* Sidebar with activity feed (right side) */}
@@ -155,6 +121,41 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Commission Breakdown by College (Story 6.3) - Full Width */}
+      <section className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Commission Performance by College</h2>
+        <ErrorBoundary
+          fallback={
+            <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center gap-2 text-red-800">
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="font-medium">Unable to load commission breakdown widget</span>
+              </div>
+              <p className="text-sm text-red-700 mt-2">
+                An error occurred while loading the commission breakdown. Please refresh the page or
+                contact support if the issue persists.
+              </p>
+            </div>
+          }
+          onError={(error, errorInfo) => {
+            console.error('Commission breakdown widget error:', error, errorInfo)
+          }}
+        >
+          <CommissionBreakdownWidget />
+        </ErrorBoundary>
+      </section>
 
       {/* Cash Flow Projection Section - Full Width */}
       <section className="mt-8">

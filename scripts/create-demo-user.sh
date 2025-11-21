@@ -80,9 +80,18 @@ async function main() {
 
       if (user) {
         await supabase.auth.admin.updateUserById(user.id, {
-          password: 'Password123'
+          password: 'Password123',
+          user_metadata: {
+            full_name: 'Demo Admin',
+            agency_id: AGENCY_ID,
+            role: 'agency_admin'
+          },
+          app_metadata: {
+            agency_id: AGENCY_ID,
+            role: 'agency_admin'
+          }
         })
-        console.log('✅ Password updated')
+        console.log('✅ Password and metadata updated')
       }
     } else {
       console.error('Error creating user:', authError.message)

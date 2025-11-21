@@ -18,8 +18,8 @@ import {
 import { createServerClient } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 
-// Cache configuration: 1 minute (frequent dashboard access)
-export const revalidate = 60
+// Cache configuration: Dynamic (no caching)
+export const dynamic = 'force-dynamic'
 
 /**
  * Activity response interface
