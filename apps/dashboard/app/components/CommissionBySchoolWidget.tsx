@@ -191,7 +191,7 @@ export function CommissionBySchoolWidget() {
   const { data, isLoading, isError, refetch } = useQuery<CommissionBySchoolResponse>({
     queryKey: ['dashboard', 'commission-by-school'],
     queryFn: async () => {
-      const res = await fetch(getApiUrl('/api/dashboard/commission-by-school'))
+      const res = await fetch(getApiUrl('/api/commission-by-school'))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by school data')
       }

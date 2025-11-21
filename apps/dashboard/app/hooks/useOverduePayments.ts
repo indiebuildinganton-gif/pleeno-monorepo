@@ -47,7 +47,7 @@ interface ApiResponse {
 /**
  * useOverduePayments Hook
  *
- * Fetches overdue payments from /api/dashboard/overdue-payments
+ * Fetches overdue payments from /api/overdue-payments
  * with automatic refresh and caching.
  *
  * Query Configuration:
@@ -73,7 +73,7 @@ export function useOverduePayments() {
   return useQuery({
     queryKey: ['overdue-payments'],
     queryFn: async () => {
-      const res = await fetch('/api/dashboard/overdue-payments')
+      const res = await fetch('/api/overdue-payments')
       if (!res.ok) {
         throw new Error('Failed to fetch overdue payments')
       }

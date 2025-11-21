@@ -252,7 +252,7 @@ export function CommissionByCountryWidget() {
   const { data, isLoading, isError, refetch } = useQuery<CommissionByCountryResponse>({
     queryKey: ['dashboard', 'commission-by-country'],
     queryFn: async () => {
-      const res = await fetch(getApiUrl('/api/dashboard/commission-by-country'))
+      const res = await fetch(getApiUrl('/api/commission-by-country'))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by country data')
       }

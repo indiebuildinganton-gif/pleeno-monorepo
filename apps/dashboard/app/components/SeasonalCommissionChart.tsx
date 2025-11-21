@@ -190,7 +190,7 @@ export function SeasonalCommissionChart() {
   const { data, isLoading, isError, refetch } = useQuery<SeasonalCommissionResponse>({
     queryKey: ['dashboard', 'seasonal-commission'],
     queryFn: async () => {
-      const res = await fetch(getApiUrl('/api/dashboard/seasonal-commission'))
+      const res = await fetch(getApiUrl('/api/seasonal-commission'))
       if (!res.ok) {
         throw new Error('Failed to fetch seasonal commission data')
       }

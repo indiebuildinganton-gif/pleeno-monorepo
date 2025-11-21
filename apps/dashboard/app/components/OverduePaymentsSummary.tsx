@@ -116,7 +116,7 @@ export function OverduePaymentsSummary() {
   const { data, isLoading, error } = useQuery<PaymentStatusResponse>({
     queryKey: ['payment-status-summary'],
     queryFn: async () => {
-      const response = await fetch(getApiUrl('/api/dashboard/payment-status-summary'))
+      const response = await fetch(getApiUrl('/api/payment-status-summary'))
       if (!response.ok) {
         throw new Error('Failed to fetch payment status')
       }
