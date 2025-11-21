@@ -1,22 +1,17 @@
 -- Migration 001: Create colleges table
 -- Epic 3: Entities Domain
 -- Foundation for educational institution management
--- Migration 001: Create colleges table with RLS
--- Epic 3: Core Entity Management
--- Story 3.1: College Registry - Task 1
 
 BEGIN;
 
 -- ============================================================
 -- STEP 1: Create Colleges Table
--- STEP 1: Create Table
 -- ============================================================
 
 CREATE TABLE colleges (
   -- Primary key
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  -- REQUIRED: Tenant isolation key
   -- Tenant isolation key
   agency_id UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
 
@@ -27,14 +22,6 @@ CREATE TABLE colleges (
   default_commission_rate_percent DECIMAL(5,2) CHECK (default_commission_rate_percent BETWEEN 0 AND 100),
   gst_status TEXT CHECK (gst_status IN ('included', 'excluded')) DEFAULT 'included',
   contract_expiration_date DATE,
-
-  -- Standard timestamps
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
-  default_commission_rate_percent DECIMAL(5,2)
-    CHECK (default_commission_rate_percent BETWEEN 0 AND 100),
-  gst_status TEXT NOT NULL DEFAULT 'included'
-    CHECK (gst_status IN ('included', 'excluded')),
 
   -- Standard timestamps
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
@@ -54,10 +41,6 @@ CREATE INDEX idx_colleges_agency_id ON colleges(agency_id);
 -- Additional indexes for common query patterns
 CREATE INDEX idx_colleges_name ON colleges(agency_id, name);
 CREATE INDEX idx_colleges_country ON colleges(agency_id, country) WHERE country IS NOT NULL;
--- Index for name searches within agency
-CREATE INDEX idx_colleges_agency_name ON colleges(agency_id, name);
-
--- Index for city-based queries
 CREATE INDEX idx_colleges_city ON colleges(agency_id, city) WHERE city IS NOT NULL;
 
 -- ============================================================
@@ -92,8 +75,6 @@ CREATE POLICY colleges_agency_isolation_select ON colleges
     )
   );
 
--- INSERT Policy: Agency Isolation
-CREATE POLICY colleges_agency_isolation_insert ON colleges
 -- INSERT Policy: Admin Only
 -- Only agency admins can create colleges
 CREATE POLICY colleges_admin_insert ON colleges
@@ -104,10 +85,9 @@ CREATE POLICY colleges_admin_insert ON colleges
       FROM users
       WHERE id = auth.uid()
     )
-  );
-
--- UPDATE Policy: Agency Isolation
-CREATE POLICY colleges_agency_isolation_update ON colleges
+    AND EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
       AND role = 'agency_admin'
     )
   );
@@ -121,6 +101,10 @@ CREATE POLICY colleges_admin_update ON colleges
       SELECT agency_id
       FROM users
       WHERE id = auth.uid()
+    )
+    AND EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
       AND role = 'agency_admin'
     )
   )
@@ -130,10 +114,9 @@ CREATE POLICY colleges_admin_update ON colleges
       FROM users
       WHERE id = auth.uid()
     )
-  );
-
--- DELETE Policy: Agency Isolation
-CREATE POLICY colleges_agency_isolation_delete ON colleges
+    AND EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
       AND role = 'agency_admin'
     )
   );
@@ -147,6 +130,10 @@ CREATE POLICY colleges_admin_delete ON colleges
       SELECT agency_id
       FROM users
       WHERE id = auth.uid()
+    )
+    AND EXISTS (
+      SELECT 1 FROM users
+      WHERE id = auth.uid()
       AND role = 'agency_admin'
     )
   );
@@ -156,17 +143,11 @@ CREATE POLICY colleges_admin_delete ON colleges
 -- ============================================================
 
 COMMENT ON TABLE colleges IS
-  'Educational institutions (colleges/universities) with multi-tenant isolation';
   'Registry of educational institutions with multi-tenant isolation. Each college can have multiple branches, contacts, and associated students.';
 
 COMMENT ON COLUMN colleges.agency_id IS
   'Foreign key to agencies table - enforces tenant isolation via RLS policies';
 
-COMMENT ON COLUMN colleges.default_commission_rate_percent IS
-  'Default commission rate for this college (0-100%). Can be overridden at branch level.';
-
-COMMENT ON COLUMN colleges.gst_status IS
-  'Whether commission amounts include or exclude GST: included or excluded';
 COMMENT ON COLUMN colleges.name IS
   'College name - must be unique within agency (enforced by unique constraint)';
 

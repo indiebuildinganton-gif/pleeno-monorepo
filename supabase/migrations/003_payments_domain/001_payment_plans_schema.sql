@@ -31,7 +31,7 @@ CREATE TABLE payment_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Foreign keys
-  enrollment_id UUID NOT NULL REFERENCES enrollments(id) ON DELETE RESTRICT,
+  enrollment_id UUID NOT NULL REFERENCES enrollments(id) ON DELETE CASCADE,
   agency_id UUID NOT NULL REFERENCES agencies(id) ON DELETE CASCADE,
 
   -- Financial details

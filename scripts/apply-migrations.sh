@@ -47,7 +47,7 @@ echo ""
 run_sql_file() {
     local file=$1
     echo "  📄 $(basename $file)"
-    docker exec -i $CONTAINER psql -U postgres -d postgres < "$file"
+    docker exec -i $CONTAINER psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$file"
 }
 
 # Apply migrations in order
@@ -71,10 +71,52 @@ run_sql_file "supabase/migrations/001_agency_domain/009_add_task_ids_to_invitati
 run_sql_file "supabase/migrations/001_agency_domain/010_add_agency_timezone_fields.sql"
 
 echo ""
+echo "=== Entities Domain ==="
+run_sql_file "supabase/migrations/002_entities_domain/001_colleges_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/002_branches_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/003_college_contacts_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/003_students_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/004_college_notes_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/004_enrollments_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/005_student_notes_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/006_enrollments_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/006_student_documents_schema.sql"
+run_sql_file "supabase/migrations/002_entities_domain/007_enrollments_rls.sql"
+run_sql_file "supabase/migrations/002_entities_domain/007_entities_rls.sql"
+run_sql_file "supabase/migrations/002_entities_domain/008_add_subscription_tier.sql"
+
+run_sql_file "supabase/migrations/002_entities_domain/008_student_documents_storage.sql"
+run_sql_file "supabase/migrations/002_entities_domain/009_college_activity_feed_function.sql"
+run_sql_file "supabase/migrations/002_entities_domain/010_add_student_contact_preferences.sql"
+
+echo ""
+echo "=== Payments Domain ==="
+run_sql_file "supabase/migrations/003_payments_domain/001_payment_plans_schema.sql"
+run_sql_file "supabase/migrations/003_payments_domain/002_payment_plans_triggers.sql"
+run_sql_file "supabase/migrations/003_payments_domain/003_audit_logs_metadata.sql"
+run_sql_file "supabase/migrations/003_payments_domain/004_installments_schema.sql"
+run_sql_file "supabase/migrations/003_payments_domain/005_payment_plans_extensions.sql"
+run_sql_file "supabase/migrations/003_payments_domain/006_commission_calculation_functions.sql"
+run_sql_file "supabase/migrations/003_payments_domain/007_commission_calculation_triggers.sql"
+run_sql_file "supabase/migrations/003_payments_domain/008_payment_plans_wizard_fields.sql"
+run_sql_file "supabase/migrations/003_payments_domain/009_manual_payment_recording_schema.sql"
+
+echo ""
 echo "=== Notifications Domain ==="
 run_sql_file "supabase/migrations/004_notifications_domain/001_notifications_schema.sql"
 run_sql_file "supabase/migrations/004_notifications_domain/002_add_metadata.sql"
 run_sql_file "supabase/migrations/004_notifications_domain/fix_rls_recursion.sql"
+
+echo ""
+echo "=== Reports Domain ==="
+run_sql_file "supabase/migrations/004_reports_domain/001_activity_log_schema.sql"
+run_sql_file "supabase/migrations/004_reports_domain/002_update_installment_status_with_activity_logging.sql"
+run_sql_file "supabase/migrations/004_reports_domain/003_activity_log_report_support.sql"
+run_sql_file "supabase/migrations/004_reports_domain/004_commission_report_function.sql"
+
+echo ""
+echo "=== Fixes ==="
+run_sql_file "supabase/migrations/005_fixes/001_fix_schema_mismatches.sql"
 
 echo ""
 echo "✅ All migrations applied successfully!"

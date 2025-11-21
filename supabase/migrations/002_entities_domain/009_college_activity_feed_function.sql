@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION get_college_activity(
 )
 RETURNS TABLE (
   id UUID,
-  timestamp TIMESTAMPTZ,
+  "timestamp" TIMESTAMPTZ,
   user_name TEXT,
   entity_type TEXT,
   action TEXT,

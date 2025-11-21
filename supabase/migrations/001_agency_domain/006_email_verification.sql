@@ -32,12 +32,12 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- Allow all authenticated users to insert audit logs
-CREATE POLICY IF NOT EXISTS "Audit logs are insert-only"
+CREATE POLICY "Audit logs are insert-only"
   ON audit_logs FOR INSERT
   WITH CHECK (true);
 
 -- Only admins can view audit logs
-CREATE POLICY IF NOT EXISTS "Admins can view audit logs"
+CREATE POLICY "Admins can view audit logs"
   ON audit_logs FOR SELECT
   USING (
     agency_id = (SELECT agency_id FROM users WHERE id = auth.uid())

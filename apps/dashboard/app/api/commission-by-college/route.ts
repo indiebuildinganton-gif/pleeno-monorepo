@@ -97,6 +97,10 @@ export async function GET(request: NextRequest) {
     // Get user's agency_id from JWT metadata
     const userAgencyId = getUserAgencyId(user)
 
+    console.log('[commission-by-college] User agency_id:', userAgencyId)
+    console.log('[commission-by-college] app_metadata.agency_id:', user.app_metadata?.agency_id)
+    console.log('[commission-by-college] user_metadata.agency_id:', user.user_metadata?.agency_id)
+
     if (!userAgencyId) {
       throw new ForbiddenError('User not associated with an agency')
     }

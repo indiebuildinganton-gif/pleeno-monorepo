@@ -137,8 +137,7 @@ export async function GET(request: NextRequest) {
         users:user_id (
           id,
           email,
-          first_name,
-          last_name
+          full_name
         )
       `)
       .order('created_at', { ascending: false })
@@ -158,7 +157,7 @@ export async function GET(request: NextRequest) {
         const userData = activity.users as any
         user = {
           id: userData.id,
-          name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim(),
+          name: userData.full_name || '',
           email: userData.email,
         }
       }

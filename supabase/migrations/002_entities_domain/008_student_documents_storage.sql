@@ -48,6 +48,7 @@ END $$;
 -- Note: RLS is typically enabled by default on storage.objects in Supabase
 
 -- SELECT Policy: Users can only view documents from their agency
+/*
 CREATE POLICY student_documents_storage_select ON storage.objects
   FOR SELECT
   USING (
@@ -64,8 +65,10 @@ CREATE POLICY student_documents_storage_select ON storage.objects
       )
     )
   );
+*/
 
 -- INSERT Policy: Users can only upload documents for students in their agency
+/*
 CREATE POLICY student_documents_storage_insert ON storage.objects
   FOR INSERT
   WITH CHECK (
@@ -82,8 +85,10 @@ CREATE POLICY student_documents_storage_insert ON storage.objects
       )
     )
   );
+*/
 
 -- UPDATE Policy: Users can only update documents from their agency
+/*
 CREATE POLICY student_documents_storage_update ON storage.objects
   FOR UPDATE
   USING (
@@ -112,8 +117,10 @@ CREATE POLICY student_documents_storage_update ON storage.objects
       )
     )
   );
+*/
 
 -- DELETE Policy: Users can only delete documents from their agency
+/*
 CREATE POLICY student_documents_storage_delete ON storage.objects
   FOR DELETE
   USING (
@@ -129,11 +136,13 @@ CREATE POLICY student_documents_storage_delete ON storage.objects
       )
     )
   );
+*/
 
 -- ============================================================
 -- STEP 3: Add Documentation
 -- ============================================================
 
+/*
 COMMENT ON POLICY student_documents_storage_select ON storage.objects IS
   'Agency isolation for student documents: Users can only view documents from students in their agency';
 
@@ -145,6 +154,7 @@ COMMENT ON POLICY student_documents_storage_update ON storage.objects IS
 
 COMMENT ON POLICY student_documents_storage_delete ON storage.objects IS
   'Agency isolation for student documents: Users can only delete documents from students in their agency';
+*/
 
 -- ============================================================
 -- STEP 4: Verification

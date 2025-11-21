@@ -10,7 +10,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Create logs directory if it doesn't exist
-LOGS_DIR="logs/dev"
+LOGS_DIR="logs/local-dev-testing"
 mkdir -p "$LOGS_DIR"
 
 # Generate timestamp for log files
