@@ -121,3 +121,12 @@ run_sql_file "supabase/migrations/005_fixes/001_fix_schema_mismatches.sql"
 echo ""
 echo "✅ All migrations applied successfully!"
 echo ""
+
+# Apply seed data if seed.sql exists
+if [ -f "supabase/seed.sql" ]; then
+    echo "=== Seeding Database ==="
+    run_sql_file "supabase/seed.sql"
+    echo ""
+    echo "✅ Database seeded successfully!"
+    echo ""
+fi

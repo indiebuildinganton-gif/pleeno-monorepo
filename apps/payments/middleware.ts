@@ -55,7 +55,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Skip auth check for API routes
-  const isApiRoute = request.nextUrl.pathname.startsWith('/payments/api')
+  const isStandalone = process.env.STANDALONE_MODE === 'true'
+  const isApiRoute = isStandalone
+    ? request.nextUrl.pathname.startsWith('/api')
+    : request.nextUrl.pathname.startsWith('/payments/api')
+
+  // In standalone mode, skip auth entirely for development
+  if (isStandalone) {
+    // Allow development without authentication
+    // In production, standalone mode should not be used
+    return response
+  }
 
   if (!isApiRoute && !user) {
     const isDev = process.env.NODE_ENV === 'development'
@@ -73,8 +83,12 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
+// Support both standalone mode (root paths) and multi-zone mode (/payments paths)
 export const config = {
   matcher: [
+    // Standalone mode: match root paths
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Multi-zone mode: match /payments paths
     '/payments/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

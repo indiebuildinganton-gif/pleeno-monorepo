@@ -24,7 +24,7 @@ import {
   CardTitle,
   Progress,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils/formatters'
+import { formatCurrency } from '@pleeno/utils'
 import { PaymentPlanStatusBadge } from '../../components/PaymentPlanStatusBadge'
 import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'

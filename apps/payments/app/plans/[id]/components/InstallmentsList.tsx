@@ -34,7 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils/formatters'
+import { formatCurrency } from '@pleeno/utils'
 import { format, parseISO } from 'date-fns'
 import { History } from 'lucide-react'
 import { InstallmentStatusBadge } from '../../components/InstallmentStatusBadge'
