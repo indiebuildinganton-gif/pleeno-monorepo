@@ -10,6 +10,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+import { useApiUrl } from './useApiUrl'
 
 /**
  * Overdue Payment Item
@@ -70,10 +71,12 @@ interface ApiResponse {
  * ```
  */
 export function useOverduePayments() {
+  const getApiUrl = useApiUrl()
+
   return useQuery({
     queryKey: ['overdue-payments'],
     queryFn: async () => {
-      const res = await fetch('/api/overdue-payments')
+      const res = await fetch(getApiUrl('/api/overdue-payments'))
       if (!res.ok) {
         throw new Error('Failed to fetch overdue payments')
       }

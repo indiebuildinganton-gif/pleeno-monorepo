@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
     // =================================================================
 
     // Query all installments within the date range
-    // Join with payment_plans -> enrollments -> students and colleges for details
+    // Join with payment_plans → enrollments → branches → colleges and students for details
     const { data: installmentsData, error: installmentsError } = await supabase
       .from('installments')
       .select(`
@@ -181,14 +181,18 @@ export async function GET(request: NextRequest) {
           enrollments!inner(
             id,
             student_id,
-            college_id,
+            branch_id,
             students!inner(
               id,
               full_name
             ),
-            colleges(
+            branches!branch_id(
               id,
-              name
+              name,
+              colleges!college_id(
+                id,
+                name
+              )
             )
           )
         )
@@ -236,9 +240,17 @@ export async function GET(request: NextRequest) {
 
       if (!student) continue
 
-      const college = Array.isArray(enrollment.colleges)
-        ? enrollment.colleges[0]
-        : enrollment.colleges
+      // Extract branch and college data
+      const branch = Array.isArray(enrollment.branches)
+        ? enrollment.branches[0]
+        : enrollment.branches
+
+      let college = null
+      if (branch?.colleges) {
+        college = Array.isArray(branch.colleges)
+          ? branch.colleges[0]
+          : branch.colleges
+      }
 
       // Calculate date bucket based on groupBy parameter
       const dueDate = new Date(installment.student_due_date)

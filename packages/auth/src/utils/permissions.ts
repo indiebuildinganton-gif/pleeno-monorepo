@@ -14,6 +14,7 @@
  */
 
 import { User } from '@supabase/supabase-js'
+import { createServerClient as createSupabaseServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@pleeno/database/server'
@@ -153,6 +154,30 @@ export async function requireRole(
   }
 
   console.log('🔒 AUTH BYPASS NOT ACTIVE - Checking authentication')
+
+  // Check for headers passed from middleware (Strategy A: Fix Race Condition)
+  const headerUserId = request.headers.get('x-user-id')
+  const headerUserRole = request.headers.get('x-user-role') as UserRole | null
+
+  if (headerUserId && headerUserRole) {
+    console.log('✅ AUTH SUCCESS (via headers) - User authorized')
+    // Construct a minimal user object
+    const user = {
+      id: headerUserId,
+      email: request.headers.get('x-user-email') || undefined,
+      app_metadata: { role: headerUserRole },
+      user_metadata: { role: headerUserRole },
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+    } as unknown as User
+
+    if (!allowedRoles.includes(headerUserRole)) {
+      console.log('❌ INSUFFICIENT PERMISSIONS - Returning 403')
+      return NextResponse.json({ error: 'Forbidden - insufficient permissions' }, { status: 403 })
+    }
+
+    return { user, role: headerUserRole }
+  }
 
   const supabase = await createServerClient()
 

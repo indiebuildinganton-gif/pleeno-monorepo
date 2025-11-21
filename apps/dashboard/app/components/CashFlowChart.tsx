@@ -28,7 +28,6 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { format, addDays } from 'date-fns'
-import { formatCurrency } from '@pleeno/utils'
 import { Button } from '@pleeno/ui'
 import { RefreshCw } from 'lucide-react'
 import { useDashboardStore, type CashFlowView } from '@pleeno/stores'
@@ -60,6 +59,22 @@ interface CashFlowResponse {
 }
 
 /**
+ * Map CashFlowView to API groupBy parameter
+ * Store uses: 'daily' | 'weekly' | 'monthly'
+ * API expects: 'day' | 'week' | 'month'
+ */
+function mapViewToGroupBy(view: CashFlowView): 'day' | 'week' | 'month' {
+  switch (view) {
+    case 'daily':
+      return 'day'
+    case 'weekly':
+      return 'week'
+    case 'monthly':
+      return 'month'
+  }
+}
+
+/**
  * Format date based on groupBy parameter
  */
 function formatDateLabel(dateStr: string, groupBy: string = 'week'): string {
@@ -85,12 +100,20 @@ function formatDateLabel(dateStr: string, groupBy: string = 'week'): string {
  * Format currency for Y-axis (compact format)
  */
 function formatCurrencyCompact(value: number, currency: string = 'AUD'): string {
+  // Use Intl.NumberFormat directly since formatCurrency from utils has conflicting signatures
+  const formatter = new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  
   if (value >= 1000000) {
-    return formatCurrency(value / 1000000, currency, 'en-AU').replace(/\.00/, '') + 'M'
+    return formatter.format(value / 1000000).replace(/\.00/, '') + 'M'
   } else if (value >= 1000) {
-    return formatCurrency(value / 1000, currency, 'en-AU').replace(/\.00/, '') + 'K'
+    return formatter.format(value / 1000).replace(/\.00/, '') + 'K'
   }
-  return formatCurrency(value, currency, 'en-AU').replace(/\.00/, '')
+  return formatter.format(value).replace(/\.00/, '')
 }
 
 /**
@@ -181,19 +204,19 @@ function CustomTooltip({
         <div className="flex justify-between">
           <span className="text-gray-600">Total Expected:</span>
           <span className="font-medium text-blue-600">
-            {formatCurrency(expected_amount, currency, 'en-AU')}
+            {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(expected_amount)}
           </span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-600">Total Paid:</span>
           <span className="font-medium text-green-600">
-            {formatCurrency(paid_amount, currency, 'en-AU')}
+            {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(paid_amount)}
           </span>
         </div>
         <div className="flex justify-between border-t pt-1">
           <span className="text-gray-900 font-medium">Total for Period:</span>
           <span className="font-bold text-gray-900">
-            {formatCurrency(totalAmount, currency, 'en-AU')}
+            {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(totalAmount)}
           </span>
         </div>
       </div>
@@ -212,7 +235,7 @@ function CustomTooltip({
               <div key={idx} className="text-xs text-gray-600 flex justify-between gap-2">
                 <span className="truncate">{inst.student_name}</span>
                 <span className="whitespace-nowrap">
-                  {formatCurrency(inst.amount, currency, 'en-AU')}
+                  {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(inst.amount)}
                   <span
                     className={`ml-1 ${
                       inst.status === 'paid' ? 'text-green-600' : 'text-blue-600'
@@ -252,8 +275,9 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
   const { data, isLoading, isError, isFetching, refetch } = useQuery<CashFlowResponse>({
     queryKey: ['cash-flow-projection', cashFlowView, days],
     queryFn: async () => {
+      const groupBy = mapViewToGroupBy(cashFlowView)
       const res = await fetch(
-        getApiUrl(`/api/cash-flow-projection?groupBy=${cashFlowView}&days=${days}`)
+        getApiUrl(`/api/cash-flow-projection?groupBy=${groupBy}&days=${days}`)
       )
       if (!res.ok) {
         throw new Error('Failed to fetch cash flow projection')
@@ -340,19 +364,19 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="text-sm text-blue-600 font-medium mb-1">Total Expected</div>
             <div className="text-2xl font-bold text-blue-900">
-              {formatCurrency(totalExpected, currency, 'en-AU')}
+              {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(totalExpected)}
             </div>
           </div>
           <div className="bg-green-50 rounded-lg p-4">
             <div className="text-sm text-green-600 font-medium mb-1">Total Paid</div>
             <div className="text-2xl font-bold text-green-900">
-              {formatCurrency(totalPaid, currency, 'en-AU')}
+              {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(totalPaid)}
             </div>
           </div>
           <div className="bg-purple-50 rounded-lg p-4">
             <div className="text-sm text-purple-600 font-medium mb-1">Net Projection</div>
             <div className="text-2xl font-bold text-purple-900">
-              {formatCurrency(netProjection, currency, 'en-AU')}
+              {new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(netProjection)}
             </div>
           </div>
         </div>
@@ -438,7 +462,7 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
               stroke="#6b7280"
               style={{ fontSize: '12px' }}
             />
-            <Tooltip content={<CustomTooltip currency={currency} groupBy={cashFlowView} />} />
+            <Tooltip content={<CustomTooltip currency={currency} groupBy={mapViewToGroupBy(cashFlowView)} />} />
             <Legend
               wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
               iconType="rect"

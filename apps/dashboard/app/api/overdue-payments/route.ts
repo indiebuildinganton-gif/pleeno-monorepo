@@ -134,14 +134,18 @@ export async function GET(request: NextRequest) {
           enrollments!inner (
             id,
             student_id,
-            college_id,
+            branch_id,
             students!inner (
               id,
-              name
+              full_name
             ),
-            colleges!inner (
+            branches!branch_id (
               id,
-              name
+              name,
+              colleges!college_id (
+                id,
+                name
+              )
             )
           )
         )
@@ -173,14 +177,15 @@ export async function GET(request: NextRequest) {
 
       const enrollment = installment.payment_plans.enrollments
       const student = enrollment.students
-      const college = enrollment.colleges
+      const branch = enrollment.branches
+      const college = branch?.colleges
 
       return {
         id: installment.id,
         student_id: enrollment.student_id,
-        student_name: student.name,
-        college_id: enrollment.college_id,
-        college_name: college.name,
+        student_name: student.full_name,
+        college_id: college?.id || '',
+        college_name: college?.name || 'Unknown',
         amount: Number(installment.amount),
         days_overdue: daysOverdue,
         due_date: installment.student_due_date,

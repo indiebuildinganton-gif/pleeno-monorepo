@@ -60,7 +60,7 @@ async function main() {
 
   // Create auth user with proper password hashing
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: 'admin@test.local',
+    email: 'admin@pleeno.dev',
     password: 'Password123',
     email_confirm: true,
     user_metadata: {
@@ -76,7 +76,7 @@ async function main() {
 
       // Get existing user
       const { data: users } = await supabase.auth.admin.listUsers()
-      const user = users.users.find(u => u.email === 'admin@test.local')
+      const user = users.users.find(u => u.email === 'admin@pleeno.dev')
 
       if (user) {
         await supabase.auth.admin.updateUserById(user.id, {
@@ -96,7 +96,7 @@ async function main() {
       .from('users')
       .insert({
         id: authData.user.id,
-        email: 'admin@test.local',
+        email: 'admin@pleeno.dev',
         full_name: 'Demo Admin',
         agency_id: AGENCY_ID,
         role: 'agency_admin',
@@ -117,7 +117,7 @@ async function main() {
   console.log('==========================================')
   console.log('')
   console.log('Login Credentials:')
-  console.log('  Email:    admin@test.local')
+  console.log('  Email:    admin@pleeno.dev')
   console.log('  Password: Password123')
   console.log('')
   console.log('Visit: http://localhost:3005/login')

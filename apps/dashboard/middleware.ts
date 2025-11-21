@@ -88,6 +88,36 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  if (user) {
+    // Pass user info via headers to API routes to avoid double-refresh race condition
+    const requestHeaders = new Headers(request.headers)
+    requestHeaders.set('x-user-id', user.id)
+    if (user.email) {
+      requestHeaders.set('x-user-email', user.email)
+    }
+
+    const userRole = (user.app_metadata?.role || user.user_metadata?.role) as string
+    if (userRole) {
+      requestHeaders.set('x-user-role', userRole)
+    }
+
+    // Create a new response with the updated request headers
+    // This ensures the API route receives these headers
+    const newResponse = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+
+    // Copy cookies from the previous response (which may have been updated by Supabase)
+    // to the new response
+    response.cookies.getAll().forEach((cookie) => {
+      newResponse.cookies.set(cookie)
+    })
+
+    response = newResponse
+  }
+
   // Skip auth check for API routes - they handle their own auth via requireRole
   const isApiRoute = request.nextUrl.pathname.startsWith('/dashboard/api')
 
