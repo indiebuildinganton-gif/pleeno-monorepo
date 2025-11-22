@@ -12,7 +12,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import Link from 'next/link'
+
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { ArrowUp, ArrowDown, ArrowRight, AlertTriangle, RefreshCw } from 'lucide-react'
@@ -94,15 +94,15 @@ function SchoolRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Link
-          href={`/colleges/${collegeId}`}
+        <a
+          href={`/entities/colleges/${collegeId}`}
           className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
         >
           {name}
-        </Link>
+        </a>
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
-            {formatCurrency(commission, currency, 'en-AU')}
+            {formatCurrency(commission)}
           </span>
           <TrendArrow trend={trend} />
         </div>
@@ -237,12 +237,12 @@ export function CommissionBySchoolWidget() {
           ))}
         </div>
         <div className="mt-6 pt-4 border-t border-gray-200">
-          <Link
-            href="/colleges"
+          <a
+            href="/entities/colleges"
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
           >
             View All Colleges →
-          </Link>
+          </a>
         </div>
       </CardContent>
     </Card>

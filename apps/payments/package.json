@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "STANDALONE_MODE=true next dev --turbopack --port 3003",
+    "dev": "next dev --turbopack --port 3003",
+    "dev:standalone": "STANDALONE_MODE=true next dev --turbopack --port 3003",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",

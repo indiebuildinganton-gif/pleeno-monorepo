@@ -33,7 +33,7 @@ import {
   Calculator,
   Clock,
 } from 'lucide-react'
-import Link from 'next/link'
+
 import { useMemo } from 'react'
 import { cn } from '@pleeno/ui'
 
@@ -444,28 +444,28 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <SummaryCard
                 title="Total Commissions Earned"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="green"
                 icon={<DollarSign className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Total GST"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="blue"
                 icon={<Receipt className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Total Amount (Commission + GST)"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="gray"
                 icon={<Calculator className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Outstanding Commission"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="red"
                 icon={<Clock className="h-5 w-5" />}
                 subtitle="No data available"
@@ -496,28 +496,28 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <SummaryCard
                 title="Total Commissions Earned"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="green"
                 icon={<DollarSign className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Total GST"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="blue"
                 icon={<Receipt className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Total Amount (Commission + GST)"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="gray"
                 icon={<Calculator className="h-5 w-5" />}
                 subtitle="No data available"
               />
               <SummaryCard
                 title="Outstanding Commission"
-                value={formatCurrency(0, currency)}
+                value={formatCurrency(0)}
                 color="red"
                 icon={<Clock className="h-5 w-5" />}
                 subtitle="No data available"
@@ -544,28 +544,28 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               <SummaryCard
                 title="Total Commissions Earned"
-                value={formatCurrency(summaryMetrics.totalCommissions, currency)}
+                value={formatCurrency(summaryMetrics.totalCommissions)}
                 color="green"
                 percentage={`${summaryMetrics.commissionPercentage.toFixed(1)}% of total`}
                 icon={<DollarSign className="h-5 w-5" />}
               />
               <SummaryCard
                 title="Total GST"
-                value={formatCurrency(summaryMetrics.totalGST, currency)}
+                value={formatCurrency(summaryMetrics.totalGST)}
                 color="blue"
                 percentage={`${summaryMetrics.gstPercentage.toFixed(1)}% of total`}
                 icon={<Receipt className="h-5 w-5" />}
               />
               <SummaryCard
                 title="Total Amount (Commission + GST)"
-                value={formatCurrency(summaryMetrics.totalAmount, currency)}
+                value={formatCurrency(summaryMetrics.totalAmount)}
                 color="gray"
                 subtitle={`${summaryMetrics.commissionPercentage.toFixed(0)}% + ${summaryMetrics.gstPercentage.toFixed(0)}%`}
                 icon={<Calculator className="h-5 w-5" />}
               />
               <SummaryCard
                 title="Outstanding Commission"
-                value={formatCurrency(summaryMetrics.outstandingCommission, currency)}
+                value={formatCurrency(summaryMetrics.outstandingCommission)}
                 color="red"
                 subtitle="Not yet received"
                 icon={<Clock className="h-5 w-5" />}
@@ -604,12 +604,12 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                     >
                       <td className="py-3 px-4">
                         <div className="font-medium">
-                          <Link
+                          <a
                             href={`/entities/colleges/${row.college_id}`}
                             className="text-blue-600 hover:underline"
                           >
                             {row.college_name}
-                          </Link>
+                          </a>
                           {index < 3 && (
                             <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
                               Top {index + 1}
@@ -618,41 +618,41 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <Link
+                        <a
                           href={`/entities/colleges/${row.college_id}?branch=${row.branch_id}`}
                           className="text-blue-600 hover:underline"
                         >
                           {row.branch_name}
-                        </Link>
+                        </a>
                         {row.branch_city && (
                           <div className="text-xs text-gray-500">{row.branch_city}</div>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">
-                        {formatCurrency(row.total_commissions, currency)}
+                        {formatCurrency(row.total_commissions)}
                       </td>
                       <td className="py-3 px-4 text-right text-blue-600">
-                        {formatCurrency(row.total_gst, currency)}
+                        {formatCurrency(row.total_gst)}
                       </td>
                       <td className="py-3 px-4 text-right font-semibold text-gray-900">
-                        {formatCurrency(row.total_with_gst, currency)}
+                        {formatCurrency(row.total_with_gst)}
                       </td>
                       <td className="py-3 px-4 text-right text-gray-600">
-                        {formatCurrency(row.total_expected_commission, currency)}
+                        {formatCurrency(row.total_expected_commission)}
                       </td>
                       <td className="py-3 px-4 text-right font-medium text-green-600">
-                        {formatCurrency(row.total_earned_commission, currency)}
+                        {formatCurrency(row.total_earned_commission)}
                       </td>
                       <td
                         className={`py-3 px-4 text-right font-medium ${
                           row.outstanding_commission > 0 ? 'text-red-600' : 'text-green-600'
                         }`}
                       >
-                        {formatCurrency(row.outstanding_commission, currency)}
+                        {formatCurrency(row.outstanding_commission)}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center">
-                          <Link
+                          <a
                             href={`/payments/plans?college=${row.college_id}&branch=${row.branch_id}`}
                             title={`View ${row.payment_plan_count} payment plan${
                               row.payment_plan_count !== 1 ? 's' : ''
@@ -668,7 +668,7 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                                 ({row.payment_plan_count})
                               </span>
                             </button>
-                          </Link>
+                          </a>
                         </div>
                       </td>
                     </tr>

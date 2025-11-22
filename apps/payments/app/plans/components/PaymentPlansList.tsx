@@ -35,8 +35,7 @@ import {
   Badge,
   Skeleton,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils'
-import { format, parseISO } from 'date-fns'
+import { formatCurrency, format, parseISO } from '@pleeno/utils'
 import { PaymentPlanStatusBadge } from './PaymentPlanStatusBadge'
 import { ExternalLink } from 'lucide-react'
 

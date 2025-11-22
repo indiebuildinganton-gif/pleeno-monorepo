@@ -42,7 +42,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from 'lucide-react'
-import Link from 'next/link'
+
 import { useMemo, useState } from 'react'
 import { getApiUrl } from '../hooks/useApiUrl'
 
@@ -362,12 +362,12 @@ export function CommissionBreakdownTable() {
         header: 'College',
         cell: ({ row }) => (
           <div className="font-medium">
-            <Link
+            <a
               href={`/entities/colleges/${row.original.college_id}`}
               className="text-blue-600 hover:underline"
             >
               {row.original.college_name}
-            </Link>
+            </a>
             {row.index < 3 && (
               <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
                 Top {row.index + 1}
@@ -381,12 +381,12 @@ export function CommissionBreakdownTable() {
         header: 'Branch',
         cell: ({ row }) => (
           <div>
-            <Link
+            <a
               href={`/entities/colleges/${row.original.college_id}?branch=${row.original.branch_id}`}
               className="text-blue-600 hover:underline"
             >
               {row.original.branch_name}
-            </Link>
+            </a>
             {row.original.branch_city && (
               <div className="text-xs text-gray-500">{row.original.branch_city}</div>
             )}
@@ -398,7 +398,7 @@ export function CommissionBreakdownTable() {
         header: 'Commissions',
         cell: ({ row }) => (
           <span className="font-medium text-gray-900">
-            {formatCurrency(row.original.total_commissions, currency)}
+            {formatCurrency(row.original.total_commissions)}
           </span>
         ),
       },
@@ -406,7 +406,7 @@ export function CommissionBreakdownTable() {
         accessorKey: 'total_gst',
         header: 'GST',
         cell: ({ row }) => (
-          <span className="text-blue-600">{formatCurrency(row.original.total_gst, currency)}</span>
+          <span className="text-blue-600">{formatCurrency(row.original.total_gst)}</span>
         ),
       },
       {
@@ -414,7 +414,7 @@ export function CommissionBreakdownTable() {
         header: 'Total (+ GST)',
         cell: ({ row }) => (
           <span className="font-semibold text-gray-900">
-            {formatCurrency(row.original.total_with_gst, currency)}
+            {formatCurrency(row.original.total_with_gst)}
           </span>
         ),
       },
@@ -423,7 +423,7 @@ export function CommissionBreakdownTable() {
         header: 'Expected',
         cell: ({ row }) => (
           <span className="text-gray-600">
-            {formatCurrency(row.original.total_expected_commission, currency)}
+            {formatCurrency(row.original.total_expected_commission)}
           </span>
         ),
       },
@@ -432,7 +432,7 @@ export function CommissionBreakdownTable() {
         header: 'Earned',
         cell: ({ row }) => (
           <span className="font-medium text-green-600">
-            {formatCurrency(row.original.total_earned_commission, currency)}
+            {formatCurrency(row.original.total_earned_commission)}
           </span>
         ),
       },
@@ -445,7 +445,7 @@ export function CommissionBreakdownTable() {
               row.original.outstanding_commission > 0 ? 'text-red-600' : 'text-green-600'
             }`}
           >
-            {formatCurrency(row.original.outstanding_commission, currency)}
+            {formatCurrency(row.original.outstanding_commission)}
           </span>
         ),
       },
@@ -454,7 +454,7 @@ export function CommissionBreakdownTable() {
         header: 'Actions',
         cell: ({ row }) => (
           <div className="flex items-center justify-center">
-            <Link
+            <a
               href={`/payments/plans?college=${row.original.college_id}&branch=${row.original.branch_id}`}
               title={`View ${row.original.payment_plan_count} payment plan${
                 row.original.payment_plan_count !== 1 ? 's' : ''
@@ -468,7 +468,7 @@ export function CommissionBreakdownTable() {
                 <span>View Plans</span>
                 <span className="text-xs text-gray-500">({row.original.payment_plan_count})</span>
               </button>
-            </Link>
+            </a>
           </div>
         ),
       },
@@ -563,28 +563,28 @@ export function CommissionBreakdownTable() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <SummaryCard
               title="Total Commissions Earned"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="green"
               icon={<DollarSign className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Total GST"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="blue"
               icon={<Receipt className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Total Amount (Commission + GST)"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="gray"
               icon={<Calculator className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Outstanding Commission"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="red"
               icon={<Clock className="h-5 w-5" />}
               subtitle="No data available"
@@ -622,28 +622,28 @@ export function CommissionBreakdownTable() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <SummaryCard
               title="Total Commissions Earned"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="green"
               icon={<DollarSign className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Total GST"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="blue"
               icon={<Receipt className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Total Amount (Commission + GST)"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="gray"
               icon={<Calculator className="h-5 w-5" />}
               subtitle="No data available"
             />
             <SummaryCard
               title="Outstanding Commission"
-              value={formatCurrency(0, currency)}
+              value={formatCurrency(0)}
               color="red"
               icon={<Clock className="h-5 w-5" />}
               subtitle="No data available"
@@ -678,28 +678,28 @@ export function CommissionBreakdownTable() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <SummaryCard
             title="Total Commissions Earned"
-            value={formatCurrency(summaryMetrics.totalCommissions, currency)}
+            value={formatCurrency(summaryMetrics.totalCommissions)}
             color="green"
             percentage={`${summaryMetrics.commissionPercentage.toFixed(1)}% of total`}
             icon={<DollarSign className="h-5 w-5" />}
           />
           <SummaryCard
             title="Total GST"
-            value={formatCurrency(summaryMetrics.totalGST, currency)}
+            value={formatCurrency(summaryMetrics.totalGST)}
             color="blue"
             percentage={`${summaryMetrics.gstPercentage.toFixed(1)}% of total`}
             icon={<Receipt className="h-5 w-5" />}
           />
           <SummaryCard
             title="Total Amount (Commission + GST)"
-            value={formatCurrency(summaryMetrics.totalAmount, currency)}
+            value={formatCurrency(summaryMetrics.totalAmount)}
             color="gray"
             subtitle={`${summaryMetrics.commissionPercentage.toFixed(0)}% + ${summaryMetrics.gstPercentage.toFixed(0)}%`}
             icon={<Calculator className="h-5 w-5" />}
           />
           <SummaryCard
             title="Outstanding Commission"
-            value={formatCurrency(summaryMetrics.outstandingCommission, currency)}
+            value={formatCurrency(summaryMetrics.outstandingCommission)}
             color="red"
             subtitle="Not yet received"
             icon={<Clock className="h-5 w-5" />}

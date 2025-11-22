@@ -15,3 +15,4 @@ export * from './pdf-styles'
 export * from './email-helpers'
 // Export formatters last to ensure formatCurrency(amount, currency, locale) takes precedence
 export * from './formatters'
+export { format, parseISO } from 'date-fns'

@@ -20,7 +20,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import Link from 'next/link'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@pleeno/ui'
 import { getApiUrl } from '../hooks/useApiUrl'
 import {
@@ -129,7 +129,7 @@ function StatusCard({
   const currency = 'AUD' // TODO: Get from agency settings
 
   return (
-    <Link href={href} className="block">
+    <a href={href} className="block">
       <Card
         className={`cursor-pointer transition-all duration-200 ${colors.card}`}
       >
@@ -151,7 +151,7 @@ function StatusCard({
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </a>
   )
 }
 

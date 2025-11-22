@@ -107,7 +107,7 @@ export function ActivityCard({ activity }: { activity: Activity }) {
   const href = getActivityLink(activity)
 
   return (
-    <Link
+    <a
       href={href}
       className="block p-3 rounded-lg border hover:bg-muted hover:border-primary/50 transition-all cursor-pointer group"
       title="Click to view details"
@@ -125,6 +125,6 @@ export function ActivityCard({ activity }: { activity: Activity }) {
           </p>
         </div>
       </div>
-    </Link>
+    </a>
   )
 }

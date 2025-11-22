@@ -19,6 +19,7 @@ export * from './components/ui/textarea'
 export * from './components/ui/select'
 export * from './components/ui/switch'
 export * from './components/ui/progress'
+export * from './components/ui/skeleton'
 
 // Auth Components
 export * from './components/auth'

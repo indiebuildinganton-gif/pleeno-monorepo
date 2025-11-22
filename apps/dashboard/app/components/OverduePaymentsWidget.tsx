@@ -15,7 +15,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import Link from 'next/link'
+
 import { AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '@pleeno/utils'
 import { useOverduePayments, OverduePayment } from '../hooks/useOverduePayments'
@@ -179,7 +179,7 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
   const urgencyBgColor = getUrgencyBgColor(payment.days_overdue)
 
   return (
-    <Link
+    <a
       href={`/payments/plans/${payment.payment_plan_id}`}
       className={`block p-3 rounded-lg border ${urgencyBgColor} hover:shadow-md transition-all`}
     >
@@ -193,14 +193,14 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
         {/* Amount and Days Overdue */}
         <div className="text-right ml-4">
           <p className="font-bold text-gray-900">
-            {formatCurrency(payment.amount, 'AUD')}
+            {formatCurrency(payment.amount)}
           </p>
           <p className={`text-sm font-medium ${urgencyColor}`}>
             {payment.days_overdue} day{payment.days_overdue !== 1 ? 's' : ''} overdue
           </p>
         </div>
       </div>
-    </Link>
+    </a>
   )
 }
 
@@ -239,7 +239,7 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
 export function OverduePaymentsWidget() {
   const { data, isLoading, error, refetch } = useOverduePayments()
   const [hasNewOverdue, setHasNewOverdue] = useState(false)
-  const prevCountRef = useRef<number>()
+  const prevCountRef = useRef<number | undefined>(undefined)
 
   // Detect new overdue payments by comparing current vs previous count
   useEffect(() => {
@@ -303,7 +303,7 @@ export function OverduePaymentsWidget() {
         <div className="text-right">
           <p className="text-sm text-red-700">Total Overdue</p>
           <p className="text-2xl font-bold text-red-900">
-            {formatCurrency(data.total_amount, 'AUD')}
+            {formatCurrency(data.total_amount)}
           </p>
         </div>
       </div>

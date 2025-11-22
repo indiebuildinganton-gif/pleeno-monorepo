@@ -160,7 +160,7 @@ function CountryRow({
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-semibold text-gray-900">
-            {formatCurrency(commission, currency, 'en-AU')}
+            {formatCurrency(commission)}
           </span>
           <TrendArrow trend={trend} />
         </div>

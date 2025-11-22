@@ -20,7 +20,7 @@ import {
   RefreshCw,
   ArrowRight,
 } from 'lucide-react'
-import Link from 'next/link'
+
 import { getApiUrl } from '../hooks/useApiUrl'
 
 /**
@@ -179,17 +179,17 @@ export function DueSoonWidget() {
 
           {/* Total amount */}
           <div className="text-sm font-medium text-amber-800">
-            {formatCurrency(total_amount, currency)}
+            {formatCurrency(total_amount)}
           </div>
 
           {/* Link to filtered view */}
-          <Link
-            href="/plans?filter=due-soon"
+          <a
+            href="/payments/plans?filter=due-soon"
             className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 hover:underline mt-3 transition-colors"
           >
             View all due soon payments
             <ArrowRight className="w-3 h-3" />
-          </Link>
+          </a>
         </div>
       </CardContent>
     </Card>

@@ -11,7 +11,7 @@
 
 'use client'
 
-import Link from 'next/link'
+
 import { LayoutDashboard, CreditCard, FileText } from 'lucide-react'
 import { NetworkActivityPanel } from './NetworkActivityPanel'
 
@@ -21,33 +21,33 @@ export function AppHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo/Brand */}
         <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center space-x-2">
+          <a href="/dashboard" className="flex items-center space-x-2">
             <span className="text-xl font-bold">Pleeno Dashboard</span>
-          </Link>
+          </a>
 
           {/* Main Navigation Links */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link
+            <a
               href="/dashboard"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
-            </Link>
-            <Link
+            </a>
+            <a
               href="/payments"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <CreditCard className="h-4 w-4" />
               Payment Plans
-            </Link>
-            <Link
+            </a>
+            <a
               href="/reports"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
               Reports
-            </Link>
+            </a>
           </nav>
         </div>
 

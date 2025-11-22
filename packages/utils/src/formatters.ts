@@ -11,8 +11,8 @@
  * Format a number as currency with locale-specific formatting
  *
  * @param amount - The amount to format
- * @param currency - Currency code (USD, EUR, GBP, AUD, etc.)
- * @param locale - Locale for formatting (default: 'en-US')
+ * @param currency - Currency code (default: 'AUD')
+ * @param locale - Locale for formatting (default: 'en-AU')
  * @returns Formatted currency string
  *
  * @example
@@ -29,8 +29,8 @@
  */
 export function formatCurrency(
   amount: number,
-  currency: string,
-  locale: string = 'en-US'
+  currency: string = 'AUD',
+  locale: string = 'en-AU'
 ): string {
   if (isNaN(amount)) return formatCurrency(0, currency, locale)
 
