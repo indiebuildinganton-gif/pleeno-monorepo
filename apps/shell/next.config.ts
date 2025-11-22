@@ -66,6 +66,48 @@ const nextConfig: NextConfig = {
         source: '/reports/:path*',
         destination: `${ZONE_URLS.reports}/reports/:path*`,
       },
+      // Entities API rewrites
+      {
+        source: '/api/colleges',
+        destination: `${ZONE_URLS.entities}/entities/api/colleges`,
+      },
+      {
+        source: '/api/colleges/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/colleges/:path*`,
+      },
+      {
+        source: '/api/students',
+        destination: `${ZONE_URLS.entities}/entities/api/students`,
+      },
+      {
+        source: '/api/students/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/students/:path*`,
+      },
+      {
+        source: '/api/branches',
+        destination: `${ZONE_URLS.entities}/entities/api/branches`,
+      },
+      {
+        source: '/api/branches/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/branches/:path*`,
+      },
+      // Payments API rewrites
+      {
+        source: '/api/payment-plans',
+        destination: `${ZONE_URLS.payments}/payments/api/payment-plans`,
+      },
+      {
+        source: '/api/payment-plans/:path*',
+        destination: `${ZONE_URLS.payments}/payments/api/payment-plans/:path*`,
+      },
+      {
+        source: '/api/installments',
+        destination: `${ZONE_URLS.payments}/payments/api/installments`,
+      },
+      {
+        source: '/api/installments/:path*',
+        destination: `${ZONE_URLS.payments}/payments/api/installments/:path*`,
+      },
     ];
   },
 };

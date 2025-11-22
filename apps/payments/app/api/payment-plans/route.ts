@@ -11,16 +11,18 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import {
-  handleApiError,
-  createSuccessResponse,
   ValidationError,
   ForbiddenError,
   calculateExpectedCommission,
-  logAudit,
 } from '@pleeno/utils'
+import {
+  handleApiError,
+  createSuccessResponse,
+  logAudit,
+} from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { PaymentPlanCreateSchema, PaymentPlanWithInstallmentsCreateSchema } from '@pleeno/validations'
 
 /**
@@ -157,8 +159,8 @@ export async function GET(request: NextRequest) {
           branch_id,
           student:students (
             id,
-            first_name,
-            last_name
+            id,
+            full_name
           ),
           branch:branches (
             id,
@@ -268,9 +270,7 @@ export async function GET(request: NextRequest) {
 
         // Apply student name search filter (if not a reference number search)
         if (search && !search.includes('-') && !search.includes('REF')) {
-          const studentFirstName = (plan.enrollment as any)?.student?.first_name || ''
-          const studentLastName = (plan.enrollment as any)?.student?.last_name || ''
-          const fullName = `${studentFirstName} ${studentLastName}`.toLowerCase()
+          const fullName = ((plan.enrollment as any)?.student?.full_name || '').toLowerCase()
           if (!fullName.includes(search.toLowerCase())) {
             return null
           }
@@ -297,8 +297,8 @@ export async function GET(request: NextRequest) {
           total_installments: totalInstallments,
           installments_paid_count: installmentsPaidCount,
           student: student ? {
-            first_name: student.first_name,
-            last_name: student.last_name,
+            first_name: student.full_name.split(' ')[0] || '',
+            last_name: student.full_name.split(' ').slice(1).join(' ') || '',
           } : null,
           college: college ? {
             name: college.name,
@@ -467,7 +467,7 @@ export async function POST(request: NextRequest) {
     // SECURITY: Verify student exists and belongs to same agency
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .select('id, agency_id, first_name, last_name')
+      .select('id, agency_id, full_name')
       .eq('id', validatedData.student_id)
       .single()
 
@@ -667,7 +667,7 @@ export async function POST(request: NextRequest) {
         // Include student context for audit trail
         student: {
           student_id: student.id,
-          student_name: `${student.first_name} ${student.last_name}`,
+          student_name: student.full_name,
         },
       },
     })
@@ -701,7 +701,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Log activity for Recent Activity Feed
-    const studentName = `${student.first_name} ${student.last_name}`
+    const studentName = student.full_name
 
     await logActivity(supabase, {
       agencyId: userAgencyId,

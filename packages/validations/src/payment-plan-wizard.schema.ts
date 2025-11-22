@@ -41,88 +41,68 @@ import { PaymentFrequencyEnum } from './payment-plan.schema'
  * }
  * ```
  */
-export const step1Schema = z
-  .object({
-    student_id: z.string().uuid('Invalid student ID'),
-    course_name: z.string().min(1, 'Course name is required').max(200, 'Course name too long'),
-    total_course_value: z.number().positive('Total course value must be positive'),
-    commission_rate: z
-      .number()
-      .min(0, 'Commission rate cannot be negative')
-      .max(1, 'Commission rate cannot exceed 100%'),
-    course_start_date: z.coerce.date(),
-    course_end_date: z.coerce.date(),
-  })
-  .refine((data) => data.course_end_date > data.course_start_date, {
+/**
+ * Step 1: General Information Schema Base
+ * Base object schema without refinements for merging
+ */
+export const step1BaseSchema = z.object({
+  student_id: z.string().uuid('Invalid student ID'),
+  course_name: z.string().min(1, 'Course name is required').max(200, 'Course name too long'),
+  total_course_value: z.number().positive('Total course value must be positive'),
+  commission_rate: z
+    .number()
+    .min(0, 'Commission rate cannot be negative')
+    .max(1, 'Commission rate cannot exceed 100%'),
+  course_start_date: z.coerce.date(),
+  course_end_date: z.coerce.date(),
+})
+
+export const step1Schema = step1BaseSchema.refine(
+  (data) => data.course_end_date > data.course_start_date,
+  {
     message: 'Course end date must be after start date',
     path: ['course_end_date'],
-  })
+  }
+)
 
 /**
- * Step 2: Payment Structure Schema
- *
- * Validates the payment structure step including installment configuration
- * and fee breakdown.
- *
- * Validations:
- * - initial_payment_amount: Optional, must be >= 0
- * - initial_payment_due_date: Required if initial_payment_amount > 0
- * - number_of_installments: Integer between 1 and 24
- * - payment_frequency: Must be 'monthly', 'quarterly', or 'custom'
- * - Fee amounts: All must be >= 0
- * - student_lead_time_days: Must be >= 0
- *
- * @example
- * ```typescript
- * const step2Data: Step2FormData = {
- *   initial_payment_amount: 5000,
- *   initial_payment_due_date: new Date('2025-02-15'),
- *   initial_payment_paid: false,
- *   number_of_installments: 8,
- *   payment_frequency: 'quarterly',
- *   materials_cost: 500,
- *   admin_fees: 250,
- *   other_fees: 100,
- *   first_college_due_date: new Date('2025-03-15'),
- *   student_lead_time_days: 14,
- *   gst_inclusive: true,
- * }
- * ```
+ * Step 2: Payment Structure Schema Base
+ * Base object schema without refinements for merging
  */
-export const step2Schema = z
-  .object({
-    initial_payment_amount: z.number().nonnegative('Initial payment cannot be negative').default(0),
-    initial_payment_due_date: z.coerce.date().nullable(),
-    initial_payment_paid: z.boolean().default(false),
-    number_of_installments: z
-      .number()
-      .int('Number of installments must be an integer')
-      .min(1, 'Must have at least 1 installment')
-      .max(24, 'Cannot exceed 24 installments'),
-    payment_frequency: PaymentFrequencyEnum,
-    materials_cost: z.number().nonnegative('Materials cost cannot be negative').default(0),
-    admin_fees: z.number().nonnegative('Admin fees cannot be negative').default(0),
-    other_fees: z.number().nonnegative('Other fees cannot be negative').default(0),
-    first_college_due_date: z.coerce.date(),
-    student_lead_time_days: z
-      .number()
-      .int('Lead time must be an integer')
-      .nonnegative('Lead time cannot be negative'),
-    gst_inclusive: z.boolean().default(true),
-  })
-  .refine(
-    (data) => {
-      // If initial payment amount > 0, due date is required
-      if (data.initial_payment_amount > 0 && !data.initial_payment_due_date) {
-        return false
-      }
-      return true
-    },
-    {
-      message: 'Initial payment due date is required when amount is specified',
-      path: ['initial_payment_due_date'],
+export const step2BaseSchema = z.object({
+  initial_payment_amount: z.number().nonnegative('Initial payment cannot be negative').default(0),
+  initial_payment_due_date: z.coerce.date().nullable(),
+  initial_payment_paid: z.boolean().default(false),
+  number_of_installments: z
+    .number()
+    .int('Number of installments must be an integer')
+    .min(1, 'Must have at least 1 installment')
+    .max(24, 'Cannot exceed 24 installments'),
+  payment_frequency: PaymentFrequencyEnum,
+  materials_cost: z.number().nonnegative('Materials cost cannot be negative').default(0),
+  admin_fees: z.number().nonnegative('Admin fees cannot be negative').default(0),
+  other_fees: z.number().nonnegative('Other fees cannot be negative').default(0),
+  first_college_due_date: z.coerce.date(),
+  student_lead_time_days: z
+    .number()
+    .int('Lead time must be an integer')
+    .nonnegative('Lead time cannot be negative'),
+  gst_inclusive: z.boolean().default(true),
+})
+
+export const step2Schema = step2BaseSchema.refine(
+  (data) => {
+    // If initial payment amount > 0, due date is required
+    if (data.initial_payment_amount > 0 && !data.initial_payment_due_date) {
+      return false
     }
-  )
+    return true
+  },
+  {
+    message: 'Initial payment due date is required when amount is specified',
+    path: ['initial_payment_due_date'],
+  }
+)
 
 /**
  * Individual Installment Schema
@@ -201,11 +181,30 @@ export const installmentSchema = z.object({
  * }
  * ```
  */
-export const paymentPlanWizardSchema = step1Schema
-  .merge(step2Schema)
+export const paymentPlanWizardSchema = step1BaseSchema
+  .merge(step2BaseSchema)
   .extend({
     installments: z.array(installmentSchema).min(1, 'Must have at least one installment'),
   })
+  // Re-apply Step 1 Refinement
+  .refine((data) => data.course_end_date > data.course_start_date, {
+    message: 'Course end date must be after start date',
+    path: ['course_end_date'],
+  })
+  // Re-apply Step 2 Refinement
+  .refine(
+    (data) => {
+      // If initial payment amount > 0, due date is required
+      if (data.initial_payment_amount > 0 && !data.initial_payment_due_date) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'Initial payment due date is required when amount is specified',
+      path: ['initial_payment_due_date'],
+    }
+  )
   .refine(
     (data) => {
       // Validate: total fees < total course value
