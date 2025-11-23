@@ -24,8 +24,8 @@ import { Step1FormData } from './PaymentPlanWizardStep1'
 import {
   calculateCommissionableValue,
   calculateExpectedCommission,
-} from '@pleeno/utils/src/commission-calculator'
-import { calculateStudentDueDate } from '@pleeno/utils/src/date-helpers'
+  calculateStudentDueDate,
+} from '@pleeno/utils'
 import { Loader2 } from 'lucide-react'
 
 /**

@@ -11,11 +11,9 @@ import { type Installment } from './components/InstallmentTable'
 import {
   calculateCommissionableValue,
   calculateExpectedCommission,
-} from '@pleeno/utils/src/commission-calculator'
-import {
   generateInstallmentDueDates,
   calculateStudentDueDate,
-} from '@pleeno/utils/src/date-helpers'
+} from '@pleeno/utils'
 
 /**
  * New Payment Plan Wizard Page

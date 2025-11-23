@@ -12,12 +12,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
-  handleApiError,
   createSuccessResponse,
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
 } from '@pleeno/utils'
+import { handleApiError } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
 
 /**

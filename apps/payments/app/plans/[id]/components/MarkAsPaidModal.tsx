@@ -16,9 +16,8 @@ import {
   Label,
   Textarea,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils'
-import { formatDateWithPreset } from '@pleeno/utils/date-helpers'
-import { RecordPaymentSchema, type RecordPayment, type Installment } from '@pleeno/validations/installment.schema'
+import { formatCurrency, formatDateWithPreset } from '@pleeno/utils'
+import { RecordPaymentSchema, type RecordPayment, type Installment } from '@pleeno/validations'
 import { useRecordPayment } from '../hooks/useRecordPayment'
 
 /**

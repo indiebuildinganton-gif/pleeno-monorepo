@@ -40,7 +40,7 @@ vi.mock('@pleeno/utils', async () => {
 
 // Import mocked functions
 import { createServerClient } from '@pleeno/database/server'
-import { logAudit } from '@pleeno/utils'
+import { logAudit } from '@pleeno/database'
 
 describe('GET /api/enrollments/[id]', () => {
   const mockUser = {

@@ -13,7 +13,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
-  handleApiError,
   createSuccessResponse,
   ValidationError,
   UnauthorizedError,
@@ -21,6 +20,7 @@ import {
   NotFoundError,
   calculateEarnedCommission,
 } from '@pleeno/utils'
+import { handleApiError } from '@pleeno/utils/server'
 import { RecordPaymentSchema } from '@pleeno/validations'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity } from '@pleeno/database/activity-logger'

@@ -23,7 +23,7 @@ import { usePaymentPlanDetail } from './hooks/usePaymentPlanDetail'
 import { PaymentPlanDetail } from './components/PaymentPlanDetail'
 import { InstallmentsList } from './components/InstallmentsList'
 import { MarkAsPaidModal } from './components/MarkAsPaidModal'
-import type { Installment } from '@pleeno/validations/installment.schema'
+import type { Installment } from '@pleeno/validations'
 
 /**
  * Loading Skeleton Component

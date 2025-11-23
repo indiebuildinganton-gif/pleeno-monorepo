@@ -34,12 +34,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils'
-import { format, parseISO } from 'date-fns'
+import { formatCurrency, format, parseISO } from '@pleeno/utils'
 import { History } from 'lucide-react'
 import { InstallmentStatusBadge } from '../../components/InstallmentStatusBadge'
 import { PaymentHistoryTimeline } from './PaymentHistoryTimeline'
-import type { Installment } from '@pleeno/validations/installment.schema'
+import type { Installment } from '@pleeno/validations'
 
 /**
  * InstallmentsList Props

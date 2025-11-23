@@ -11,11 +11,7 @@ import {
   AlertDescription,
   Badge,
 } from '@pleeno/ui'
-import { formatCurrency } from '@pleeno/utils'
-import {
-  calculateCommissionableValue,
-  calculateExpectedCommission,
-} from '@pleeno/utils/src/commission-calculator'
+import { formatCurrency, calculateCommissionableValue, calculateExpectedCommission } from '@pleeno/utils'
 import { InstallmentTable, type Installment } from './InstallmentTable'
 import { Step1FormData } from './PaymentPlanWizardStep1'
 import { Step2FormData } from './PaymentPlanWizardStep2'

@@ -19,8 +19,7 @@
 'use client'
 
 import { Clock, DollarSign, Edit } from 'lucide-react'
-import { formatCurrency } from '@pleeno/utils'
-import { formatDateInAgencyTimezone } from '@pleeno/utils/date-helpers'
+import { formatCurrency, formatDateInAgencyTimezone } from '@pleeno/utils'
 import { useAuditLogs, type AuditLogWithUser } from '../hooks/useAuditLogs'
 
 /**

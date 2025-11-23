@@ -74,7 +74,8 @@
       "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run build:payments:*)",
       "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm turbo run build:*)",
       "Bash(pnpm run db:seed:*)",
-      "Bash(supabase/seed.sql)"
+      "Bash(supabase/seed.sql)",
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run build:entities:*)"
     ],
     "deny": [],
     "ask": []

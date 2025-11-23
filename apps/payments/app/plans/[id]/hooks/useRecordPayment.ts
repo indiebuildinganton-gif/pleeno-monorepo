@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@pleeno/ui'
-import type { RecordPayment, Installment } from '@pleeno/validations/installment.schema'
+import type { RecordPayment, Installment } from '@pleeno/validations'
 
 /**
  * API Response type for record payment

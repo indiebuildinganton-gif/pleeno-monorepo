@@ -15,9 +15,9 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
-  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { logAudit } from '@pleeno/database'
 import { NoteCreateSchema } from '@pleeno/validations'
 
 /**

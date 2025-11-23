@@ -19,9 +19,9 @@ import {
   ForbiddenError,
   validateFile,
   generateUniqueFilename,
-  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
+import { logAudit } from '@pleeno/database'
 
 /**
  * GET /api/enrollments/[id]/offer-letter

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { Installment } from '@pleeno/validations/installment.schema'
+import type { Installment } from '@pleeno/validations'
 
 /**
  * Payment Plan Detail from API

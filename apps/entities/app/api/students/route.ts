@@ -14,10 +14,9 @@ import {
   createSuccessResponse,
   ValidationError,
   ForbiddenError,
-  logAudit,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
-import { logActivity } from '@pleeno/database'
+import { logActivity, logAudit } from '@pleeno/database'
 import { requireRole } from '@pleeno/auth'
 import { StudentCreateSchema } from '@pleeno/validations'
 

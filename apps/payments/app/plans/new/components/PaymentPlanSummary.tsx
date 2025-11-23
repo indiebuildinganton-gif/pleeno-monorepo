@@ -1,8 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@pleeno/ui'
+import { Card, CardContent, CardHeader, CardTitle, cn } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
-import { cn } from '@/lib/utils'
 
 interface PaymentPlanSummaryProps {
   // From Step 1

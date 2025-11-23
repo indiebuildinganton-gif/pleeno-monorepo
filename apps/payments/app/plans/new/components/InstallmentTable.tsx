@@ -9,10 +9,11 @@ import {
   TableHeader,
   TableRow,
   Badge,
+  cn,
 } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { CheckCircle2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+
 
 /**
  * Installment object from generate-installments API

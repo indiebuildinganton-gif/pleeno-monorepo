@@ -11,7 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MarkAsPaidModal } from '../MarkAsPaidModal'
-import type { Installment } from '@pleeno/validations/installment.schema'
+import type { Installment } from '@pleeno/validations'
 
 // Mock the useRecordPayment hook
 const mockMutate = vi.fn()

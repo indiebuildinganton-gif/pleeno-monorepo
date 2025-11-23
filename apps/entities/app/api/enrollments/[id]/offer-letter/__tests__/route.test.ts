@@ -45,7 +45,8 @@ vi.mock('@pleeno/utils', async () => {
 
 // Import mocked functions
 import { createServerClient } from '@pleeno/database/server'
-import { validateFile, generateUniqueFilename, logAudit } from '@pleeno/utils'
+import { validateFile, generateUniqueFilename } from '@pleeno/utils'
+import { logAudit } from '@pleeno/database'
 
 describe('POST /api/enrollments/[id]/offer-letter (Upload)', () => {
   const mockUser = {
