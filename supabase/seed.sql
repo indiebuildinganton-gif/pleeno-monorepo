@@ -8,8 +8,8 @@
 --   npm run db:seed
 --
 -- Credentials:
---   Admin: admin@pleeno.dev / Admin123!
---   User:  user@pleeno.dev / User123!
+--   Admin: admin@test.local / password
+--   User:  user@test.local / password
 --
 -- Data Overview:
 --   - 1 Agency (Demo Agency)
@@ -81,12 +81,12 @@ INSERT INTO auth.users (
   '10000000-0000-0000-0000-000000000001',
   'authenticated',
   'authenticated',
-  'admin@pleeno.dev',
-  -- Password: Admin123!
-  '$2a$10$Z8qLKzrVqG5vJQmzXvRlbO9x6yGqjNqYJGxJ0YQF8YQmZqGqGqGqG',
+  'admin@test.local',
+  -- Password: password
+  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
   NOW(),
-  '{"provider":"email","providers":["email"]}',
-  '{"full_name":"Admin User","agency_id":"00000000-0000-0000-0000-000000000001","role":"agency_admin"}',
+  '{"provider":"email","providers":["email"],"agency_id":"20000000-0000-0000-0000-000000000001","role":"agency_admin"}',
+  '{"full_name":"Admin User"}',
   NOW(),
   NOW(),
   '',
@@ -118,12 +118,12 @@ INSERT INTO auth.users (
   '10000000-0000-0000-0000-000000000002',
   'authenticated',
   'authenticated',
-  'user@pleeno.dev',
+  'user@test.local',
   -- Password: User123!
-  '$2a$10$Z8qLKzrVqG5vJQmzXvRlbO9x6yGqjNqYJGxJ0YQF8YQmZqGqGqGqG',
+  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
   NOW(),
-  '{"provider":"email","providers":["email"]}',
-  '{"full_name":"Regular User","agency_id":"00000000-0000-0000-0000-000000000001","role":"agency_user"}',
+  '{"provider":"email","providers":["email"],"agency_id":"20000000-0000-0000-0000-000000000001","role":"agency_user"}',
+  '{"full_name":"Regular User"}',
   NOW(),
   NOW(),
   '',
@@ -140,7 +140,7 @@ INSERT INTO public.users (id, email, full_name, agency_id, role, status, created
 VALUES
   (
     '10000000-0000-0000-0000-000000000001',
-    'admin@pleeno.dev',
+    'admin@test.local',
     'Admin User',
     '20000000-0000-0000-0000-000000000001',
     'agency_admin',
@@ -150,7 +150,7 @@ VALUES
   ),
   (
     '10000000-0000-0000-0000-000000000002',
-    'user@pleeno.dev',
+    'user@test.local',
     'Regular User',
     '20000000-0000-0000-0000-000000000001',
     'agency_user',
@@ -177,7 +177,7 @@ INSERT INTO auth.identities (
     '10000000-0000-0000-0000-000000000001',
     '10000000-0000-0000-0000-000000000001',
     '10000000-0000-0000-0000-000000000001',
-    '{"sub":"10000000-0000-0000-0000-000000000001","email":"admin@pleeno.dev"}',
+    '{"sub":"10000000-0000-0000-0000-000000000001","email":"admin@test.local"}',
     'email',
     NOW(),
     NOW(),
@@ -187,7 +187,7 @@ INSERT INTO auth.identities (
     '10000000-0000-0000-0000-000000000002',
     '10000000-0000-0000-0000-000000000002',
     '10000000-0000-0000-0000-000000000002',
-    '{"sub":"10000000-0000-0000-0000-000000000002","email":"user@pleeno.dev"}',
+    '{"sub":"10000000-0000-0000-0000-000000000002","email":"user@test.local"}',
     'email',
     NOW(),
     NOW(),

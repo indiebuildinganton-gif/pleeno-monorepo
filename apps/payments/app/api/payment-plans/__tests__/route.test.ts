@@ -44,7 +44,7 @@ vi.mock('@pleeno/utils', async () => {
 
 // Import mocked functions
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { logActivity } from '@pleeno/database'
 import { logAudit } from '@pleeno/utils'
 

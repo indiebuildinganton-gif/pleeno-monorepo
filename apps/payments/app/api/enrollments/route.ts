@@ -10,11 +10,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createSuccessResponse, ValidationError, ForbiddenError } from '@pleeno/utils'
-import { handleApiError } from '@pleeno/utils/server'
+import { ValidationError, ForbiddenError } from '@pleeno/utils'
+import { createSuccessResponse, handleApiError } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity, logAudit } from '@pleeno/database'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { EnrollmentCreateSchema } from '@pleeno/validations'
 
 /**

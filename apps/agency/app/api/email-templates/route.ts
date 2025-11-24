@@ -14,7 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError, createSuccessResponse } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { sanitizeHtml, validateTemplate } from '../../../lib/template-preview'
 
 /**

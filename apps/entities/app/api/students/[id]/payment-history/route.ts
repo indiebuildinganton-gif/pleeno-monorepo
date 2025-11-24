@@ -16,8 +16,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
-import { handleApiError, ForbiddenError } from '@pleeno/utils'
+import { requireRole } from '@pleeno/auth/server'
+import { ForbiddenError } from '@pleeno/utils'
+import { handleApiError } from '@pleeno/utils/server'
 
 /**
  * GET /api/students/[id]/payment-history

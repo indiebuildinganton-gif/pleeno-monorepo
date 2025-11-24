@@ -39,7 +39,7 @@ vi.mock('@pleeno/database', () => ({
 }))
 
 // Import mocked functions
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { logActivity } from '@pleeno/database'
 
 describe('POST /api/enrollments - Duplicate Enrollment Handling', () => {

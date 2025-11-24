@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { NotFoundError, ForbiddenError } from '@pleeno/utils'
 import { handleApiError } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 
 /**
  * GET /api/payment-plans/[id]

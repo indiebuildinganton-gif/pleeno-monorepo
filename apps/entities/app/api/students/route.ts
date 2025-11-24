@@ -9,15 +9,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import {
-  handleApiError,
-  createSuccessResponse,
-  ValidationError,
-  ForbiddenError,
-} from '@pleeno/utils'
+import { ValidationError, ForbiddenError } from '@pleeno/utils'
+import { handleApiError, createSuccessResponse } from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
 import { logActivity, logAudit } from '@pleeno/database'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { StudentCreateSchema } from '@pleeno/validations'
 
 /**
@@ -162,14 +158,18 @@ export async function GET(request: NextRequest) {
     const totalPages = count ? Math.ceil(count / perPage) : 0
 
     // Return paginated response with metadata
-    return createSuccessResponse(
-      students || [],
+    return NextResponse.json(
       {
-        total: count || 0,
-        page,
-        per_page: perPage,
-        total_pages: totalPages,
-      }
+        success: true,
+        data: students || [],
+        meta: {
+          total: count || 0,
+          page,
+          per_page: perPage,
+          total_pages: totalPages,
+        },
+      },
+      { status: 200 }
     )
   } catch (error) {
     return handleApiError(error, {

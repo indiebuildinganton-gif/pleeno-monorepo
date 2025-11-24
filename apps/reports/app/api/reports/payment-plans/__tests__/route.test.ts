@@ -59,7 +59,7 @@ vi.mock('@pleeno/utils', () => ({
 }))
 
 // Import mocked requireRole
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 
 describe('POST /api/reports/payment-plans', () => {
   const mockUser = {

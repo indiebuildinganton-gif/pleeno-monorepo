@@ -18,7 +18,7 @@ import {
   sendStudentImportNotification,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { StudentCreateSchema } from '@pleeno/validations'
 import * as Papa from 'papaparse'
 

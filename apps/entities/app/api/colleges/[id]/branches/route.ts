@@ -18,7 +18,7 @@ import {
   NotFoundError,
 } from '@pleeno/utils'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { BranchCreateSchema } from '@pleeno/validations'
 
 /**

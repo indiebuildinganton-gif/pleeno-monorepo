@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { createServerClient } from '@pleeno/database/server'
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { handleApiError, ForbiddenError, ValidationError } from '@pleeno/utils'
 import { calculateExpectedCommission } from '@pleeno/utils'
 import { logReportExport } from '@pleeno/database/activity-logger'

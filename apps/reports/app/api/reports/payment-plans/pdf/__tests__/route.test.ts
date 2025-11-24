@@ -77,7 +77,7 @@ vi.mock('@pleeno/utils', () => ({
 }))
 
 // Import mocked modules
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { logReportExport } from '@pleeno/database/activity-logger'
 import { PDFReportDocument, generatePDFFilename } from '@pleeno/ui'

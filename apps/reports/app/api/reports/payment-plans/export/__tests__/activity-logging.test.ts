@@ -88,7 +88,7 @@ vi.mock('@pleeno/utils/csv-formatter', () => ({
 }))
 
 // Import mocked requireRole
-import { requireRole } from '@pleeno/auth'
+import { requireRole } from '@pleeno/auth/server'
 
 describe('CSV Export Activity Logging', () => {
   const mockUser = {
