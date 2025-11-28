@@ -75,7 +75,11 @@
       "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm turbo run build:*)",
       "Bash(pnpm run db:seed:*)",
       "Bash(supabase/seed.sql)",
-      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run build:entities:*)"
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run build:entities:*)",
+      "Bash(jq:*)",
+      "Bash(mv:*)",
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run dev:standalone:*)",
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" /Users/brenttudas/Library/pnpm/pnpm add:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,7 @@
+full_name,passport_number,email,phone,date_of_birth,nationality,visa_status
+Valid Student,VS111111,valid@email.com,+1-416-555-0001,1995-01-01,Canadian,approved
+,VS222222,invalid@email.com,+1-416-555-0002,1996-02-02,American,approved
+Missing Passport,,nope@email.com,+1-416-555-0003,1997-03-03,British,approved
+Bad Email Format,VS444444,not-an-email,+1-416-555-0004,1998-04-04,Indian,approved
+Bad Date Format,VS555555,good@email.com,+1-416-555-0005,01/05/1999,Mexican,approved
+Bad Visa Status,VS666666,test@email.com,+1-416-555-0006,2000-06-06,Chinese,invalid_status

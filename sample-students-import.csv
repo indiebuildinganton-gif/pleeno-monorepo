@@ -1,0 +1,11 @@
+full_name,passport_number,email,phone,date_of_birth,nationality,visa_status
+Alice Johnson,AB111111,alice.johnson@email.com,+1-416-555-0001,1996-01-15,Canadian,in_process
+Bob Williams,AB222222,bob.williams@email.com,+1-416-555-0002,1997-02-20,American,approved
+Carol Davis,AB333333,carol.davis@email.com,+1-416-555-0003,1998-03-25,British,denied
+David Chen,CD444444,david.chen@email.com,+1-416-555-0004,1995-05-10,Chinese,in_process
+Emma Martinez,EF555555,emma.martinez@email.com,+1-416-555-0005,1999-07-18,Mexican,approved
+Frank Thompson,GH666666,frank.thompson@email.com,+1-416-555-0006,1994-09-22,Australian,in_process
+Grace Kim,IJ777777,grace.kim@email.com,+1-416-555-0007,2000-11-30,Korean,approved
+Henry Patel,KL888888,henry.patel@email.com,+1-416-555-0008,1993-03-14,Indian,in_process
+Iris Nguyen,MN999999,iris.nguyen@email.com,+1-416-555-0009,1998-06-05,Vietnamese,approved
+Jack Wilson,OP101010,jack.wilson@email.com,+1-416-555-0010,1996-12-25,British,denied

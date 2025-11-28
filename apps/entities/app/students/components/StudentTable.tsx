@@ -21,7 +21,7 @@ import {
 import { Badge } from '@pleeno/ui/src/components/ui/badge'
 import { Button } from '@pleeno/ui/src/components/ui/button'
 import { useRouter } from 'next/navigation'
-import { getRelativeTime } from '@pleeno/utils/src/date-helpers'
+import { getRelativeTime } from '@pleeno/utils'
 import type { Student, PaginationMeta } from '../../../hooks/useStudents'
 import Link from 'next/link'
 

@@ -1,0 +1,4 @@
+full_name,passport_number,email,phone,date_of_birth,nationality,visa_status
+Sarah Connor,TC111111,sarah.connor@email.com,,1985-11-13,American,in_process
+Kyle Reese,TC222222,,+1-310-555-0001,1984-08-22,American,approved
+John Connor,TC333333,,,1995-02-28,American,in_process

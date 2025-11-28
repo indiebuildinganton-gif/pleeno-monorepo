@@ -45,7 +45,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@pleeno/ui/src/components/ui/card'
-import { formatCurrency } from '@pleeno/utils/src/formatters'
+import { formatCurrency } from '@pleeno/utils'
 
 import type {
   PaymentPlanReportRow,

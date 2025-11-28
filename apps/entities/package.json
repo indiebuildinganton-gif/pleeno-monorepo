@@ -17,6 +17,7 @@
     "@pleeno/validations": "workspace:*",
     "@react-pdf/renderer": "^4.3.1",
     "@tanstack/react-query": "5.90.7",
+    "@tanstack/react-table": "^8.21.3",
     "@types/string-similarity": "^4.0.2",
     "next": "15.5.6",
     "openai": "^6.8.1",
