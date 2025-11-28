@@ -11,9 +11,9 @@ import {
   Select,
   Label,
   useToast,
+  cn,
 } from '@pleeno/ui'
 import { DocumentViewer as PreviewModal } from '@pleeno/ui'
-import { cn } from '@pleeno/ui/lib/utils'
 
 /**
  * Document type enum matching database constraint

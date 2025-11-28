@@ -61,7 +61,7 @@ BEGIN
     -- Enrollment/Program
     c.name AS college_name,
     b.name AS branch_name,
-    p.name AS program_name,
+    e.program_name AS program_name,
 
     -- Installment
     i.id AS installment_id,
@@ -74,14 +74,11 @@ BEGIN
 
   FROM payment_plans pp
 
-  -- Join to enrollments to get student info
+  -- Join to enrollments to get student and program info
   INNER JOIN enrollments e ON e.id = pp.enrollment_id
 
-  -- Join to programs (via enrollments)
-  INNER JOIN programs p ON p.id = e.program_id
-
-  -- Join to branches (via programs)
-  INNER JOIN branches b ON b.id = p.branch_id
+  -- Join to branches (via enrollments)
+  INNER JOIN branches b ON b.id = e.branch_id
 
   -- Join to colleges (via branches)
   INNER JOIN colleges c ON c.id = b.college_id

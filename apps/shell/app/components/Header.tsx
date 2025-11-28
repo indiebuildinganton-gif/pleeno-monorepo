@@ -19,6 +19,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { NotificationBell } from './NotificationBell'
 import { NetworkActivityPanel } from './NetworkActivityPanel'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@pleeno/ui'
+import { Upload, Users, ChevronDown } from 'lucide-react'
 
 export function Header() {
   const [agencyName, setAgencyName] = useState<string>('')
@@ -98,6 +106,48 @@ export function Header() {
             >
               Dashboard
             </Link>
+
+            <Link
+              href="/reports/payment-plans"
+              className={`text-sm font-medium transition-colors hover:text-gray-900 ${
+                pathname === '/reports/payment-plans' ? 'text-gray-900' : 'text-gray-600'
+              }`}
+            >
+              Payment Plans
+            </Link>
+
+            <Link
+              href="/reports"
+              className={`text-sm font-medium transition-colors hover:text-gray-900 ${
+                pathname === '/reports' ? 'text-gray-900' : 'text-gray-600'
+              }`}
+            >
+              Reports
+            </Link>
+
+            {/* Import Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 focus:outline-none">
+                <Upload className="h-4 w-4" />
+                Import
+                <ChevronDown className="h-3 w-3" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/entities/students/import"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Users className="h-4 w-4" />
+                    Import Students
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled className="text-muted-foreground">
+                  More import options coming soon...
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {isAdmin && (
               <Link

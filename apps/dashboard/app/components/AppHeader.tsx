@@ -11,9 +11,15 @@
 
 'use client'
 
-
-import { LayoutDashboard, CreditCard, FileText } from 'lucide-react'
+import { LayoutDashboard, CreditCard, FileText, Upload, Users, ChevronDown } from 'lucide-react'
 import { NetworkActivityPanel } from './NetworkActivityPanel'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@pleeno/ui'
 
 export function AppHeader() {
   return (
@@ -34,6 +40,34 @@ export function AppHeader() {
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </a>
+
+            {/* Import Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors focus:outline-none">
+                <Upload className="h-4 w-4" />
+                Import
+                <ChevronDown className="h-3 w-3" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem asChild>
+                  <a
+                    href="/entities/students/import"
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Users className="h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span>Import Students</span>
+                      <span className="text-xs text-muted-foreground">Bulk CSV upload</span>
+                    </div>
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled className="text-muted-foreground text-xs">
+                  More import options coming soon...
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <a
               href="/payments"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"

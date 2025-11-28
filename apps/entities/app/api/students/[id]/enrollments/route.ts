@@ -16,7 +16,7 @@ import {
   ValidationError,
   UnauthorizedError,
   ForbiddenError,
-} from '@pleeno/utils'
+} from '@pleeno/utils/server'
 import { createServerClient } from '@pleeno/database/server'
 
 /**

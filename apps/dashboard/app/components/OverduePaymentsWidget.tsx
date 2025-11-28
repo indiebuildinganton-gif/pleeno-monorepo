@@ -41,9 +41,9 @@ function getUrgencyColor(days: number): string {
  * Used for the payment item cards
  */
 function getUrgencyBgColor(days: number): string {
-  if (days >= 30) return 'bg-red-50 border-red-300'
-  if (days >= 8) return 'bg-orange-50 border-orange-300'
-  return 'bg-yellow-50 border-yellow-300'
+  if (days >= 30) return 'bg-white border-red-300'
+  if (days >= 8) return 'bg-white border-orange-300'
+  return 'bg-white border-yellow-300'
 }
 
 // =================================================================
@@ -168,9 +168,10 @@ function OverduePaymentsEmpty() {
 /**
  * OverduePaymentItem Component
  *
- * Individual overdue payment item with:
+ * Compact card for dense grid layout with:
  * - Student name and college
- * - Amount and days overdue
+ * - Amount and days overdue inline
+ * - AI call reminder action button
  * - Color-coded urgency styling
  * - Clickable link to payment plan details
  */
@@ -178,29 +179,48 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
   const urgencyColor = getUrgencyColor(payment.days_overdue)
   const urgencyBgColor = getUrgencyBgColor(payment.days_overdue)
 
-  return (
-    <a
-      href={`/payments/plans/${payment.payment_plan_id}`}
-      className={`block p-3 rounded-lg border ${urgencyBgColor} hover:shadow-md transition-all`}
-    >
-      <div className="flex items-center justify-between">
-        {/* Student and College Info */}
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-gray-900 truncate">{payment.student_name}</p>
-          <p className="text-sm text-gray-600 truncate">{payment.college_name}</p>
-        </div>
+  const handleAICall = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // TODO: Implement AI call reminder functionality
+    console.log('AI Call reminder for:', payment.student_name)
+    alert(`AI Call reminder initiated for ${payment.student_name}`)
+  }
 
-        {/* Amount and Days Overdue */}
-        <div className="text-right ml-4">
-          <p className="font-bold text-gray-900">
-            {formatCurrency(payment.amount)}
-          </p>
-          <p className={`text-sm font-medium ${urgencyColor}`}>
-            {payment.days_overdue} day{payment.days_overdue !== 1 ? 's' : ''} overdue
-          </p>
+  return (
+    <div className={`rounded-lg border ${urgencyBgColor} hover:shadow-md transition-all p-3 flex flex-col gap-2`}>
+      {/* Student Info - Name & Institution on one line */}
+      <a
+        href={`/payments/plans/${payment.payment_plan_id}`}
+        className="block hover:underline"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 truncate text-sm">{payment.student_name}</p>
+            <p className="text-xs text-gray-600 truncate">{payment.college_name}</p>
+          </div>
         </div>
+      </a>
+
+      {/* Amount and Days Overdue - Inline */}
+      <div className="flex items-center justify-between text-xs">
+        <span className="font-bold text-gray-900">{formatCurrency(payment.amount)}</span>
+        <span className={`font-medium ${urgencyColor}`}>
+          {payment.days_overdue}d overdue
+        </span>
       </div>
-    </a>
+
+      {/* AI Call Action Button */}
+      <button
+        onClick={handleAICall}
+        className="w-full px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5"
+      >
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+        </svg>
+        AI Call Reminder
+      </button>
+    </div>
   )
 }
 
@@ -280,8 +300,8 @@ export function OverduePaymentsWidget() {
   return (
     <div
       className={`
-        border-2 rounded-lg p-4 bg-red-50 transition-all
-        ${hasNewOverdue ? 'border-red-600 animate-pulse' : 'border-red-500'}
+        border-2 rounded-lg p-4 bg-white transition-all
+        ${hasNewOverdue ? 'border-red-600 animate-pulse' : 'border-gray-300'}
       `}
     >
       {/* New overdue payment indicator */}
@@ -294,22 +314,22 @@ export function OverduePaymentsWidget() {
 
       {/* Header with count badge and total amount */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-red-900 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
           Overdue Payments
           <span className="px-2 py-1 bg-red-600 text-white text-sm rounded-full">
             {data.total_count}
           </span>
         </h2>
         <div className="text-right">
-          <p className="text-sm text-red-700">Total Overdue</p>
-          <p className="text-2xl font-bold text-red-900">
+          <p className="text-sm text-gray-600">Total Overdue</p>
+          <p className="text-2xl font-bold text-gray-900">
             {formatCurrency(data.total_amount)}
           </p>
         </div>
       </div>
 
-      {/* Overdue payments list */}
-      <div className="space-y-2">
+      {/* Overdue payments grid - 2-3 columns responsive */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {data.overdue_payments.map((payment) => (
           <OverduePaymentItem key={payment.id} payment={payment} />
         ))}
