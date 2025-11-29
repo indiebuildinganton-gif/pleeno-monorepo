@@ -14,6 +14,7 @@ import {
   generateInstallmentDueDates,
   calculateStudentDueDate,
 } from '@pleeno/utils'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 /**
  * New Payment Plan Wizard Page
@@ -269,7 +270,7 @@ export default function NewPaymentPlanPage() {
 
       // If no existing enrollment found, create a new one
       if (!enrollmentId) {
-        const createEnrollmentResponse = await fetch('/api/enrollments', {
+        const createEnrollmentResponse = await fetch(getApiUrl('/api/enrollments'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -300,7 +301,7 @@ export default function NewPaymentPlanPage() {
       }
 
       // Step 2: Create payment plan
-      const createPaymentPlanResponse = await fetch('/api/payment-plans', {
+      const createPaymentPlanResponse = await fetch(getApiUrl('/api/payment-plans'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

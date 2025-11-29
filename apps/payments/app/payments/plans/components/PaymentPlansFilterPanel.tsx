@@ -107,12 +107,12 @@ interface ActiveFilter {
 export function PaymentPlansFilterPanel() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [studentSearchTerm, setStudentSearchTerm] = useState('')
 
   // Fetch data for filter options
-  const { data: studentsData } = useStudents({ per_page: 1000 })
-  const { data: collegesData } = useColleges({ per_page: 1000 })
+  const { data: studentsData } = useStudents({ per_page: 100 })
+  const { data: collegesData } = useColleges({ per_page: 100 })
 
   const students = studentsData?.data || []
   const colleges = collegesData?.data || []
@@ -144,15 +144,29 @@ export function PaymentPlansFilterPanel() {
   const { data: branchesData } = useBranches(selectedCollegeId || '')
   const branches = branchesData?.data || []
 
+  // Helper function to format student display name
+  const formatStudentName = (student: any) => {
+    const firstName = student.first_name?.trim() || ''
+    const lastName = student.last_name?.trim() || ''
+    const fullName = `${firstName} ${lastName}`.trim()
+
+    if (fullName) {
+      return `${fullName} (${student.email})`
+    }
+    return student.email
+  }
+
   // Filter students by search term
   const filteredStudents = useMemo(() => {
-    if (!studentSearchTerm) return students
+    if (!studentSearchTerm) return students.slice(0, 20) // Limit to 20 when no search
     const lowerSearch = studentSearchTerm.toLowerCase()
     return students.filter((student) => {
-      const fullName = `${student.first_name} ${student.last_name}`.toLowerCase()
+      const firstName = student.first_name?.toLowerCase() || ''
+      const lastName = student.last_name?.toLowerCase() || ''
+      const fullName = `${firstName} ${lastName}`.trim()
       const email = student.email.toLowerCase()
       return fullName.includes(lowerSearch) || email.includes(lowerSearch)
-    })
+    }).slice(0, 20) // Limit results to 20
   }, [students, studentSearchTerm])
 
   // Reset branch when college changes
@@ -230,7 +244,7 @@ export function PaymentPlansFilterPanel() {
    */
   const onSubmit = (data: FilterFormData) => {
     const params = buildQueryParams(data)
-    router.push(`/plans?${params.toString()}`)
+    router.push(`/payments/plans?${params.toString()}`)
   }
 
   /**
@@ -249,7 +263,7 @@ export function PaymentPlansFilterPanel() {
       due_date_from: '',
       due_date_to: '',
     })
-    router.push('/plans')
+    router.push('/payments/plans')
   }
 
   /**
@@ -301,10 +315,13 @@ export function PaymentPlansFilterPanel() {
     if (values.student_id) {
       const student = students.find(s => s.id === values.student_id)
       if (student) {
+        const firstName = student.first_name?.trim() || ''
+        const lastName = student.last_name?.trim() || ''
+        const fullName = `${firstName} ${lastName}`.trim()
         filters.push({
           key: 'student_id',
           label: 'Student',
-          value: `${student.first_name} ${student.last_name}`,
+          value: fullName || student.email,
         })
       }
     }
@@ -385,15 +402,17 @@ export function PaymentPlansFilterPanel() {
   const activeFilters = getActiveFilters()
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
+    <Card className="mb-6 shadow-sm">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            <CardTitle>Filters</CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <CardTitle className="text-lg">Filters</CardTitle>
+            </div>
             {activeFilters.length > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {activeFilters.length}
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                {activeFilters.length} active
               </Badge>
             )}
           </div>
@@ -401,8 +420,19 @@ export function PaymentPlansFilterPanel() {
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
+            className="hover:bg-muted"
           >
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {isExpanded ? (
+              <>
+                <ChevronUp className="w-4 h-4 mr-1" />
+                <span className="text-sm">Hide</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="w-4 h-4 mr-1" />
+                <span className="text-sm">Show</span>
+              </>
+            )}
           </Button>
         </div>
       </CardHeader>
@@ -411,90 +441,109 @@ export function PaymentPlansFilterPanel() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Status Filter */}
-            <div className="space-y-2">
-              <Label>Status</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Payment Plan Status</Label>
               <div className="flex flex-wrap gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
                   <Checkbox
                     checked={selectedStatus.includes('active')}
                     onCheckedChange={() => handleStatusToggle('active')}
                   />
-                  <span className="text-sm">Active</span>
+                  <span className="text-sm font-medium">Active</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
                   <Checkbox
                     checked={selectedStatus.includes('completed')}
                     onCheckedChange={() => handleStatusToggle('completed')}
                   />
-                  <span className="text-sm">Completed</span>
+                  <span className="text-sm font-medium">Completed</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-foreground transition-colors">
                   <Checkbox
                     checked={selectedStatus.includes('cancelled')}
                     onCheckedChange={() => handleStatusToggle('cancelled')}
                   />
-                  <span className="text-sm">Cancelled</span>
+                  <span className="text-sm font-medium">Cancelled</span>
                 </label>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Student Filter */}
-              <div className="space-y-2">
-                <Label htmlFor="student_id">Student</Label>
-                <input
-                  type="text"
-                  placeholder="Search by name or email..."
-                  value={studentSearchTerm}
-                  onChange={(e) => setStudentSearchTerm(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-2"
-                />
-                <Select
-                  id="student_id"
-                  {...form.register('student_id')}
-                  onChange={(e) => {
-                    setValue('student_id', e.target.value)
-                  }}
-                >
-                  <option value="">All Students</option>
-                  {filteredStudents.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.first_name} {student.last_name} ({student.email})
-                    </option>
-                  ))}
-                </Select>
+            {/* Student & College Filters */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Student Filter */}
+                <div className="space-y-2">
+                  <Label htmlFor="student_id" className="text-sm font-medium">Student</Label>
+                  <div className="space-y-2">
+                    <Input
+                      type="text"
+                      placeholder="Search by name or email..."
+                      value={studentSearchTerm}
+                      onChange={(e) => setStudentSearchTerm(e.target.value)}
+                      className="w-full"
+                    />
+                    <Select
+                      id="student_id"
+                      {...form.register('student_id')}
+                      onChange={(e) => {
+                        setValue('student_id', e.target.value)
+                      }}
+                      className="w-full"
+                    >
+                      <option value="">All Students</option>
+                      {filteredStudents.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {formatStudentName(student)}
+                        </option>
+                      ))}
+                      {students.length > 20 && !studentSearchTerm && (
+                        <option disabled>Search to see more students...</option>
+                      )}
+                    </Select>
+                    {studentSearchTerm && filteredStudents.length === 0 && (
+                      <p className="text-xs text-muted-foreground">No students found</p>
+                    )}
+                    {!studentSearchTerm && students.length > 20 && (
+                      <p className="text-xs text-muted-foreground">
+                        Showing first 20 students. Use search to find more.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* College Filter */}
+                <div className="space-y-2">
+                  <Label htmlFor="college_id" className="text-sm font-medium">College</Label>
+                  <Select
+                    id="college_id"
+                    {...form.register('college_id')}
+                    onChange={(e) => {
+                      setValue('college_id', e.target.value)
+                      if (!e.target.value) {
+                        setValue('branch_id', '')
+                      }
+                    }}
+                    className="w-full"
+                  >
+                    <option value="">All Colleges</option>
+                    {colleges.map((college) => (
+                      <option key={college.id} value={college.id}>
+                        {college.name} ({college.country})
+                      </option>
+                    ))}
+                  </Select>
+                </div>
               </div>
 
-              {/* College Filter */}
-              <div className="space-y-2">
-                <Label htmlFor="college_id">College</Label>
-                <Select
-                  id="college_id"
-                  {...form.register('college_id')}
-                  onChange={(e) => {
-                    setValue('college_id', e.target.value)
-                    if (!e.target.value) {
-                      setValue('branch_id', '')
-                    }
-                  }}
-                >
-                  <option value="">All Colleges</option>
-                  {colleges.map((college) => (
-                    <option key={college.id} value={college.id}>
-                      {college.name} ({college.country})
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              {/* Branch Filter */}
+              {/* Branch Filter - Only show when college is selected */}
               {selectedCollegeId && (
                 <div className="space-y-2">
-                  <Label htmlFor="branch_id">Branch</Label>
+                  <Label htmlFor="branch_id" className="text-sm font-medium">Branch</Label>
                   <Select
                     id="branch_id"
                     {...form.register('branch_id')}
                     onChange={(e) => setValue('branch_id', e.target.value)}
+                    className="w-full md:w-1/2"
                   >
                     <option value="">All Branches</option>
                     {branches.map((branch) => (
@@ -507,10 +556,14 @@ export function PaymentPlansFilterPanel() {
               )}
             </div>
 
-            {/* Amount Range Filter */}
-            <div className="space-y-2">
-              <Label>Amount Range</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Advanced Filters Section */}
+            <div className="pt-4 border-t space-y-4">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Advanced Filters</h3>
+
+              {/* Amount Range Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Amount Range</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Input
                     type="number"
@@ -535,9 +588,9 @@ export function PaymentPlansFilterPanel() {
               </div>
             </div>
 
-            {/* Installments Range Filter */}
-            <div className="space-y-2">
-              <Label>Installments Range</Label>
+              {/* Installments Range Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Installments Range</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Input
@@ -563,9 +616,9 @@ export function PaymentPlansFilterPanel() {
               </div>
             </div>
 
-            {/* Due Date Range Filter */}
-            <div className="space-y-2">
-              <Label>Due Date Range</Label>
+              {/* Due Date Range Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Due Date Range</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Input
@@ -585,8 +638,10 @@ export function PaymentPlansFilterPanel() {
               </div>
             </div>
 
+            </div>
+
             {/* Action Buttons */}
-            <div className="flex gap-4">
+            <div className="flex gap-3 pt-4">
               <Button type="submit" className="flex-1">
                 Apply Filters
               </Button>

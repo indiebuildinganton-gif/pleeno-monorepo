@@ -101,12 +101,19 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protected routes require authentication
-  const isProtectedRoute =
+  // API routes are excluded from auth checks as they handle auth internally
+  const isApiRoute =
+    request.nextUrl.pathname.startsWith('/api/') ||
+    request.nextUrl.pathname.startsWith('/entities/api/') ||
+    request.nextUrl.pathname.startsWith('/payments/api/')
+
+  const isProtectedRoute = !isApiRoute && (
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/agency') ||
     request.nextUrl.pathname.startsWith('/entities') ||
     request.nextUrl.pathname.startsWith('/payments') ||
     request.nextUrl.pathname.startsWith('/reports')
+  )
 
   // Redirect to login if accessing protected route without auth
   if (isProtectedRoute && !user) {

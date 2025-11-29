@@ -148,22 +148,30 @@ interface SummaryCardProps {
  * Displays a summary metric card with title, value, and optional percentage
  */
 function SummaryCard({ title, value, subtitle, icon, color, percentage }: SummaryCardProps) {
+  // Using arbitrary hex values to bypass global dark mode overrides
   const colorClasses = {
-    green: 'bg-green-50 text-green-700 border-green-200',
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    gray: 'bg-gray-50 text-gray-700 border-gray-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
+    green: 'bg-[#f0fdf4] border-[#bbf7d0] dark:bg-green-900/20 dark:border-green-900/30',
+    blue: 'bg-[#eff6ff] border-[#bfdbfe] dark:bg-blue-900/20 dark:border-blue-900/30',
+    gray: 'bg-[#f9fafb] border-[#e5e7eb] dark:bg-gray-800/50 dark:border-gray-700',
+    red: 'bg-[#fef2f2] border-[#fecaca] dark:bg-red-900/20 dark:border-red-900/30',
+  }
+
+  const iconColorClasses = {
+    green: 'text-[#15803d] dark:text-green-400',
+    blue: 'text-[#1d4ed8] dark:text-blue-400',
+    gray: 'text-[#374151] dark:text-gray-400',
+    red: 'text-[#b91c1c] dark:text-red-400',
   }
 
   return (
     <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium text-gray-600">{title}</h3>
-        <div className="text-gray-400">{icon}</div>
+        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-200">{title}</h3>
+        <div className={iconColorClasses[color]}>{icon}</div>
       </div>
-      <div className="text-2xl font-bold">{value}</div>
-      {subtitle && <div className="text-xs text-gray-500 mt-1">{subtitle}</div>}
-      {percentage && <div className="text-xs font-medium mt-2">{percentage}</div>}
+      <div className="text-2xl font-bold text-gray-900 dark:text-white">{value}</div>
+      {subtitle && <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{subtitle}</div>}
+      {percentage && <div className="text-xs font-medium text-gray-900 dark:text-gray-200 mt-2">{percentage}</div>}
     </div>
   )
 }
@@ -227,36 +235,36 @@ function FilterControls() {
       <div className="flex flex-wrap items-center gap-3">
         {/* Time Period Dropdown */}
         <div className="flex-1 min-w-[180px]">
-          <label htmlFor="period-filter" className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="period-filter" className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">
             Time Period
           </label>
           <select
             id="period-filter"
             value={commissionFilters.period}
             onChange={(e) => handlePeriodChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800"
           >
-            <option value="all">All Time</option>
-            <option value="year">This Year</option>
-            <option value="quarter">This Quarter</option>
-            <option value="month">This Month</option>
+            <option value="all" className="text-[#000000]">All Time</option>
+            <option value="year" className="text-[#000000]">This Year</option>
+            <option value="quarter" className="text-[#000000]">This Quarter</option>
+            <option value="month" className="text-[#000000]">This Month</option>
           </select>
         </div>
 
         {/* College Filter */}
         <div className="flex-1 min-w-[180px]">
-          <label htmlFor="college-filter" className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="college-filter" className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">
             College
           </label>
           <select
             id="college-filter"
             value={commissionFilters.college_id || ''}
             onChange={(e) => handleCollegeChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800"
           >
-            <option value="">All Colleges</option>
+            <option value="" className="text-[#000000]">All Colleges</option>
             {colleges?.map((college) => (
-              <option key={college.id} value={college.id}>
+              <option key={college.id} value={college.id} className="text-[#000000]">
                 {college.name}
               </option>
             ))}
@@ -265,19 +273,19 @@ function FilterControls() {
 
         {/* Branch Filter */}
         <div className="flex-1 min-w-[180px]">
-          <label htmlFor="branch-filter" className="block text-xs font-medium text-gray-700 mb-1">
+          <label htmlFor="branch-filter" className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">
             Branch
           </label>
           <select
             id="branch-filter"
             value={commissionFilters.branch_id || ''}
             onChange={(e) => handleBranchChange(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed bg-white dark:bg-gray-800"
             disabled={!branches || branches.length === 0}
           >
-            <option value="">All Branches</option>
+            <option value="" className="text-[#000000]">All Branches</option>
             {branches?.map((branch) => (
-              <option key={branch.id} value={branch.id}>
+              <option key={branch.id} value={branch.id} className="text-[#000000]">
                 {branch.name} {branch.city ? `- ${branch.city}` : ''}
               </option>
             ))}
@@ -291,7 +299,7 @@ function FilterControls() {
             disabled={isDefaultState}
             variant="outline"
             size="sm"
-            className="mt-auto"
+            className="mt-auto text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
           >
             <X className="w-4 h-4 mr-1" />
             Clear Filters
@@ -302,7 +310,7 @@ function FilterControls() {
       {/* Active Filter Count Badge */}
       {activeFilterCount > 0 && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md">
+          <span className="inline-flex items-center gap-1 px-2 py-1 bg-[#dbeafe] text-[#1e40af] rounded-md">
             <Filter className="w-3 h-3" />
             {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
           </span>
@@ -382,56 +390,55 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
   }
 
   return (
-    <div className={cn('bg-white rounded-lg shadow-sm border border-gray-200', className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">Commission Breakdown by College</h2>
+    <Card className={cn('w-full bg-white dark:bg-background-dark border-gray-200 dark:border-gray-800', className)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Commission Breakdown by College</CardTitle>
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleRefresh}
             disabled={isRefetching}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="h-8 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
             title="Refresh data"
-            aria-label="Refresh commission data"
           >
-            <RefreshCw className={cn('h-4 w-4', isRefetching && 'animate-spin')} />
-            <span className="hidden sm:inline">Refresh</span>
-          </button>
-          <button
+            <RefreshCw className={cn('h-4 w-4 mr-2', isRefetching && 'animate-spin')} />
+            Refresh
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             disabled
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-8 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700"
             title="Export to CSV (coming soon)"
-            aria-label="Export to CSV (coming soon)"
           >
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
-          </button>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
         </div>
-      </div>
+      </CardHeader>
 
-      {/* Date Range Indicator */}
-      <div className="px-6 py-3 bg-gray-50 border-b border-gray-200">
-        <p className="text-sm text-gray-600">
-          Showing: <span className="font-medium">{getDateRangeLabel(commissionFilters.period)}</span>
+      <div className="px-6 py-2 border-b border-gray-100 dark:border-gray-800">
+        <p className="text-sm text-gray-700 dark:text-gray-400">
+          Showing: <span className="font-medium text-gray-900 dark:text-gray-200">{getDateRangeLabel(commissionFilters.period)}</span>
         </p>
       </div>
 
-      {/* Widget Body */}
-      <div className="p-6">
+      <CardContent className="p-6">
         {/* Loading State */}
         {isLoading && (
           <>
             {/* Summary Cards Skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+                <div key={i} className="h-32 bg-[#f3f4f6] rounded-lg animate-pulse" />
               ))}
             </div>
 
             <FilterControls />
             <div className="mt-6 space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-gray-100 animate-pulse rounded" />
+                <div key={i} className="h-16 bg-[#f9fafb] animate-pulse rounded" />
               ))}
             </div>
           </>
@@ -474,14 +481,14 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
 
             <FilterControls />
             <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
-              <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Data</h3>
-              <p className="text-sm text-gray-600 mb-4">
+              <AlertTriangle className="w-12 h-12 text-[#ef4444] mb-4" />
+              <h3 className="text-lg font-semibold text-[#000000] mb-2">Failed to Load Data</h3>
+              <p className="text-sm text-[#6b7280] mb-4">
                 {error instanceof Error
                   ? error.message
                   : 'An error occurred while loading commission data'}
               </p>
-              <Button onClick={handleRefresh} variant="outline">
+              <Button onClick={handleRefresh} variant="outline" className="text-[#000000] border-[#d1d5db]">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Button>
@@ -526,11 +533,11 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
 
             <FilterControls />
             <div className="mt-6 flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Filter className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-[#f3f4f6] rounded-full flex items-center justify-center mb-4">
+                <Filter className="w-8 h-8 text-[#9ca3af]" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Commission Data</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-lg font-semibold text-[#000000] mb-2">No Commission Data</h3>
+              <p className="text-sm text-[#6b7280]">
                 No commission data available for the selected filters. Try adjusting your filters.
               </p>
             </div>
@@ -575,43 +582,41 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
             <FilterControls />
 
             {/* Table */}
-            <div className="mt-6 overflow-x-auto">
+            <div className="mt-6 overflow-x-auto rounded-md border border-gray-200 dark:border-gray-800">
               <table className="w-full text-sm" role="table" aria-label="Commission breakdown by college and branch">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">College</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Branch</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Commissions</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">GST</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800/50">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">College</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">Branch</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">Commissions</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">GST</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">
                       Total (+ GST)
                     </th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Expected</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Earned</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">Expected</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">Earned</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">
                       Outstanding
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700">Actions</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-900 dark:text-gray-200">Actions</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-background-dark">
                   {commissionData.map((row, index) => (
                     <tr
                       key={`${row.college_id}-${row.branch_id}`}
-                      className={`border-b border-gray-100 hover:bg-gray-50 ${
-                        index < 3 ? 'bg-blue-50/30' : ''
-                      }`}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 bg-white dark:bg-background-dark"
                     >
                       <td className="py-3 px-4">
                         <div className="font-medium">
                           <a
                             href={`/entities/colleges/${row.college_id}`}
-                            className="text-blue-600 hover:underline"
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                           >
                             {row.college_name}
                           </a>
                           {index < 3 && (
-                            <span className="ml-2 text-xs px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded">
+                            <span className="ml-2 text-xs px-2 py-0.5 bg-[#fef9c3] text-[#854d0e] rounded font-medium">
                               Top {index + 1}
                             </span>
                           )}
@@ -620,32 +625,32 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                       <td className="py-3 px-4">
                         <a
                           href={`/entities/colleges/${row.college_id}?branch=${row.branch_id}`}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                         >
                           {row.branch_name}
                         </a>
                         {row.branch_city && (
-                          <div className="text-xs text-gray-500">{row.branch_city}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{row.branch_city}</div>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">
+                      <td className="py-3 px-4 text-right font-medium text-gray-900 dark:text-gray-100">
                         {formatCurrency(row.total_commissions)}
                       </td>
-                      <td className="py-3 px-4 text-right text-blue-600">
+                      <td className="py-3 px-4 text-right text-gray-700 dark:text-gray-300 font-medium">
                         {formatCurrency(row.total_gst)}
                       </td>
-                      <td className="py-3 px-4 text-right font-semibold text-gray-900">
+                      <td className="py-3 px-4 text-right font-semibold text-gray-900 dark:text-gray-100">
                         {formatCurrency(row.total_with_gst)}
                       </td>
-                      <td className="py-3 px-4 text-right text-gray-600">
+                      <td className="py-3 px-4 text-right text-gray-500 dark:text-gray-400 font-medium">
                         {formatCurrency(row.total_expected_commission)}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-green-600">
+                      <td className="py-3 px-4 text-right font-medium text-green-700 dark:text-green-400">
                         {formatCurrency(row.total_earned_commission)}
                       </td>
                       <td
                         className={`py-3 px-4 text-right font-medium ${
-                          row.outstanding_commission > 0 ? 'text-red-600' : 'text-green-600'
+                          row.outstanding_commission > 0 ? 'text-red-700 dark:text-red-400' : 'text-green-700 dark:text-green-400'
                         }`}
                       >
                         {formatCurrency(row.outstanding_commission)}
@@ -660,11 +665,11 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                           >
                             <button
                               type="button"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 font-medium"
                             >
                               <Eye className="h-4 w-4" />
                               <span>View Plans</span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-[#6b7280]">
                                 ({row.payment_plan_count})
                               </span>
                             </button>
@@ -678,13 +683,13 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
             </div>
 
             {/* Footer info */}
-            <div className="mt-4 text-sm text-gray-500 text-right">
+            <div className="mt-4 text-sm text-[#6b7280] text-right font-medium">
               Showing {commissionData.length} {commissionData.length === 1 ? 'result' : 'results'}
             </div>
           </>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 

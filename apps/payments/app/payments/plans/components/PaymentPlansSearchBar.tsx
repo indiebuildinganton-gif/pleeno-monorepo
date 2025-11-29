@@ -18,7 +18,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Input, Button } from '@pleeno/ui'
 import { Search, X } from 'lucide-react'
-import { useDebounce } from '../../../hooks/useDebounce'
+import { useDebounce } from '../../../../hooks/useDebounce'
 
 /**
  * Search bar component for filtering payment plans

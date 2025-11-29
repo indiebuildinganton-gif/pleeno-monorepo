@@ -83,7 +83,7 @@ export function PaymentPlanWizardStep3({
 }: PaymentPlanWizardStep3Props) {
 
   // Fetch students to get student name
-  const { data: studentsData } = useStudents({ per_page: 1000 })
+  const { data: studentsData } = useStudents({ per_page: 100 })
   const students = studentsData?.data || []
   const selectedStudent = students.find((s) => s.id === step1Data.student_id)
 

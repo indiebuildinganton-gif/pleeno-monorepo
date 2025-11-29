@@ -242,7 +242,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.pending.total_amount}
         icon={<Clock className="w-5 h-5" />}
         colorClass="gray"
-        href="/payments?status=pending"
+        href="/payments/payments/plans?status=active"
       />
       <StatusCard
         label="Due Soon"
@@ -250,7 +250,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.due_soon.total_amount}
         icon={<AlertCircle className="w-5 h-5" />}
         colorClass="amber"
-        href="/payments?status=due_soon"
+        href="/payments/payments/plans?status=active"
       />
       <StatusCard
         label="Overdue"
@@ -258,7 +258,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.overdue.total_amount}
         icon={<AlertTriangle className="w-5 h-5" />}
         colorClass="red"
-        href="/payments?status=overdue"
+        href="/payments/payments/plans?status=active"
       />
       <StatusCard
         label="Paid This Month"
@@ -266,7 +266,7 @@ export default function PaymentStatusWidget() {
         amount={statusData.paid_this_month.total_amount}
         icon={<CheckCircle className="w-5 h-5" />}
         colorClass="green"
-        href="/payments?status=paid&period=current_month"
+        href="/payments/payments/plans?status=active"
       />
     </div>
   )

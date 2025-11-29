@@ -20,6 +20,26 @@
   --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* New Design System Colors - Manrope Theme */
+  --color-primary: #13ec5b;
+  --color-background-light: #f6f8f6;
+  --color-background-dark: #102216;
+  --color-card-light: #FFFFFF;
+  --color-card-dark: #1F2937;
+  --color-chart-bg-light: #FFFFFF; /* Chart card is white in new design */
+  --color-chart-bg-dark: #1D232D;
+  --color-text-light-primary: #1F2937;
+  --color-text-dark-primary: #F9FAFB;
+  --color-text-light-secondary: #6B7280;
+  --color-text-dark-secondary: #9CA3AF;
+  --color-border-light: #E5E7EB;
+  --color-border-dark: #374151;
+  --color-data-paid: #1E8449;
+  --color-data-expected: #A9DFBF;
+
+  --font-display: 'Manrope', sans-serif;
+  --radius: 0.25rem; /* Updated radius */
 }
 
 @media (prefers-color-scheme: dark) {

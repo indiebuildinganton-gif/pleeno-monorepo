@@ -48,23 +48,25 @@ export function AppHeader() {
                 Import
                 <ChevronDown className="h-3 w-3" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem asChild>
+              <DropdownMenuContent align="start" className="w-60 bg-white dark:bg-slate-950 border shadow-lg p-1">
+                <DropdownMenuItem asChild className="focus:bg-blue-50 dark:focus:bg-blue-950 rounded-sm">
                   <a
                     href="/entities/students/import"
-                    className="flex items-center gap-2 cursor-pointer"
+                    className="flex items-center gap-3 cursor-pointer px-3 py-2.5 text-gray-900 dark:text-gray-100 hover:no-underline"
                   >
-                    <Users className="h-4 w-4" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900">
+                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
                     <div className="flex flex-col">
-                      <span>Import Students</span>
-                      <span className="text-xs text-muted-foreground">Bulk CSV upload</span>
+                      <span className="font-medium text-sm">Import Students</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Upload students via CSV</span>
                     </div>
                   </a>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem disabled className="text-muted-foreground text-xs">
-                  More import options coming soon...
-                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-1" />
+                <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+                  More import options coming soon
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
 

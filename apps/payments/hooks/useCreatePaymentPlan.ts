@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@pleeno/ui'
 import type { PaymentPlanCreate, PaymentPlan } from '@pleeno/validations'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 /**
  * API Response type for payment plan creation
@@ -59,7 +60,7 @@ export function useCreatePaymentPlan() {
 
   return useMutation({
     mutationFn: async (data: PaymentPlanCreate): Promise<CreatePaymentPlanResponse> => {
-      const response = await fetch('/api/payment-plans', {
+      const response = await fetch(getApiUrl('/api/payment-plans'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

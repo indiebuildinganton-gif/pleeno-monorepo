@@ -85,7 +85,7 @@ export function PaymentPlanWizardStep1({
   onNext,
   onCancel,
 }: PaymentPlanWizardStep1Props) {
-  const { data: studentsData } = useStudents({ per_page: 1000 })
+  const { data: studentsData } = useStudents({ per_page: 100 })
   const students = studentsData?.data || []
 
   // Get today's date in YYYY-MM-DD format

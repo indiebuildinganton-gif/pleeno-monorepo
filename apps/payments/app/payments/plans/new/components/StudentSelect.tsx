@@ -35,7 +35,7 @@ interface StudentSelectProps {
  */
 export function StudentSelect({ value, onChange, error, disabled = false }: StudentSelectProps) {
   const [searchTerm, setSearchTerm] = useState('')
-  const { data, isLoading, error: fetchError } = useStudents({ per_page: 1000 })
+  const { data, isLoading, error: fetchError } = useStudents({ per_page: 100 })
 
   const students = data?.data || []
 

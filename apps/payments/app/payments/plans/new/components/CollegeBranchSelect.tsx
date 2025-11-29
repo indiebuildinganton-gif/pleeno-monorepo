@@ -47,7 +47,7 @@ export function CollegeBranchSelect({
     data: collegesData,
     isLoading: collegesLoading,
     error: collegesError,
-  } = useColleges({ per_page: 1000 })
+  } = useColleges({ per_page: 100 })
 
   const {
     data: branchesData,

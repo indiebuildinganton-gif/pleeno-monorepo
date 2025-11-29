@@ -47,7 +47,7 @@ export default async function PaymentPlansPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Link href="/plans/new">
+          <Link href="/payments/plans/new">
             <Button>
               <Plus className="w-4 h-4 mr-2" />
               New Plan

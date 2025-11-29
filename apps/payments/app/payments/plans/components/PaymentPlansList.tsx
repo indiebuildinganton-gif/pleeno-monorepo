@@ -38,6 +38,7 @@ import {
 import { formatCurrency, format, parseISO } from '@pleeno/utils'
 import { PaymentPlanStatusBadge } from './PaymentPlanStatusBadge'
 import { ExternalLink } from 'lucide-react'
+import { getApiUrl } from '@/app/hooks/useApiUrl'
 
 /**
  * Payment Plan from API
@@ -162,7 +163,7 @@ function EmptyState() {
         <p className="text-sm text-gray-500 mb-6">
           Create your first payment plan to get started
         </p>
-        <Link href="/plans/new">
+        <Link href="/payments/plans/new">
           <Button>Create Payment Plan</Button>
         </Link>
       </div>
@@ -203,7 +204,7 @@ export function PaymentPlansList() {
   const { data, isLoading, error, refetch } = useQuery<PaymentPlansResponse>({
     queryKey: ['payment-plans', Object.fromEntries(queryParams.entries())],
     queryFn: async () => {
-      const url = `/api/payment-plans?${queryParams.toString()}`
+      const url = getApiUrl(`/api/payment-plans?${queryParams.toString()}`)
       const res = await fetch(url)
       if (!res.ok) {
         throw new Error('Failed to fetch payment plans')
@@ -293,7 +294,7 @@ export function PaymentPlansList() {
                       <PaymentPlanStatusBadge status={plan.status} />
                     </TableCell>
                     <TableCell>
-                      <Link href={`/plans/${plan.id}`}>
+                      <Link href={`/payments/plans/${plan.id}`}>
                         <Button variant="outline" size="sm">
                           View Details
                         </Button>
@@ -364,7 +365,7 @@ export function PaymentPlansList() {
                     )}
                   </div>
                   <div className="mt-4">
-                    <Link href={`/plans/${plan.id}`} className="block">
+                    <Link href={`/payments/plans/${plan.id}`} className="block">
                       <Button variant="outline" size="sm" className="w-full">
                         View Details
                       </Button>

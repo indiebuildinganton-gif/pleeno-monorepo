@@ -31,7 +31,10 @@ import { PaymentPlanCreateSchema, PaymentPlanWithInstallmentsCreateSchema } from
  * Lists payment plans with comprehensive filtering and pagination.
  *
  * Query parameters:
- * - status?: string[] (multi-select: 'active', 'completed', 'cancelled')
+ * - status?: string[] (multi-select: 'active', 'completed', 'cancelled', 'overdue', 'due_soon', 'pending', 'paid')
+ *   Database statuses: 'active', 'completed', 'cancelled'
+ *   Computed statuses: 'overdue' (has overdue installments), 'due_soon' (has installments due in 7 days),
+ *                      'pending' (has pending installments), 'paid' (all installments paid)
  * - student_id?: string
  * - college_id?: string
  * - branch_id?: string
@@ -46,6 +49,7 @@ import { PaymentPlanCreateSchema, PaymentPlanWithInstallmentsCreateSchema } from
  * - limit?: number (default: 20)
  * - sort_by?: string (default: 'next_due_date')
  * - sort_order?: 'asc' | 'desc' (default: 'asc')
+ * - period?: string (for 'paid' status: 'current_month', 'last_month', etc.)
  *
  * Response (200 OK):
  * {
@@ -104,6 +108,14 @@ export async function GET(request: NextRequest) {
     // Parse filter parameters
     const statusParam = searchParams.get('status')
     const statusFilter = statusParam ? statusParam.split(',') : null
+
+    // Separate database statuses from computed statuses
+    const databaseStatuses = ['active', 'completed', 'cancelled']
+    const computedStatuses = ['overdue', 'due_soon', 'pending', 'paid']
+
+    const dbStatusFilter = statusFilter?.filter(s => databaseStatuses.includes(s)) || null
+    const computedStatusFilter = statusFilter?.filter(s => computedStatuses.includes(s)) || null
+
     const studentId = searchParams.get('student_id')
     const collegeId = searchParams.get('college_id')
     const branchId = searchParams.get('branch_id')
@@ -114,6 +126,7 @@ export async function GET(request: NextRequest) {
     const dueDateFrom = searchParams.get('due_date_from')
     const dueDateTo = searchParams.get('due_date_to')
     const search = searchParams.get('search')
+    const period = searchParams.get('period') // For 'paid' status filtering
 
     // Parse pagination parameters
     const page = parseInt(searchParams.get('page') || '1', 10)
@@ -176,9 +189,9 @@ export async function GET(request: NextRequest) {
         { count: 'exact' }
       )
 
-    // Apply status filter
-    if (statusFilter && statusFilter.length > 0) {
-      query = query.in('status', statusFilter)
+    // Apply database status filter (not computed statuses)
+    if (dbStatusFilter && dbStatusFilter.length > 0) {
+      query = query.in('status', dbStatusFilter)
     }
 
     // Apply amount range filters
@@ -282,7 +295,8 @@ export async function GET(request: NextRequest) {
         const branch = enrollment?.branch
         const college = branch?.college
 
-        return {
+        // Create enriched plan object
+        const enrichedPlan = {
           id: plan.id,
           enrollment_id: plan.enrollment_id,
           total_amount: plan.total_amount,
@@ -308,7 +322,75 @@ export async function GET(request: NextRequest) {
           } : null,
           created_at: plan.created_at,
           updated_at: plan.updated_at,
+          // Add computed status flags for filtering
+          _installments: installments || [],
         }
+
+        // Apply computed status filters
+        if (computedStatusFilter && computedStatusFilter.length > 0) {
+          const today = new Date().toISOString().split('T')[0]
+          const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+          const hasOverdueInstallments = (installments || []).some(
+            inst => inst.status === 'pending' && inst.student_due_date && inst.student_due_date < today
+          )
+          const hasDueSoonInstallments = (installments || []).some(
+            inst => inst.status === 'pending' && inst.student_due_date &&
+                    inst.student_due_date >= today && inst.student_due_date <= sevenDaysFromNow
+          )
+          const hasPendingInstallments = (installments || []).some(
+            inst => inst.status === 'pending'
+          )
+          const allInstallmentsPaid = totalInstallments > 0 &&
+            installmentsPaidCount === totalInstallments
+
+          // Check if plan matches any of the requested computed statuses
+          let matchesComputedStatus = false
+
+          for (const status of computedStatusFilter) {
+            if (status === 'overdue' && hasOverdueInstallments) {
+              matchesComputedStatus = true
+              break
+            }
+            if (status === 'due_soon' && hasDueSoonInstallments) {
+              matchesComputedStatus = true
+              break
+            }
+            if (status === 'pending' && hasPendingInstallments) {
+              matchesComputedStatus = true
+              break
+            }
+            if (status === 'paid') {
+              // For 'paid' status, we can filter by period if provided
+              if (allInstallmentsPaid) {
+                if (period === 'current_month') {
+                  // Check if any installments were paid this month
+                  const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM
+                  const paidThisMonth = (installments || []).some(
+                    inst => inst.paid_date && inst.paid_date.startsWith(currentMonth)
+                  )
+                  if (paidThisMonth) {
+                    matchesComputedStatus = true
+                    break
+                  }
+                } else {
+                  // No period filter, just check if all paid
+                  matchesComputedStatus = true
+                  break
+                }
+              }
+            }
+          }
+
+          if (!matchesComputedStatus) {
+            return null
+          }
+        }
+
+        // Remove internal fields before returning
+        delete enrichedPlan._installments
+
+        return enrichedPlan
       })
     )
 
