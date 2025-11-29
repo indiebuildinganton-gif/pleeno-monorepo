@@ -108,6 +108,15 @@ const nextConfig: NextConfig = {
         source: '/api/installments/:path*',
         destination: `${ZONE_URLS.payments}/payments/api/installments/:path*`,
       },
+      // Reports API rewrites
+      {
+        source: '/api/reports',
+        destination: `${ZONE_URLS.reports}/reports/api/reports`,
+      },
+      {
+        source: '/api/reports/:path*',
+        destination: `${ZONE_URLS.reports}/reports/api/reports/:path*`,
+      },
     ];
   },
 };

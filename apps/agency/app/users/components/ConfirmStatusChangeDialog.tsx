@@ -8,9 +8,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  Button
+  Button,
+  useToast
 } from '@pleeno/ui'
-import { toast } from '@pleeno/ui/hooks/use-toast'
 import { AlertTriangle } from 'lucide-react'
 
 interface User {
@@ -33,6 +33,7 @@ export function ConfirmStatusChangeDialog({
   newStatus
 }: ConfirmStatusChangeDialogProps) {
   const queryClient = useQueryClient()
+  const { addToast } = useToast()
   const isDeactivating = newStatus === 'inactive'
 
   const mutation = useMutation({
@@ -52,17 +53,18 @@ export function ConfirmStatusChangeDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       const action = isDeactivating ? 'deactivated' : 'reactivated'
-      toast({
+      addToast({
         title: 'Status updated',
-        description: `${user.full_name} has been ${action}`
+        description: `${user.full_name} has been ${action}`,
+        variant: 'success'
       })
       onOpenChange(false)
     },
     onError: (error: Error) => {
-      toast({
+      addToast({
         title: 'Error',
         description: error.message,
-        variant: 'destructive'
+        variant: 'error'
       })
     }
   })

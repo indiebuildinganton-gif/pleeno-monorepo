@@ -13,7 +13,7 @@ import {
   CardTitle,
   Input,
   Label,
-  Select,
+  NativeSelect,
   useToast,
 } from '@pleeno/ui'
 import { StudentCreateSchema, VisaStatusEnum } from '@pleeno/validations'
@@ -380,7 +380,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
             {/* Visa Status */}
             <div className="space-y-2">
               <Label htmlFor="visa_status">Visa Status</Label>
-              <Select
+              <NativeSelect
                 id="visa_status"
                 disabled={isSubmitting}
                 {...register('visa_status')}
@@ -390,7 +390,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
                 <option value="approved">Approved</option>
                 <option value="denied">Denied</option>
                 <option value="expired">Expired</option>
-              </Select>
+              </NativeSelect>
               {errors.visa_status && (
                 <p className="text-sm text-destructive">{errors.visa_status.message}</p>
               )}
@@ -423,7 +423,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="college_id">College</Label>
-                    <Select
+                    <NativeSelect
                       id="college_id"
                       value={selectedCollegeId}
                       onChange={(e) => handleCollegeChange(e.target.value)}
@@ -435,7 +435,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
                           {college.name} ({college.country})
                         </option>
                       ))}
-                    </Select>
+                    </NativeSelect>
                   </div>
 
                   {/* Branch Selection */}
@@ -459,7 +459,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
                           </p>
                         </div>
                       ) : (
-                        <Select
+                        <NativeSelect
                           id="branch_id"
                           {...register('branch_id')}
                           disabled={isSubmitting}
@@ -470,7 +470,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
                               {branch.name} - {branch.city}
                             </option>
                           ))}
-                        </Select>
+                        </NativeSelect>
                       )}
                     </div>
                   )}

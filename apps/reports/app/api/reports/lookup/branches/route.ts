@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     // RLS automatically filters by agency_id
     let query = supabase
       .from('branches')
-      .select('id, name, college_id, enrollments(contract_expiration_date)')
+      .select('id, name, college_id, enrollments(payment_plans(course_end_date))')
       .eq('agency_id', userAgencyId)
       .order('name', { ascending: true })
 
@@ -77,19 +77,26 @@ export async function GET(request: NextRequest) {
       throw new Error('Failed to fetch branches')
     }
 
-    // Transform data to include contract expiration date from enrollments
-    // We'll use the most recent enrollment's contract_expiration_date
+    // Transform data to include contract expiration date from payment plans
+    // We'll use the most recent payment plan's course_end_date
     const branches = (data || []).map((branch: any) => {
-      // Find the most recent contract expiration date from enrollments
+      // Find the most recent contract expiration date from payment plans
       let contractExpirationDate = null
       if (branch.enrollments && branch.enrollments.length > 0) {
-        const validDates = branch.enrollments
-          .map((e: any) => e.contract_expiration_date)
-          .filter((date: any) => date !== null)
-          .sort()
-          .reverse()
+        const allDates: string[] = []
+        branch.enrollments.forEach((enrollment: any) => {
+          if (enrollment.payment_plans) {
+            enrollment.payment_plans.forEach((plan: any) => {
+              if (plan.course_end_date) {
+                allDates.push(plan.course_end_date)
+              }
+            })
+          }
+        })
 
-        contractExpirationDate = validDates[0] || null
+        if (allDates.length > 0) {
+          contractExpirationDate = allDates.sort().reverse()[0]
+        }
       }
 
       return {

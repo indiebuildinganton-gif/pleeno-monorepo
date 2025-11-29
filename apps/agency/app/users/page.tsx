@@ -34,7 +34,7 @@ export default async function UsersPage() {
     .select(
       `
       *,
-      user_task_assignments (
+      user_task_assignments!user_task_assignments_user_id_fkey (
         id
       )
     `

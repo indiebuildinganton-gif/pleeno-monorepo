@@ -9,9 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
   Button,
-  Badge
+  Badge,
+  useToast
 } from '@pleeno/ui'
-import { toast } from '@pleeno/ui/hooks/use-toast'
 
 interface User {
   id: string
@@ -33,6 +33,7 @@ export function ConfirmRoleChangeDialog({
   newRole
 }: ConfirmRoleChangeDialogProps) {
   const queryClient = useQueryClient()
+  const { addToast } = useToast()
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -50,17 +51,18 @@ export function ConfirmRoleChangeDialog({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      toast({
+      addToast({
         title: 'Role updated',
-        description: `Role updated for ${user.full_name}`
+        description: `Role updated for ${user.full_name}`,
+        variant: 'success'
       })
       onOpenChange(false)
     },
     onError: (error: Error) => {
-      toast({
+      addToast({
         title: 'Error',
         description: error.message,
-        variant: 'destructive'
+        variant: 'error'
       })
     }
   })

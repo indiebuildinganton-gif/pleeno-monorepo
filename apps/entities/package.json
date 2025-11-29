@@ -10,6 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@pleeno/auth": "workspace:*",
     "@pleeno/database": "workspace:*",
     "@pleeno/ui": "workspace:*",
@@ -26,7 +27,9 @@
     "pdf-parse": "^2.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "string-similarity": "^4.0.4"
+    "react-hook-form": "^7.67.0",
+    "string-similarity": "^4.0.4",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
