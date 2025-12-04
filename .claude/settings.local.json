@@ -127,7 +127,10 @@
       "Bash(docker volume rm:*)",
       "Bash(supabase/migrations/20241204000005_004_notifications_domain_fixed.sql)",
       "Bash(./scripts/deploy-local-to-uat-improved.sh:*)",
-      "Bash(export SUPABASE_UAT_PROJECT_ID=ccmciliwfdtdspdlkuos)"
+      "Bash(export SUPABASE_UAT_PROJECT_ID=ccmciliwfdtdspdlkuos)",
+      "Bash(/Users/brenttudas/Pleeno/test-vercel-config.sh)",
+      "Bash(npx vercel:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
