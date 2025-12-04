@@ -130,7 +130,17 @@
       "Bash(export SUPABASE_UAT_PROJECT_ID=ccmciliwfdtdspdlkuos)",
       "Bash(/Users/brenttudas/Pleeno/test-vercel-config.sh)",
       "Bash(npx vercel:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for url in https://pleeno-dashboard-uat.vercel.app https://pleeno-agency-uat.vercel.app https://pleeno-entities-uat.vercel.app https://pleeno-payments-uat.vercel.app https://pleeno-reports-uat.vercel.app)",
+      "Bash(do echo \"Testing $url...\")",
+      "Bash(done)",
+      "Bash(do echo -n \"$url: \")",
+      "Bash(for path in dashboard agency entities payments reports)",
+      "Bash(do echo -n \"https://pleeno-shell-uat.vercel.app/$path: \")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"%{http_code}\" https://pleeno-shell-uat.vercel.app/$path)",
+      "Bash(for url in https://pleeno-shell-uat.vercel.app https://pleeno-dashboard-uat.vercel.app)",
+      "Bash(SUPABASE_DB_PASSWORD=hh8tP8TL2pQhCSst npx supabase db push:*)",
+      "Bash(VERCEL_ORG_ID=team_3mCod2SbRmzu38gdxZd84tpe VERCEL_PROJECT_ID=prj_ZkNpcgh3pWe6QR8xPVH3EXlAQ5oi npx vercel env pull:*)"
     ],
     "deny": [],
     "ask": []
