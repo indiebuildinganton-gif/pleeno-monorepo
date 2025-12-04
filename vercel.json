@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm run build:shell",
-  "outputDirectory": "apps/shell/.next",
+  "buildCommand": "pnpm run build:reports",
+  "outputDirectory": "apps/reports/.next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "regions": ["iad1"]

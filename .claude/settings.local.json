@@ -110,7 +110,9 @@
       "Bash(/dev/null vercel env rm NEXT_PUBLIC_ENTITIES_URL production --yes 2)",
       "Bash(/dev/null vercel env rm NEXT_PUBLIC_PAYMENTS_URL production --yes 2)",
       "Bash(/dev/null vercel env rm NEXT_PUBLIC_REPORTS_URL production --yes)",
-      "Bash(printf:*)"
+      "Bash(printf:*)",
+      "Bash(./fix-env-vars.sh)",
+      "Bash(./redeploy-all.sh:*)"
     ],
     "deny": [],
     "ask": []
