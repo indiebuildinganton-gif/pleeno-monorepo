@@ -87,7 +87,19 @@
       "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run type-check:shell:*)",
       "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm run type-check:*)",
       "Bash(ps:*)",
-      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" /Users/brenttudas/Library/pnpm/pnpm install:*)"
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" /Users/brenttudas/Library/pnpm/pnpm install:*)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel:*)",
+      "Bash(basename:*)",
+      "Bash(while IFS='=' read -r key value)",
+      "Bash(do if [ -n \"$key\" ])",
+      "Bash([ -n \"$value\" ])",
+      "Bash(then echo \"$value\")",
+      "Bash(./add-env-vars.sh:*)",
+      "Bash(git config:*)",
+      "Bash(ls:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

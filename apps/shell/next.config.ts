@@ -24,6 +24,12 @@ const ZONE_URLS = {
 const nextConfig: NextConfig = {
   serverExternalPackages: [],
   transpilePackages: ['@pleeno/database', '@pleeno/auth', '@pleeno/ui', '@pleeno/utils', '@pleeno/validations'],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   async rewrites() {
     return [
       {

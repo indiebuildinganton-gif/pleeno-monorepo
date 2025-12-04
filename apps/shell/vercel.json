@@ -3,5 +3,10 @@
   "outputDirectory": "apps/shell/.next",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "functions": {
+    "apps/shell/app/api/auth/[...nextauth]/route.ts": {
+      "maxDuration": 10
+    }
+  }
 }

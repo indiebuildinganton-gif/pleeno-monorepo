@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=dashboard",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "functions": {
+    "app/api/*/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}
