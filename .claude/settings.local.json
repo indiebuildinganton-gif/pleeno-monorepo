@@ -112,7 +112,22 @@
       "Bash(/dev/null vercel env rm NEXT_PUBLIC_REPORTS_URL production --yes)",
       "Bash(printf:*)",
       "Bash(./fix-env-vars.sh)",
-      "Bash(./redeploy-all.sh:*)"
+      "Bash(./redeploy-all.sh:*)",
+      "Bash(supabase login:*)",
+      "Bash(export SUPABASE_ACCESS_TOKEN=sbp_b1d0bbda96e96c2482e3adaf49958645f944f2f3)",
+      "Bash(./scripts/deploy-supabase-uat.sh:*)",
+      "Bash(SUPABASE_DB_PASSWORD=\"hh8tP8TL2pQhCSst\" ./scripts/apply-seed-uat.sh:*)",
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" node:*)",
+      "Bash(./scripts/prepare-migrations-for-uat.sh:*)",
+      "Bash(./scripts/fix-migrations-for-uat.sh:*)",
+      "Bash(./scripts/create-uat-migrations.sh:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker system:*)",
+      "Bash(docker volume ls:*)",
+      "Bash(docker volume rm:*)",
+      "Bash(supabase/migrations/20241204000005_004_notifications_domain_fixed.sql)",
+      "Bash(./scripts/deploy-local-to-uat-improved.sh:*)",
+      "Bash(export SUPABASE_UAT_PROJECT_ID=ccmciliwfdtdspdlkuos)"
     ],
     "deny": [],
     "ask": []
