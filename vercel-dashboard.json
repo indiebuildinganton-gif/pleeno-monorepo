@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm run build:dashboard",
+  "outputDirectory": "apps/dashboard/.next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}

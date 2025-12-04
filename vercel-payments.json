@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm run build:payments",
+  "outputDirectory": "apps/payments/.next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}

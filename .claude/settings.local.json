@@ -100,7 +100,17 @@
       "Bash(ls:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm add:*)"
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm add:*)",
+      "Bash(then if [ \"$key\" = \"NEXT_PUBLIC_ZONE_NAME\" ])",
+      "Bash(then echo \"dashboard\")",
+      "Bash(/dev/null else echo $value)",
+      "Bash(/dev/null fi fi done)",
+      "Bash(./deploy-zones-simple.sh:*)",
+      "Bash(/dev/null vercel env rm NEXT_PUBLIC_AGENCY_URL production --yes 2)",
+      "Bash(/dev/null vercel env rm NEXT_PUBLIC_ENTITIES_URL production --yes 2)",
+      "Bash(/dev/null vercel env rm NEXT_PUBLIC_PAYMENTS_URL production --yes 2)",
+      "Bash(/dev/null vercel env rm NEXT_PUBLIC_REPORTS_URL production --yes)",
+      "Bash(printf:*)"
     ],
     "deny": [],
     "ask": []

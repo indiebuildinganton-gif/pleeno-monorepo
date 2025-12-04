@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm run build:entities",
+  "outputDirectory": "apps/entities/.next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}

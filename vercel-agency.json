@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm run build:agency",
+  "outputDirectory": "apps/agency/.next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "regions": ["iad1"]
+}
