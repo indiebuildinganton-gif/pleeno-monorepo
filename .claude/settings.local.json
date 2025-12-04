@@ -99,7 +99,8 @@
       "Bash(git config:*)",
       "Bash(ls:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(env PATH=\"/Users/brenttudas/.nvm/versions/node/v20.18.0/bin:/Users/brenttudas/Library/pnpm:$PATH\" pnpm add:*)"
     ],
     "deny": [],
     "ask": []
