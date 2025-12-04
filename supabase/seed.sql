@@ -83,7 +83,7 @@ INSERT INTO auth.users (
   'authenticated',
   'admin@test.local',
   -- Password: password
-  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+  crypt('password', gen_salt('bf')),  -- FIXED: Using Supabase's crypt() function
   NOW(),
   '{"provider":"email","providers":["email"],"agency_id":"20000000-0000-0000-0000-000000000001","role":"agency_admin"}',
   '{"full_name":"Admin User"}',
@@ -119,8 +119,8 @@ INSERT INTO auth.users (
   'authenticated',
   'authenticated',
   'user@test.local',
-  -- Password: User123!
-  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+  -- Password: password (changed from User123!)
+  crypt('password', gen_salt('bf')),  -- FIXED: Using Supabase's crypt() function
   NOW(),
   '{"provider":"email","providers":["email"],"agency_id":"20000000-0000-0000-0000-000000000001","role":"agency_user"}',
   '{"full_name":"Regular User"}',
