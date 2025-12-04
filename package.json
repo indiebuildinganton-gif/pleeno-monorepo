@@ -11,6 +11,7 @@
     "dev:log": "./scripts/dev-with-logging.sh",
     "dev:view-logs": "./scripts/view-dev-logs.sh",
     "build": "turbo run build",
+    "build:shell": "turbo run build --filter=shell",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "test": "vitest",
