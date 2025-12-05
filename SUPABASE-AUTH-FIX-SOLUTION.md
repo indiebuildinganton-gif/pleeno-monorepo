@@ -253,3 +253,118 @@ If authentication still fails:
 
 ## Summary
 The authentication issue was resolved by using Supabase's native `crypt()` function with `gen_salt('bf')` to generate password hashes instead of using pre-generated bcrypt hashes. This ensures full compatibility with Supabase's authentication system.
+
+---
+
+## PART 2: MULTI-ZONE ARCHITECTURE & DOMAIN STRATEGY
+
+### Current Status (December 5, 2024)
+✅ **RLS Recursion Fixed**: Modified policies to use JWT claims instead of recursive queries
+✅ **Authentication Working**: Login endpoint returns valid JWT tokens
+⚠️ **Cross-Domain Limitation**: Cookies cannot be shared between different Vercel domains
+
+### Domain Architecture Options
+
+#### Option 1: Vercel Free Domains (Current Setup)
+**Configuration:**
+- Shell: `pleeno-shell-uat.vercel.app`
+- Dashboard: `pleeno-dashboard-uat.vercel.app`
+- Agency: `pleeno-agency-uat.vercel.app`
+- Entities: `pleeno-entities-uat.vercel.app`
+- Payments: `pleeno-payments-uat.vercel.app`
+- Reports: `pleeno-reports-uat.vercel.app`
+
+**Pros:**
+- ✅ No additional cost
+- ✅ Quick to deploy
+- ✅ No DNS configuration
+
+**Cons:**
+- ❌ Cookies cannot be shared across domains
+- ❌ Requires authentication header workaround
+- ❌ Less professional appearance
+
+**Current Workaround:**
+```typescript
+// Shell passes auth via headers
+requestHeaders.set('x-user-id', user.id)
+requestHeaders.set('x-authenticated', 'true')
+
+// Zones trust shell headers
+const isAuthenticated = user || request.headers.get('x-authenticated') === 'true'
+```
+
+#### Option 2: Custom Domain with Subdomains (RECOMMENDED FOR PRODUCTION)
+**Configuration:**
+```
+shell.pleeno.com    → pleeno-shell-uat.vercel.app
+dashboard.pleeno.com → pleeno-dashboard-uat.vercel.app
+agency.pleeno.com    → pleeno-agency-uat.vercel.app
+```
+
+**Implementation Steps:**
+1. Purchase domain (~$15/year)
+2. Add to Vercel project settings
+3. Configure DNS:
+   ```
+   Type  Name       Value
+   A     @          76.76.21.21
+   CNAME shell      cname.vercel-dns.com
+   CNAME dashboard  cname.vercel-dns.com
+   ```
+4. Update cookie configuration:
+   ```typescript
+   response.cookies.set({
+     name,
+     value,
+     domain: '.pleeno.com', // Leading dot for subdomain sharing
+     ...options
+   })
+   ```
+
+**Pros:**
+- ✅ Native cookie sharing
+- ✅ Professional appearance
+- ✅ Better security
+- ✅ Simpler authentication
+
+**Cons:**
+- ❌ Domain cost
+- ❌ DNS setup required
+
+### Recommendation by Use Case
+
+#### For Development/Testing
+**Use Vercel Free Domains** with authentication headers workaround
+- Quick iteration
+- No cost
+- Current solution works
+
+#### For Production
+**Use Custom Domain** with subdomains
+- Better user experience
+- Professional appearance
+- Native cookie sharing
+- Worth the $15/year investment
+
+### Quick Decision Guide
+```
+Is this for production?
+  → YES: Buy custom domain
+  → NO: Use Vercel free domains
+
+Do you need cookie sharing?
+  → YES: Custom domain required
+  → NO: Vercel domains work fine
+
+Budget constraint?
+  → YES: Start with Vercel, migrate later
+  → NO: Go straight to custom domain
+```
+
+### Implementation Timeline
+1. **Immediate** (0 hours): Continue with current Vercel domains + auth headers
+2. **Short-term** (2 hours): Purchase and configure custom domain
+3. **Long-term** (4 hours): Optimize authentication flow for subdomain architecture
+
+The authentication is now fully functional with the RLS fix. The domain choice is primarily about optimizing the user experience and professional appearance.

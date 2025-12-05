@@ -27,9 +27,12 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Clone headers to modify them
+  const requestHeaders = new Headers(request.headers)
+
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: requestHeaders,
     },
   })
 
@@ -100,6 +103,21 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // If user is authenticated, add headers that zones can use
+  // This allows zones to trust the authentication from the shell
+  if (user) {
+    requestHeaders.set('x-user-id', user.id)
+    requestHeaders.set('x-user-email', user.email || '')
+    requestHeaders.set('x-authenticated', 'true')
+
+    // Update response with new headers
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+  }
+
   // Protected routes require authentication
   // API routes are excluded from auth checks as they handle auth internally
   const isApiRoute =
@@ -124,11 +142,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to dashboard if accessing auth pages while authenticated
+  // BUT: Don't redirect if we're on login page with a redirectTo parameter
+  // This prevents redirect loops when dashboard redirects back to login
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup')
 
-  if (isAuthRoute && user) {
+  // Check if we have a redirectTo parameter (indicating we came from a protected route)
+  const hasRedirectTo = request.nextUrl.searchParams.has('redirectTo')
+
+  // Only redirect away from auth pages if user is authenticated AND
+  // we're not in the middle of a redirect flow
+  if (isAuthRoute && user && !hasRedirectTo) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

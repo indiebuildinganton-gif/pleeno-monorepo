@@ -83,27 +83,44 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Check if we're already authenticated via the shell proxy headers
+  const isAuthenticatedViaShell = request.headers.get('x-authenticated') === 'true'
+  const shellUserId = request.headers.get('x-user-id')
+  const shellUserEmail = request.headers.get('x-user-email')
+
   // Refresh session if expired - this will auto-refresh the token
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (user) {
+  // Trust the shell's authentication headers if present
+  const isAuthenticated = user || isAuthenticatedViaShell
+
+  if (user || isAuthenticatedViaShell) {
     // Pass user info via headers to API routes to avoid double-refresh race condition
     const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-user-id', user.id)
-    if (user.email) {
-      requestHeaders.set('x-user-email', user.email)
+
+    // Use actual user data if available, otherwise use shell headers
+    const userId = user?.id || shellUserId || ''
+    const userEmail = user?.email || shellUserEmail || ''
+
+    if (userId) {
+      requestHeaders.set('x-user-id', userId)
+    }
+    if (userEmail) {
+      requestHeaders.set('x-user-email', userEmail)
     }
 
-    const userRole = (user.app_metadata?.role || user.user_metadata?.role) as string
-    if (userRole) {
-      requestHeaders.set('x-user-role', userRole)
-    }
+    if (user) {
+      const userRole = (user.app_metadata?.role || user.user_metadata?.role) as string
+      if (userRole) {
+        requestHeaders.set('x-user-role', userRole)
+      }
 
-    const agencyId = (user.app_metadata?.agency_id || user.user_metadata?.agency_id) as string
-    if (agencyId) {
-      requestHeaders.set('x-user-agency-id', agencyId)
+      const agencyId = (user.app_metadata?.agency_id || user.user_metadata?.agency_id) as string
+      if (agencyId) {
+        requestHeaders.set('x-user-agency-id', agencyId)
+      }
     }
 
     // Create a new response with the updated request headers
@@ -131,7 +148,7 @@ export async function middleware(request: NextRequest) {
   // Skip auth check for API routes - they handle their own auth via requireRole
   const isApiRoute = request.nextUrl.pathname.startsWith('/dashboard/api')
 
-  if (!isApiRoute && !user) {
+  if (!isApiRoute && !isAuthenticated) {
     // Redirect to shell zone login
     const isDev = process.env.NODE_ENV === 'development'
     const shellUrl = isDev

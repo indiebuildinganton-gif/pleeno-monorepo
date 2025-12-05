@@ -212,12 +212,48 @@ Configure all zones to use subdomains of a single domain:
 - [ ] Review network tab for redirect chain
 - [ ] Test with simplified middleware
 
+## Fixes Applied
+
+### 1. Shell Middleware Fix
+**File**: `/apps/shell/middleware.ts`
+- Modified to NOT redirect authenticated users away from `/login` when a `redirectTo` parameter is present
+- This prevents the redirect loop where authenticated users couldn't stay on login page
+- Added authentication headers (`x-user-id`, `x-user-email`, `x-authenticated`) to pass auth state to zones
+
+### 2. Dashboard Middleware Fix
+**File**: `/apps/dashboard/middleware.ts`
+- Modified to trust authentication headers from the shell proxy
+- Checks for `x-authenticated` header as an alternative authentication method
+- Uses shell-provided user info when Supabase cookies aren't available
+
+### 3. Environment Variable Fix
+- Added `NEXT_PUBLIC_SHELL_URL=https://pleeno-shell-uat.vercel.app` to dashboard zone
+- This ensures dashboard redirects to the correct shell login URL
+
+### Deployments
+- Shell: Successfully deployed with middleware fixes
+- Dashboard: Successfully deployed with authentication header support
+
+## Current Status After Fixes
+
+### ✅ Partial Success
+- Login page no longer redirects away when `redirectTo` parameter is present (HTTP 200)
+- Authentication headers are being added by shell middleware
+- Dashboard middleware can now trust shell authentication
+
+### ⚠️ Remaining Issue
+- Cookie-based authentication still doesn't work across domains
+- The fundamental limitation: cookies set on `pleeno-shell-uat.vercel.app` cannot be read by `pleeno-dashboard-uat.vercel.app`
+- This is a browser security feature (Same-Origin Policy)
+
 ## Next Steps
 
-1. **Immediate**: Investigate cookie forwarding in Next.js rewrites
-2. **Short-term**: Implement authentication header passing
-3. **Medium-term**: Review multi-zone architecture for production viability
-4. **Long-term**: Consider architectural changes if issue persists
+1. **Test in Browser**: The fixes may work better in a real browser environment with proper cookie handling
+2. **Consider Domain Architecture**:
+   - Option A: Use subdomains of same base domain (e.g., `shell.pleeno-uat.com`, `dashboard.pleeno-uat.com`)
+   - Option B: Deploy all zones under single domain using path-based routing only
+3. **Alternative Authentication**: Implement token-based auth that doesn't rely on cookies
+4. **Production Solution**: Use a custom domain with proper subdomain configuration
 
 ## Conclusion
 
