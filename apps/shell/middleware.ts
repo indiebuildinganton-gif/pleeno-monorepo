@@ -142,19 +142,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Redirect to dashboard if accessing auth pages while authenticated
-  // BUT: Don't redirect if we're on login page with a redirectTo parameter
-  // This prevents redirect loops when dashboard redirects back to login
   const isAuthRoute =
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup')
 
-  // Check if we have a redirectTo parameter (indicating we came from a protected route)
-  const hasRedirectTo = request.nextUrl.searchParams.has('redirectTo')
-
-  // Only redirect away from auth pages if user is authenticated AND
-  // we're not in the middle of a redirect flow
-  if (isAuthRoute && user && !hasRedirectTo) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // If user is authenticated and on auth pages, redirect to dashboard
+  // This will handle the case after successful login
+  if (isAuthRoute && user) {
+    // Get the redirectTo parameter or default to dashboard
+    const redirectTo = request.nextUrl.searchParams.get('redirectTo') || '/dashboard'
+    return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
   return response

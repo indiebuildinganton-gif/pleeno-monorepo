@@ -65,8 +65,8 @@ export default function LoginPage() {
       }
 
       // Redirect to original destination or dashboard
-      router.push(redirectTo)
-      router.refresh()
+      // Use window.location for a full page reload to ensure cookies are properly set
+      window.location.href = redirectTo
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
