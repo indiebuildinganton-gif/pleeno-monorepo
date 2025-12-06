@@ -145,9 +145,9 @@ export async function middleware(request: NextRequest) {
       newResponse.cookies.set(cookie)
     })
 
-    console.log('[Middleware] Setting headers for user:', user.id)
+    console.log('[Middleware] Setting headers for user:', userId)
     console.log('[Middleware] Request path:', request.nextUrl.pathname)
-    
+
     response = newResponse
   } else {
     console.log('[Middleware] No user found')

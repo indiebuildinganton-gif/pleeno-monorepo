@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: '/dashboard',
+  // basePath removed for subdomain deployment (dashboard.plenno.com.au)
   serverExternalPackages: [],
   eslint: {
     ignoreDuringBuilds: true,

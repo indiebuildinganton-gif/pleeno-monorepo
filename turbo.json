@@ -1,12 +1,37 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.local", "**/.env.production"],
+  "globalEnv": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "NEXT_PUBLIC_COOKIE_DOMAIN",
+    "NEXT_PUBLIC_SHELL_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "NODE_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "outputMode": "hash-on-exit",
+      "cache": true,
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "NEXT_PUBLIC_COOKIE_DOMAIN",
+        "NEXT_PUBLIC_SHELL_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_DASHBOARD_URL",
+        "NEXT_PUBLIC_AGENCY_URL",
+        "NEXT_PUBLIC_ENTITIES_URL",
+        "NEXT_PUBLIC_PAYMENTS_URL",
+        "NEXT_PUBLIC_REPORTS_URL"
+      ]
     },
     "lint": {
-      "outputs": []
+      "dependsOn": ["^lint"],
+      "outputs": [],
+      "cache": true
     },
     "dev": {
       "cache": false,
@@ -14,10 +39,8 @@
     },
     "test": {
       "dependsOn": ["build"],
-      "outputs": ["coverage/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
+      "outputs": ["coverage/**"],
+      "cache": true
     }
   }
 }

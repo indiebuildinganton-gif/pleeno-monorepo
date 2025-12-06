@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  basePath: '/entities',
+  // basePath removed for subdomain deployment (entities.plenno.com.au)
   serverExternalPackages: [],
   eslint: {
     ignoreDuringBuilds: true,

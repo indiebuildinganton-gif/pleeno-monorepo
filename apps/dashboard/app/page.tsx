@@ -10,7 +10,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { KPIWidget } from './components/KPIWidget'
 import { SeasonalCommissionChart } from './components/SeasonalCommissionChart'
@@ -23,7 +23,7 @@ import { ActivityFeed } from './components/ActivityFeed'
 import { CashFlowChart } from './components/CashFlowChart'
 import { ErrorBoundary } from '@pleeno/ui'
 
-export default function Dashboard() {
+function DashboardContent() {
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
@@ -192,5 +192,13 @@ export default function Dashboard() {
         </ErrorBoundary>
       </section>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8">Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }

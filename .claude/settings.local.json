@@ -4,7 +4,14 @@
       "Bash(npx vercel --prod --yes)",
       "Bash(pnpm dlx vercel env:*)",
       "Bash(npx vercel env add:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(curl:*)",
+      "Bash(vercel list:*)",
+      "Bash(cat:*)",
+      "Bash(done)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/verify-deployment.sh:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
