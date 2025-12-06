@@ -1,75 +1,42 @@
 #!/bin/bash
 
-# Deploy all Pleeno zones to Vercel UAT environment
+echo "Deploying all zones with custom domain configuration"
+echo "====================================================="
 
-echo "🚀 Deploying all Pleeno zones to Vercel UAT..."
-
-# Array of zones to deploy
-zones=("dashboard" "agency" "entities" "payments" "reports")
-
-# Function to create and deploy a zone
-deploy_zone() {
-    local zone=$1
-    echo ""
-    echo "📦 Deploying $zone..."
-
-    # Create Vercel project for the zone
-    vercel project add "pleeno-${zone}-uat" 2>/dev/null || echo "Project already exists"
-
-    # Create vercel.json for the zone
-    cat > "vercel-${zone}.json" <<EOF
-{
-  "buildCommand": "pnpm run build:${zone}",
-  "outputDirectory": "apps/${zone}/.next",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "regions": ["iad1"]
-}
-EOF
-
-    # Link and deploy
-    rm -rf .vercel
-    vercel link --project="pleeno-${zone}-uat" --yes
-
-    # Add environment variables
-    echo "Adding environment variables for $zone..."
-    cat .env.uat | grep -E "^[^#]" | while IFS='=' read -r key value; do
-        if [ -n "$key" ] && [ -n "$value" ]; then
-            # Add zone-specific variable
-            if [ "$key" = "NEXT_PUBLIC_ZONE_NAME" ]; then
-                echo "$zone" | vercel env add "$key" production --yes 2>/dev/null
-            else
-                echo "$value" | vercel env add "$key" production --yes 2>/dev/null
-            fi
-        fi
-    done
-
-    # Deploy with the zone-specific vercel.json
-    vercel --prod --yes --local-config="vercel-${zone}.json"
-
-    # Clean up
-    rm "vercel-${zone}.json"
-
-    echo "✅ $zone deployed successfully!"
-}
+# Array of zones to deploy (including shell)
+zones=("shell" "dashboard" "agency" "entities" "payments" "reports")
 
 # Deploy each zone
 for zone in "${zones[@]}"; do
-    deploy_zone "$zone"
+  echo ""
+  echo "Deploying $zone..."
+  echo "------------------------"
+
+  cd "/Users/brenttudas/Pleeno/apps/$zone" || {
+    echo "Error: Could not navigate to $zone directory"
+    continue
+  }
+
+  # Deploy to production
+  npx vercel --prod --yes
+
+  if [ $? -eq 0 ]; then
+    echo "✅ $zone deployed successfully"
+  else
+    echo "❌ Failed to deploy $zone"
+  fi
 done
 
 echo ""
-echo "🎉 All zones deployed successfully!"
+echo "====================================================="
+echo "All zones have been processed!"
 echo ""
-echo "Zone URLs:"
-echo "- Dashboard: Check Vercel dashboard for URL"
-echo "- Agency: Check Vercel dashboard for URL"
-echo "- Entities: Check Vercel dashboard for URL"
-echo "- Payments: Check Vercel dashboard for URL"
-echo "- Reports: Check Vercel dashboard for URL"
+echo "Custom domain URLs:"
+echo "- Shell: https://shell.plenno.com.au"
+echo "- Dashboard: https://dashboard.plenno.com.au"
+echo "- Agency: https://agency.plenno.com.au"
+echo "- Entities: https://entities.plenno.com.au"
+echo "- Payments: https://payments.plenno.com.au"
+echo "- Reports: https://reports.plenno.com.au"
 echo ""
-echo "Next steps:"
-echo "1. Get the deployed URLs from Vercel dashboard"
-echo "2. Update .env.uat with the actual zone URLs"
-echo "3. Update shell app environment variables on Vercel"
-echo "4. Redeploy shell app"
+echo "Note: DNS propagation may take a few minutes to complete."

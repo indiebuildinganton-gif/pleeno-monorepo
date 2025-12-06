@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
+import { getMultiZoneRedirectUrl } from '@/lib/multi-zone-redirect'
 
 /**
  * Login form validation schema
@@ -65,8 +66,10 @@ export default function LoginPage() {
       }
 
       // Redirect to original destination or dashboard
+      // Handle multi-zone redirects (e.g., /reports/payment-plans -> https://reports.plenno.com.au/payment-plans)
       // Use window.location for a full page reload to ensure cookies are properly set
-      window.location.href = redirectTo
+      const finalRedirectUrl = getMultiZoneRedirectUrl(redirectTo)
+      window.location.href = finalRedirectUrl
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

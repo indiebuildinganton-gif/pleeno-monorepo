@@ -1,12 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=reports",
-  "outputDirectory": ".next",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "regions": ["iad1"],
-  "functions": {
-    "app/api/*/route.ts": {
-      "maxDuration": 10
-    }
-  }
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "framework": "nextjs"
 }

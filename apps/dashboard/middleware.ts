@@ -30,11 +30,15 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: any) {
-          // In development, set domain to 'localhost' to share cookies across ports
+          // Use custom domain for cookie sharing across subdomains
+          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
-            ? { ...options, domain: 'localhost' }
-            : options
+
+          const cookieOptions = {
+            ...options,
+            ...(cookieDomain && { domain: cookieDomain }),
+            ...(isDev && !cookieDomain && { domain: 'localhost' })
+          }
 
           // Set cookie in request for current request
           request.cookies.set({
@@ -55,11 +59,15 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: any) {
-          // In development, set domain to 'localhost' to remove cookies across ports
+          // Use custom domain for cookie removal across subdomains
+          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
-            ? { ...options, domain: 'localhost' }
-            : options
+
+          const cookieOptions = {
+            ...options,
+            ...(cookieDomain && { domain: cookieDomain }),
+            ...(isDev && !cookieDomain && { domain: 'localhost' })
+          }
 
           // Remove cookie in request
           request.cookies.set({

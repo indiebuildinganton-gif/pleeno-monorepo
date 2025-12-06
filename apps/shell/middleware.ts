@@ -45,11 +45,15 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: any) {
-          // In development, set domain to 'localhost' to share cookies across ports
+          // Use custom domain for cookie sharing across subdomains
+          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
-            ? { ...options, domain: 'localhost' }
-            : options
+
+          const cookieOptions = {
+            ...options,
+            ...(cookieDomain && { domain: cookieDomain }),
+            ...(isDev && !cookieDomain && { domain: 'localhost' })
+          }
 
           // Set cookie in request for current request
           request.cookies.set({
@@ -70,11 +74,15 @@ export async function middleware(request: NextRequest) {
           })
         },
         remove(name: string, options: any) {
-          // In development, set domain to 'localhost' to remove cookies across ports
+          // Use custom domain for cookie removal across subdomains
+          const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
-            ? { ...options, domain: 'localhost' }
-            : options
+
+          const cookieOptions = {
+            ...options,
+            ...(cookieDomain && { domain: cookieDomain }),
+            ...(isDev && !cookieDomain && { domain: 'localhost' })
+          }
 
           // Remove cookie in request
           request.cookies.set({
@@ -146,13 +154,18 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup')
 
-  // If user is authenticated and on auth pages, redirect to dashboard
-  // This will handle the case after successful login
-  if (isAuthRoute && user) {
-    // Get the redirectTo parameter or default to dashboard
+  // For custom domain: authenticated users skip login
+  // For Vercel domains: keep on login to avoid redirect loops
+  const hasCustomDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN?.includes('.')
+
+  if (isAuthRoute && user && hasCustomDomain) {
+    // With custom domain, cookies work properly, redirect authenticated users
     const redirectTo = request.nextUrl.searchParams.get('redirectTo') || '/dashboard'
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
+
+  // For Vercel free domains, don't redirect to avoid loops
+  // The login page will handle redirect via window.location
 
   return response
 }
