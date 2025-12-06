@@ -1,5 +1,10 @@
 {
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "framework": "nextjs"
+  "name": "pleeno-shell-prod",
+  "buildCommand": "cd ../.. && turbo build --filter=shell",
+  "outputDirectory": ".next",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs",
+  "git": {
+    "deploymentEnabled": true
+  }
 }

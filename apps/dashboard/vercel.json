@@ -1,6 +1,6 @@
 {
-  "name": "pleeno-payments-prod",
-  "buildCommand": "cd ../.. && turbo build --filter=payments",
+  "name": "pleeno-dashboard-prod",
+  "buildCommand": "cd ../.. && turbo build --filter=dashboard",
   "outputDirectory": ".next",
   "installCommand": "cd ../.. && pnpm install",
   "framework": "nextjs",

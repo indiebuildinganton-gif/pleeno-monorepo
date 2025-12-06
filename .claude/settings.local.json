@@ -11,7 +11,10 @@
       "Bash(done)",
       "Bash(chmod:*)",
       "Bash(./scripts/verify-deployment.sh:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(vercel --version:*)",
+      "Bash(vercel whoami:*)"
     ],
     "deny": [],
     "ask": []
