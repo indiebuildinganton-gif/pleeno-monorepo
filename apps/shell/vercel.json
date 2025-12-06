@@ -1,8 +1,7 @@
 {
-  "name": "pleeno-shell-prod",
-  "buildCommand": "cd ../.. && turbo build --filter=shell",
-  "outputDirectory": ".next",
-  "installCommand": "cd ../.. && pnpm install",
+  "buildCommand": "turbo build --filter=shell",
+  "outputDirectory": "apps/shell/.next",
+  "installCommand": "pnpm install",
   "framework": "nextjs",
   "git": {
     "deploymentEnabled": true
