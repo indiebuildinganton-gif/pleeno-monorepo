@@ -6,14 +6,47 @@
  */
 
 /**
- * Zone configuration mapping paths to their respective zone URLs
+ * Get default zone URLs based on environment
+ * In development, use localhost with appropriate ports
+ * In production, use the production URLs
  */
-const zoneConfig = {
-  dashboard: process.env.NEXT_PUBLIC_DASHBOARD_URL || 'https://dashboard.plenno.com.au',
-  agency: process.env.NEXT_PUBLIC_AGENCY_URL || 'https://agency.plenno.com.au',
-  entities: process.env.NEXT_PUBLIC_ENTITIES_URL || 'https://entities.plenno.com.au',
-  payments: process.env.NEXT_PUBLIC_PAYMENTS_URL || 'https://payments.plenno.com.au',
-  reports: process.env.NEXT_PUBLIC_REPORTS_URL || 'https://reports.plenno.com.au',
+const getDefaultZoneUrls = () => {
+  const isDevelopment = process.env.NODE_ENV === 'development' ||
+                        process.env.NEXT_PUBLIC_APP_URL?.includes('localhost')
+
+  if (isDevelopment) {
+    return {
+      dashboard: 'http://localhost:3002',
+      agency: 'http://localhost:3004',
+      entities: 'http://localhost:3001',
+      payments: 'http://localhost:3003',
+      reports: 'http://localhost:3000',
+    }
+  }
+
+  return {
+    dashboard: 'https://dashboard.plenno.com.au',
+    agency: 'https://agency.plenno.com.au',
+    entities: 'https://entities.plenno.com.au',
+    payments: 'https://payments.plenno.com.au',
+    reports: 'https://reports.plenno.com.au',
+  }
+}
+
+/**
+ * Zone configuration mapping paths to their respective zone URLs
+ * Environment variables take precedence over defaults
+ */
+const getZoneConfig = () => {
+  const defaults = getDefaultZoneUrls()
+
+  return {
+    dashboard: process.env.NEXT_PUBLIC_DASHBOARD_URL || defaults.dashboard,
+    agency: process.env.NEXT_PUBLIC_AGENCY_URL || defaults.agency,
+    entities: process.env.NEXT_PUBLIC_ENTITIES_URL || defaults.entities,
+    payments: process.env.NEXT_PUBLIC_PAYMENTS_URL || defaults.payments,
+    reports: process.env.NEXT_PUBLIC_REPORTS_URL || defaults.reports,
+  }
 }
 
 /**
@@ -26,6 +59,9 @@ export function getMultiZoneRedirectUrl(path: string): string {
   if (path === '/' || !path) {
     return '/dashboard'
   }
+
+  // Get the zone configuration (dynamically based on environment)
+  const zoneConfig = getZoneConfig()
 
   // Extract the first segment of the path
   const segments = path.split('/').filter(Boolean)

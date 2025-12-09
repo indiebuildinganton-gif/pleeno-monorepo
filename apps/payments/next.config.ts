@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
-// basePath removed for subdomain deployment (payments.plenno.com.au)
 const nextConfig: NextConfig = {
+  // basePath required for multi-zone architecture with rewrites
+  basePath: '/payments',
   serverExternalPackages: [],
   eslint: {
     ignoreDuringBuilds: true,

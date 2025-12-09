@@ -63,8 +63,9 @@ import { ContactCreateSchema } from '@pleeno/validations'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: collegeId } = await params
   try {
     // SECURITY BOUNDARY: Require authentication
     const authResult = await requireRole(request, ['agency_admin', 'agency_user'])
@@ -83,7 +84,6 @@ export async function GET(
     }
 
     // Validate UUID format
-    const collegeId = params.id
     if (
       !collegeId ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -132,7 +132,7 @@ export async function GET(
     return createSuccessResponse(contacts || [])
   } catch (error) {
     return handleApiError(error, {
-      path: `/api/colleges/${params.id}/contacts`,
+      path: `/api/colleges/${collegeId}/contacts`,
     })
   }
 }
@@ -188,8 +188,9 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: collegeId } = await params
   try {
     // Create Supabase client
     const supabase = await createServerClient()
@@ -214,7 +215,6 @@ export async function POST(
     }
 
     // Validate UUID format
-    const collegeId = params.id
     if (
       !collegeId ||
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -293,7 +293,7 @@ export async function POST(
     )
   } catch (error) {
     return handleApiError(error, {
-      path: `/api/colleges/${params.id}/contacts`,
+      path: `/api/colleges/${collegeId}/contacts`,
     })
   }
 }

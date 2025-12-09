@@ -41,11 +41,19 @@ import { ExternalLink } from 'lucide-react'
 import { getApiUrl } from '@/app/hooks/useApiUrl'
 
 /**
+ * Get the entities zone URL based on environment
+ */
+const getEntitiesUrl = () => {
+  return process.env.NEXT_PUBLIC_ENTITIES_URL || 'http://localhost:3001'
+}
+
+/**
  * Payment Plan from API
  */
 interface PaymentPlan {
   id: string
   enrollment_id: string
+  student_id: string | null
   total_amount: number
   currency: string
   status: 'active' | 'completed' | 'cancelled'
@@ -259,13 +267,17 @@ export function PaymentPlansList() {
                 return (
                   <TableRow key={plan.id}>
                     <TableCell className="font-medium">
-                      <Link
-                        href={`/students/${plan.enrollment_id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
-                      >
-                        {studentName}
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
+                      {plan.student_id ? (
+                        <a
+                          href={`${getEntitiesUrl()}/students/${plan.student_id}`}
+                          className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          {studentName}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span>{studentName}</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div>
@@ -323,13 +335,17 @@ export function PaymentPlansList() {
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">
-                      <Link
-                        href={`/students/${plan.enrollment_id}`}
-                        className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
-                      >
-                        {studentName}
-                        <ExternalLink className="w-3 h-3" />
-                      </Link>
+                      {plan.student_id ? (
+                        <a
+                          href={`${getEntitiesUrl()}/students/${plan.student_id}`}
+                          className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          {studentName}
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span>{studentName}</span>
+                      )}
                     </CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
                       {collegeName}

@@ -24,7 +24,7 @@ export default function ReportsPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Payment Plans Report Card */}
         <Link
-          href="/reports/payment-plans"
+          href="/payment-plans"
           className="group block border rounded-lg p-6 hover:shadow-lg transition-shadow"
         >
           <div className="flex items-start justify-between mb-3">

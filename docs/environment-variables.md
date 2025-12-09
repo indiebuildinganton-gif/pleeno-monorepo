@@ -31,6 +31,46 @@ This document describes all environment variables used in the Pleeno application
 | `NEXT_PUBLIC_APP_URL` | Yes | Application base URL (http://localhost:3000 for local) |
 | `NODE_ENV` | Yes | Environment: development, production, test |
 
+### Multi-Zone Configuration
+
+The Pleeno app uses a multi-zone architecture where different sections run on different subdomains/ports. The redirect behavior is **environment-aware** and automatically adjusts based on `NODE_ENV`.
+
+#### Development (Local Testing)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `NEXT_PUBLIC_SHELL_URL` | No | `http://localhost:3005` | Shell (auth) app URL |
+| `NEXT_PUBLIC_DASHBOARD_URL` | No | `http://localhost:3002` | Dashboard app URL |
+| `NEXT_PUBLIC_AGENCY_URL` | No | `http://localhost:3004` | Agency management app URL |
+| `NEXT_PUBLIC_ENTITIES_URL` | No | `http://localhost:3001` | Entities app URL |
+| `NEXT_PUBLIC_PAYMENTS_URL` | No | `http://localhost:3003` | Payments app URL |
+| `NEXT_PUBLIC_REPORTS_URL` | No | `http://localhost:3000` | Reports app URL |
+
+**Important**: In development mode (`NODE_ENV=development` or when `NEXT_PUBLIC_APP_URL` contains `localhost`), the app automatically uses localhost URLs with the default ports above. You don't need to set these unless you're using different ports.
+
+**Port Assignment Reference**: Shell=3005, Dashboard=3002, Entities=3001, Payments=3003, Agency=3004, Reports=3000
+
+#### Production (Vercel/Custom Domain)
+
+In production mode (`NODE_ENV=production`), set these to your actual production URLs:
+
+```bash
+NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.plenno.com.au
+NEXT_PUBLIC_AGENCY_URL=https://agency.plenno.com.au
+NEXT_PUBLIC_ENTITIES_URL=https://entities.plenno.com.au
+NEXT_PUBLIC_PAYMENTS_URL=https://payments.plenno.com.au
+NEXT_PUBLIC_REPORTS_URL=https://reports.plenno.com.au
+```
+
+#### How It Works
+
+The [multi-zone-redirect.ts](../apps/shell/lib/multi-zone-redirect.ts) utility automatically detects the environment and uses appropriate URLs:
+
+- **Local Development**: When you login at `http://localhost:3005/login` (shell app on port 3005), you'll be redirected to `http://localhost:3002` (dashboard) or the appropriate local port.
+- **Production**: When you login at `https://shell.plenno.com.au/login`, you'll be redirected to `https://dashboard.plenno.com.au`.
+
+No manual configuration needed for local testing - just run `pnpm run dev` and everything works!
+
 ### Third-Party Services
 
 | Variable | Required | Description |

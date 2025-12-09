@@ -15,7 +15,10 @@
       "Bash(git commit:*)",
       "Bash(vercel --version:*)",
       "Bash(vercel whoami:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(for dir in apps/*/)",
+      "Bash(ls:*)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

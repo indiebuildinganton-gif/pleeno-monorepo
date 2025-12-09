@@ -66,10 +66,19 @@ export default function LoginPage() {
       }
 
       // Redirect to original destination or dashboard
-      // Handle multi-zone redirects (e.g., /reports/payment-plans -> https://reports.plenno.com.au/payment-plans)
-      // Use window.location for a full page reload to ensure cookies are properly set
-      const finalRedirectUrl = getMultiZoneRedirectUrl(redirectTo)
-      window.location.href = finalRedirectUrl
+      // In development, use router.push to stay on shell and let rewrites handle routing
+      // In production, use window.location for external zone redirects
+      const isDevelopment = process.env.NODE_ENV === 'development' ||
+                            window.location.hostname === 'localhost'
+
+      if (isDevelopment) {
+        // Local development: stay on shell, let Next.js rewrites handle it
+        router.push(redirectTo)
+      } else {
+        // Production: redirect to external zone URLs
+        const finalRedirectUrl = getMultiZoneRedirectUrl(redirectTo)
+        window.location.href = finalRedirectUrl
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

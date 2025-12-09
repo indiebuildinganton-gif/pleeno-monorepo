@@ -430,12 +430,19 @@ export async function GET(
     const end = start + per_page
     const paginatedActivities = formattedActivities.slice(start, end)
 
-    return createSuccessResponse(paginatedActivities, {
-      total,
-      page,
-      per_page,
-      total_pages,
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        data: paginatedActivities,
+        meta: {
+          total,
+          page,
+          per_page,
+          total_pages,
+        },
+      },
+      { status: 200 }
+    )
   } catch (error) {
     return handleApiError(error, {
       path: `/api/colleges/${collegeId}/activity`,

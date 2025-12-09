@@ -299,6 +299,7 @@ export async function GET(request: NextRequest) {
         const enrichedPlan = {
           id: plan.id,
           enrollment_id: plan.enrollment_id,
+          student_id: enrollment?.student_id || null,
           total_amount: plan.total_amount,
           currency: plan.currency,
           start_date: plan.start_date,

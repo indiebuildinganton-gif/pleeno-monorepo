@@ -22,7 +22,7 @@
 import { useEffect, useState } from 'react'
 import { Button, useToast } from '@pleeno/ui'
 import { Pencil, Trash2 } from 'lucide-react'
-import { getRelativeTime } from '@pleeno/utils/src/date-helpers'
+import { getRelativeTime } from '@pleeno/utils'
 import { createClient } from '@pleeno/database/client'
 
 interface Note {
