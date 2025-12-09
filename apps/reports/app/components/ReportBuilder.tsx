@@ -11,6 +11,7 @@ import { Button } from '@pleeno/ui'
 import { Input } from '@pleeno/ui'
 import { Label } from '@pleeno/ui'
 import { Checkbox } from '@pleeno/ui'
+import { DatePicker } from '@pleeno/ui'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pleeno/ui'
 import { useState, useMemo } from 'react'
 import { useColleges, useBranches, useStudents } from '../hooks/useReportLookups'
@@ -77,6 +78,12 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
   })
 
   const selectedColumns = watch('columns') || []
+
+  // Watch date values from form
+  const dateFrom = watch('filters.date_from')
+  const dateTo = watch('filters.date_to')
+  const contractExpirationFrom = watch('filters.contract_expiration_from')
+  const contractExpirationTo = watch('filters.contract_expiration_to')
 
   // Fetch lookup data using custom hooks
   const { data: colleges, isLoading: isLoadingColleges } = useColleges()
@@ -201,11 +208,13 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                   {/* Date Range */}
                   <div className="space-y-2">
                     <Label htmlFor="date_from_mobile">Date From</Label>
-                    <Input
-                      {...register('filters.date_from')}
+                    <DatePicker
                       id="date_from_mobile"
-                      type="date"
-                      aria-label="Filter by date from"
+                      value={dateFrom ? new Date(dateFrom) : undefined}
+                      onChange={(date) =>
+                        setValue('filters.date_from', date ? formatISO(date, { representation: 'date' }) : undefined)
+                      }
+                      placeholder="Select start date"
                     />
                     {errors.filters?.date_from && (
                       <p className="text-sm text-destructive" role="alert">
@@ -216,11 +225,13 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="date_to_mobile">Date To</Label>
-                    <Input
-                      {...register('filters.date_to')}
+                    <DatePicker
                       id="date_to_mobile"
-                      type="date"
-                      aria-label="Filter by date to"
+                      value={dateTo ? new Date(dateTo) : undefined}
+                      onChange={(date) =>
+                        setValue('filters.date_to', date ? formatISO(date, { representation: 'date' }) : undefined)
+                      }
+                      placeholder="Select end date"
                     />
                     {errors.filters?.date_to && (
                       <p className="text-sm text-destructive" role="alert">
@@ -471,15 +482,14 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                   {/* Custom Date Range */}
                   <div className="space-y-2">
                     <Label htmlFor="contract_expiration_from_mobile">Expiration From</Label>
-                    <Input
-                      {...register('filters.contract_expiration_from')}
+                    <DatePicker
                       id="contract_expiration_from_mobile"
-                      type="date"
-                      aria-label="Contract expiration date from"
-                      onChange={(e) => {
-                        register('filters.contract_expiration_from').onChange(e)
+                      value={contractExpirationFrom ? new Date(contractExpirationFrom) : undefined}
+                      onChange={(date) => {
+                        setValue('filters.contract_expiration_from', date ? formatISO(date, { representation: 'date' }) : undefined)
                         setActivePreset(null)
                       }}
+                      placeholder="Select start date"
                     />
                     {errors.filters?.contract_expiration_from && (
                       <p className="text-sm text-destructive" role="alert">
@@ -490,15 +500,14 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="contract_expiration_to_mobile">Expiration To</Label>
-                    <Input
-                      {...register('filters.contract_expiration_to')}
+                    <DatePicker
                       id="contract_expiration_to_mobile"
-                      type="date"
-                      aria-label="Contract expiration date to"
-                      onChange={(e) => {
-                        register('filters.contract_expiration_to').onChange(e)
+                      value={contractExpirationTo ? new Date(contractExpirationTo) : undefined}
+                      onChange={(date) => {
+                        setValue('filters.contract_expiration_to', date ? formatISO(date, { representation: 'date' }) : undefined)
                         setActivePreset(null)
                       }}
+                      placeholder="Select end date"
                     />
                     {errors.filters?.contract_expiration_to && (
                       <p className="text-sm text-destructive" role="alert">
@@ -560,11 +569,13 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                 {/* Date Range */}
                 <div className="space-y-2">
                   <Label htmlFor="date_from">Date From</Label>
-                  <Input
-                    {...register('filters.date_from')}
+                  <DatePicker
                     id="date_from"
-                    type="date"
-                    aria-label="Filter by date from"
+                    value={dateFrom ? new Date(dateFrom) : undefined}
+                    onChange={(date) =>
+                      setValue('filters.date_from', date ? formatISO(date, { representation: 'date' }) : undefined)
+                    }
+                    placeholder="Select start date"
                   />
                   {errors.filters?.date_from && (
                     <p className="text-sm text-destructive" role="alert">
@@ -575,11 +586,13 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="date_to">Date To</Label>
-                  <Input
-                    {...register('filters.date_to')}
+                  <DatePicker
                     id="date_to"
-                    type="date"
-                    aria-label="Filter by date to"
+                    value={dateTo ? new Date(dateTo) : undefined}
+                    onChange={(date) =>
+                      setValue('filters.date_to', date ? formatISO(date, { representation: 'date' }) : undefined)
+                    }
+                    placeholder="Select end date"
                   />
                   {errors.filters?.date_to && (
                     <p className="text-sm text-destructive" role="alert">
@@ -807,15 +820,14 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contract_expiration_from">Contract Expiration From</Label>
-                  <Input
-                    {...register('filters.contract_expiration_from')}
+                  <DatePicker
                     id="contract_expiration_from"
-                    type="date"
-                    aria-label="Contract expiration date from"
-                    onChange={(e) => {
-                      register('filters.contract_expiration_from').onChange(e)
-                      setActivePreset(null) // Clear preset when manually changing dates
+                    value={contractExpirationFrom ? new Date(contractExpirationFrom) : undefined}
+                    onChange={(date) => {
+                      setValue('filters.contract_expiration_from', date ? formatISO(date, { representation: 'date' }) : undefined)
+                      setActivePreset(null)
                     }}
+                    placeholder="Select start date"
                   />
                   {errors.filters?.contract_expiration_from && (
                     <p className="text-sm text-destructive" role="alert">
@@ -826,15 +838,14 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="contract_expiration_to">Contract Expiration To</Label>
-                  <Input
-                    {...register('filters.contract_expiration_to')}
+                  <DatePicker
                     id="contract_expiration_to"
-                    type="date"
-                    aria-label="Contract expiration date to"
-                    onChange={(e) => {
-                      register('filters.contract_expiration_to').onChange(e)
-                      setActivePreset(null) // Clear preset when manually changing dates
+                    value={contractExpirationTo ? new Date(contractExpirationTo) : undefined}
+                    onChange={(date) => {
+                      setValue('filters.contract_expiration_to', date ? formatISO(date, { representation: 'date' }) : undefined)
+                      setActivePreset(null)
                     }}
+                    placeholder="Select end date"
                   />
                   {errors.filters?.contract_expiration_to && (
                     <p className="text-sm text-destructive" role="alert">

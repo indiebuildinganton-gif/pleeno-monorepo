@@ -77,12 +77,19 @@ export function EnrollmentStatusMenu({
   onStatusChange,
   disabled = false,
 }: EnrollmentStatusMenuProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<EnrollmentStatus | null>(null)
 
+  // Debug logging
+  console.log('EnrollmentStatusMenu render - confirmDialogOpen:', confirmDialogOpen, 'selectedStatus:', selectedStatus)
+
   const handleStatusSelect = (status: EnrollmentStatus) => {
+    console.log('handleStatusSelect called with status:', status)
+    setDropdownOpen(false) // Close dropdown first
     setSelectedStatus(status)
     setConfirmDialogOpen(true)
+    console.log('Dialog should open now')
   }
 
   const handleConfirm = () => {
@@ -105,7 +112,7 @@ export function EnrollmentStatusMenu({
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" disabled={disabled} className="h-8 w-8 p-0">
             <span className="sr-only">Open menu</span>

@@ -18,7 +18,12 @@
       "Bash(git push:*)",
       "Bash(for dir in apps/*/)",
       "Bash(ls:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

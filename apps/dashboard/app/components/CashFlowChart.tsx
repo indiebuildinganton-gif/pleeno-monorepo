@@ -14,7 +14,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getApiUrl } from '../hooks/useApiUrl'
 import {
@@ -265,6 +265,7 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
   const { cashFlowView, setCashFlowView } = useDashboardStore()
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const [isExporting, setIsExporting] = useState(false)
 
   const { data, isLoading, isError, isFetching, refetch } = useQuery<CashFlowResponse>({
     queryKey: ['cash-flow-projection', cashFlowView, days],
@@ -336,6 +337,33 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
   const today = new Date()
   const endDate = addDays(today, days)
   const dateRange = `${format(today, 'MMM dd')} - ${format(endDate, 'MMM dd, yyyy')}`
+
+  // Handle CSV export
+  const handleExport = async () => {
+    setIsExporting(true)
+
+    try {
+      // Build export URL with current filters
+      const groupBy = mapViewToGroupBy(cashFlowView)
+      const url = new URL(
+        getApiUrl(`/api/cash-flow-projection/export`),
+        window.location.origin
+      )
+      url.searchParams.set('groupBy', groupBy)
+      url.searchParams.set('days', days.toString())
+
+      // Trigger download via browser
+      window.location.href = url.toString()
+
+      // Reset loading state after a delay (since download happens in browser)
+      setTimeout(() => {
+        setIsExporting(false)
+      }, 2000)
+    } catch (error) {
+      console.error('Export failed:', error)
+      setIsExporting(false)
+    }
+  }
 
   return (
     <div className="w-full space-y-6">
@@ -416,9 +444,22 @@ export function CashFlowChart({ days = 90 }: CashFlowChartProps) {
             <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
               <span className="material-symbols-outlined text-[20px]">tune</span>
             </button>
-            <button className="bg-[#13ec5b] hover:bg-[#10d650] text-black font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm">
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              Download Report
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="bg-[#13ec5b] hover:bg-[#10d650] text-black font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isExporting ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">download</span>
+                  Download Report
+                </>
+              )}
             </button>
           </div>
         </div>

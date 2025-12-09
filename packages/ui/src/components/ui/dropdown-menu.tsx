@@ -20,14 +20,25 @@ function useDropdownMenu() {
 
 interface DropdownMenuProps {
   children: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-const DropdownMenu = ({ children }: DropdownMenuProps) => {
-  const [open, setOpen] = React.useState(false)
+const DropdownMenu = ({ children, open: controlledOpen, onOpenChange }: DropdownMenuProps) => {
+  const [internalOpen, setInternalOpen] = React.useState(false)
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen)
-  }
+  // Use controlled state if provided, otherwise use internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+
+  const handleOpenChange = React.useCallback(
+    (newOpen: boolean) => {
+      if (controlledOpen === undefined) {
+        setInternalOpen(newOpen)
+      }
+      onOpenChange?.(newOpen)
+    },
+    [controlledOpen, onOpenChange]
+  )
 
   return (
     <DropdownMenuContext.Provider value={{ open, onOpenChange: handleOpenChange }}>
@@ -78,7 +89,12 @@ const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenuContent
 
     React.useEffect(() => {
       const handleClickOutside = (e: MouseEvent) => {
+        console.log('Click outside detected, target:', e.target)
+        console.log('contentRef.current:', contentRef.current)
+        console.log('Contains?', contentRef.current?.contains(e.target as Node))
+
         if (contentRef.current && !contentRef.current.contains(e.target as Node)) {
+          console.log('Closing dropdown from outside click')
           onOpenChange(false)
         }
       }
@@ -90,13 +106,17 @@ const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenuContent
       }
 
       if (open) {
-        document.addEventListener('mousedown', handleClickOutside)
-        document.addEventListener('keydown', handleEscape)
-      }
+        // Add a small delay before attaching the listener to prevent immediate closure
+        const timeoutId = setTimeout(() => {
+          document.addEventListener('click', handleClickOutside, true)
+          document.addEventListener('keydown', handleEscape)
+        }, 10)
 
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside)
-        document.removeEventListener('keydown', handleEscape)
+        return () => {
+          clearTimeout(timeoutId)
+          document.removeEventListener('click', handleClickOutside, true)
+          document.removeEventListener('keydown', handleEscape)
+        }
       }
     }, [open, onOpenChange])
 
@@ -142,17 +162,24 @@ const DropdownMenuItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemPro
     const { onOpenChange } = useDropdownMenu()
 
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      console.log('DropdownMenuItem clicked')
+
       if (!disabled) {
+        console.log('Calling onClick handler')
         onClick?.(e)
+        // Close dropdown after onClick completes
         onOpenChange(false)
+      } else {
+        console.log('Item is disabled')
       }
     }
 
     return (
       <button
         ref={ref}
+        type="button"
         className={cn(
-          'relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50',
+          'relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50',
           inset && 'pl-8',
           className
         )}

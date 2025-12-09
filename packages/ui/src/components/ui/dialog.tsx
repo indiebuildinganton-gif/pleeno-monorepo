@@ -77,6 +77,8 @@ export function DialogContent({ children, className, ...props }: DialogContentPr
   const { open, onOpenChange } = useDialog()
   const contentRef = React.useRef<HTMLDivElement>(null)
 
+  console.log('DialogContent render - open:', open)
+
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -85,6 +87,7 @@ export function DialogContent({ children, className, ...props }: DialogContentPr
     }
 
     if (open) {
+      console.log('Dialog is open, adding event listeners')
       document.addEventListener('keydown', handleEscape)
       document.body.style.overflow = 'hidden'
     }
@@ -95,7 +98,12 @@ export function DialogContent({ children, className, ...props }: DialogContentPr
     }
   }, [open, onOpenChange])
 
-  if (!open) return null
+  if (!open) {
+    console.log('Dialog not rendering - open is false')
+    return null
+  }
+
+  console.log('Dialog rendering content!')
 
   return (
     <div

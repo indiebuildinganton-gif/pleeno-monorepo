@@ -23,7 +23,7 @@ import {
   fetchAgencyLogo,
   generateTimestampedFilename,
 } from '@pleeno/utils'
-import { StudentPaymentStatementPDF } from '@/components/StudentPaymentStatementPDF'
+import { StudentPaymentStatementPDF } from '@/app/components/StudentPaymentStatementPDF'
 
 /**
  * GET /api/students/[id]/payment-history/export
