@@ -23,7 +23,9 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm type-check:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pnpm run dev)",
+      "Bash(pnpm dev)"
     ],
     "deny": [],
     "ask": []

@@ -8,7 +8,7 @@ export const reportBuilderSchema = z
       college_ids: z.array(z.string()).optional(),
       branch_ids: z.array(z.string()).optional(),
       student_ids: z.array(z.string()).optional(),
-      status: z.array(z.enum(['pending', 'paid', 'overdue', 'cancelled'])).optional(),
+      status: z.array(z.enum(['active', 'completed', 'cancelled'])).optional(),
       contract_expiration_from: z.string().optional(),
       contract_expiration_to: z.string().optional(),
     }),

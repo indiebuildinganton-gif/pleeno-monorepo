@@ -107,7 +107,7 @@ export function DialogContent({ children, className, ...props }: DialogContentPr
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onOpenChange(false)
@@ -121,7 +121,7 @@ export function DialogContent({ children, className, ...props }: DialogContentPr
       <div
         ref={contentRef}
         className={cn(
-          'relative z-50 w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg',
+          'relative z-[10000] w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg',
           className
         )}
         {...props}

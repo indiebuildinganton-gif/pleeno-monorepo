@@ -1,241 +1,54 @@
-/* Import react-day-picker base styles */
+/* Import react-day-picker default styles */
 @import "react-day-picker/style.css";
 
-/* Custom calendar styling - Ultra specific selectors */
+/* Ensure calendar background is visible */
 .rdp {
-  --rdp-cell-size: 40px;
-  --rdp-accent-color: #000000;
-  --rdp-background-color: #ffffff;
-  margin: 0;
-  background-color: white !important;
+  background: white;
 }
 
-.rdp * {
-  color: #000000 !important;
-}
-
-.rdp-months {
-  background-color: white !important;
-}
-
-.rdp-month {
-  background-color: white !important;
-}
-
-.rdp .rdp-caption,
-.rdp-caption {
-  color: #000000 !important;
-  font-weight: 900 !important;
-}
-
-.rdp .rdp-caption_label,
+/* Make all text black and bold */
 .rdp-caption_label {
-  color: #000000 !important;
-  font-weight: 900 !important;
-  font-size: 1.25rem !important;
-  text-shadow: 0 0 1px rgba(0,0,0,0.5);
+  color: #000000;
+  font-weight: 700;
+  font-size: 18px;
 }
 
-.rdp .rdp-nav button,
-.rdp-nav_button,
-button.rdp-nav_button {
-  color: #000000 !important;
-  font-weight: 900 !important;
+.rdp-head_cell {
+  color: #000000;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
 }
 
-.rdp .rdp-nav button svg,
-.rdp-nav_button svg {
-  stroke: #000000 !important;
-  stroke-width: 4 !important;
-  fill: #000000 !important;
+.rdp-day {
+  color: #000000;
+  font-weight: 700;
+  font-size: 16px;
 }
 
-.rdp .rdp-head_cell,
-.rdp-head_cell,
-th.rdp-head_cell {
-  color: #000000 !important;
-  font-weight: 900 !important;
-  text-transform: uppercase !important;
-  font-size: 1rem !important;
-  text-shadow: 0 0 1px rgba(0,0,0,0.5);
+.rdp-nav button {
+  color: #000000;
 }
 
-.rdp .rdp-day,
-.rdp-day,
-td.rdp-day,
-.rdp-day_button,
-button.rdp-day_button {
-  color: #000000 !important;
-  font-weight: 900 !important;
-  font-size: 1.125rem !important;
-  text-shadow: 0 0 1px rgba(0,0,0,0.5);
+.rdp-nav button svg {
+  stroke: #000000;
+  stroke-width: 2;
 }
 
-.rdp .rdp-day button,
-.rdp-day button,
-button.rdp-button {
-  color: #000000 !important;
-  font-weight: 900 !important;
-}
-
-.rdp .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled),
-.rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
-  background-color: #e5e7eb !important;
-}
-
-.rdp .rdp-day_selected,
-.rdp-day_selected,
-.rdp-day_selected button {
-  background-color: #3b82f6 !important;
-  color: white !important;
-  font-weight: 900 !important;
-}
-
-.rdp .rdp-day_today:not(.rdp-day_selected),
-.rdp-day_today:not(.rdp-day_selected) {
-  background-color: #e5e7eb !important;
-  font-weight: 900 !important;
-  box-shadow: 0 0 0 3px #3b82f6 !important;
-  color: #000000 !important;
-}
-
-.rdp .rdp-day_today:not(.rdp-day_selected) button,
-.rdp-day_today:not(.rdp-day_selected) button {
-  color: #000000 !important;
-  font-weight: 900 !important;
-}
-
-/* Dark mode support */
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   .rdp {
-    --rdp-accent-color: #ffffff;
-    --rdp-background-color: #1f2937;
-    background-color: #1f2937 !important;
+    background: #1f2937;
   }
 
-  .rdp * {
-    color: #ffffff !important;
-  }
-
-  .rdp-months {
-    background-color: #1f2937 !important;
-  }
-
-  .rdp-month {
-    background-color: #1f2937 !important;
-  }
-
-  .rdp .rdp-caption,
-  .rdp-caption {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-  }
-
-  .rdp .rdp-caption_label,
-  .rdp-caption_label {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-    font-size: 1.25rem !important;
-    text-shadow: 0 0 1px rgba(255,255,255,0.5);
-  }
-
-  .rdp .rdp-nav button,
-  .rdp-nav_button,
-  button.rdp-nav_button {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-  }
-
-  .rdp .rdp-nav button svg,
-  .rdp-nav_button svg {
-    stroke: #ffffff !important;
-    stroke-width: 4 !important;
-    fill: #ffffff !important;
-  }
-
-  .rdp .rdp-head_cell,
+  .rdp-caption_label,
   .rdp-head_cell,
-  th.rdp-head_cell {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-    text-transform: uppercase !important;
-    font-size: 1rem !important;
-    text-shadow: 0 0 1px rgba(255,255,255,0.5);
-  }
-
-  .rdp .rdp-day,
   .rdp-day,
-  td.rdp-day,
-  .rdp-day_button,
-  button.rdp-day_button {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-    font-size: 1.125rem !important;
-    text-shadow: 0 0 1px rgba(255,255,255,0.5);
+  .rdp-nav button {
+    color: #ffffff;
   }
 
-  .rdp .rdp-day button,
-  .rdp-day button,
-  button.rdp-button {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-  }
-
-  .rdp .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled),
-  .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
-    background-color: #374151 !important;
-  }
-
-  .rdp .rdp-day_selected,
-  .rdp-day_selected,
-  .rdp-day_selected button {
-    background-color: #3b82f6 !important;
-    color: white !important;
-    font-weight: 900 !important;
-  }
-
-  .rdp .rdp-day_today:not(.rdp-day_selected),
-  .rdp-day_today:not(.rdp-day_selected) {
-    background-color: #374151 !important;
-    font-weight: 900 !important;
-    box-shadow: 0 0 0 3px #3b82f6 !important;
-    color: #ffffff !important;
-  }
-
-  .rdp .rdp-day_today:not(.rdp-day_selected) button,
-  .rdp-day_today:not(.rdp-day_selected) button {
-    color: #ffffff !important;
-    font-weight: 900 !important;
-  }
-}
-
-/* Ultimate fallback - force everything to be visible */
-.rdp,
-.rdp table,
-.rdp tbody,
-.rdp tr,
-.rdp td,
-.rdp th,
-.rdp thead,
-.rdp button {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* Ensure no element has transparent or very light text */
-.rdp button[name="day"],
-.rdp button[name="previous-month"],
-.rdp button[name="next-month"] {
-  color: #000000 !important;
-  font-weight: 900 !important;
-  -webkit-text-fill-color: #000000 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  .rdp button[name="day"],
-  .rdp button[name="previous-month"],
-  .rdp button[name="next-month"] {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+  .rdp-nav button svg {
+    stroke: #ffffff;
   }
 }

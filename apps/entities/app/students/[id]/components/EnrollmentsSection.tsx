@@ -57,7 +57,9 @@ export function EnrollmentsSection({ studentId }: EnrollmentsSectionProps) {
   } | null>(null)
 
   const handleStatusChange = (enrollmentId: string, newStatus: 'active' | 'completed' | 'cancelled') => {
+    console.log('🎯 EnrollmentsSection.handleStatusChange called:', { enrollmentId, newStatus })
     updateStatus({ enrollmentId, newStatus })
+    console.log('✅ updateStatus mutation triggered')
   }
 
   if (isLoading) {

@@ -40,9 +40,8 @@ const availableColumns = [
 
 // Payment status options
 const statusOptions = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'overdue', label: 'Overdue' },
+  { value: 'active', label: 'Active' },
+  { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
 
@@ -53,6 +52,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
   const [selectedCollegeIds, setSelectedCollegeIds] = useState<string[]>([])
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([])
   const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [studentSearchQuery, setStudentSearchQuery] = useState('')
   const debouncedStudentSearch = useDebounce(studentSearchQuery, 500)
 
@@ -147,6 +147,16 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
     }
   }
 
+  const handleStatusToggle = (status: string) => {
+    const newStatuses = selectedStatuses.includes(status)
+      ? selectedStatuses.filter((s) => s !== status)
+      : [...selectedStatuses, status]
+
+    setSelectedStatuses(newStatuses)
+    // Sync with form state for validation
+    setValue('filters.status', newStatuses.length > 0 ? (newStatuses as any) : undefined)
+  }
+
   const handleReset = () => {
     reset({
       filters: {},
@@ -157,7 +167,9 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
     setSelectedCollegeIds([])
     setSelectedBranchIds([])
     setSelectedStudentIds([])
+    setSelectedStatuses([])
     setStudentSearchQuery('')
+    setValue('filters.status', undefined)
   }
 
   const onSubmit = (data: ReportBuilderFormData) => {
@@ -169,6 +181,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
         college_ids: selectedCollegeIds.length > 0 ? selectedCollegeIds : undefined,
         branch_ids: selectedBranchIds.length > 0 ? selectedBranchIds : undefined,
         student_ids: selectedStudentIds.length > 0 ? selectedStudentIds : undefined,
+        status: selectedStatuses.length > 0 ? (selectedStatuses as any) : undefined,
       },
     }
     onGenerate(enhancedData)
@@ -185,6 +198,21 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Error Display */}
+          {Object.keys(errors).length > 0 && (
+            <div className="rounded-lg border border-red-600 bg-red-50 p-4" role="alert">
+              <h4 className="font-semibold text-red-600 mb-2">Please fix the following errors:</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm text-red-600">
+                {errors.columns && <li>{errors.columns.message}</li>}
+                {errors.filters?.date_from && <li>Date From: {errors.filters.date_from.message}</li>}
+                {errors.filters?.date_to && <li>Date To: {errors.filters.date_to.message}</li>}
+                {errors.filters?.contract_expiration_from && <li>Contract Expiration From: {errors.filters.contract_expiration_from.message}</li>}
+                {errors.filters?.contract_expiration_to && <li>Contract Expiration To: {errors.filters.contract_expiration_to.message}</li>}
+                {errors.filters?.status && <li>Payment Status: {errors.filters.status.message}</li>}
+              </ul>
+            </div>
+          )}
+
           {/* Mobile Accordion Version */}
           <div className="md:hidden space-y-3" role="region" aria-label="Report filters">
             {/* Filters Accordion */}
@@ -217,7 +245,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                       placeholder="Select start date"
                     />
                     {errors.filters?.date_from && (
-                      <p className="text-sm text-destructive" role="alert">
+                      <p className="text-sm text-red-600" role="alert">
                         {errors.filters.date_from.message}
                       </p>
                     )}
@@ -234,7 +262,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                       placeholder="Select end date"
                     />
                     {errors.filters?.date_to && (
-                      <p className="text-sm text-destructive" role="alert">
+                      <p className="text-sm text-red-600" role="alert">
                         {errors.filters.date_to.message}
                       </p>
                     )}
@@ -404,8 +432,8 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                           className="flex items-center gap-2 cursor-pointer"
                         >
                           <Checkbox
-                            value={status.value}
-                            {...register('filters.status')}
+                            checked={selectedStatuses.includes(status.value)}
+                            onCheckedChange={() => handleStatusToggle(status.value)}
                             aria-label={`Filter by ${status.label} status`}
                           />
                           <span className="text-sm">{status.label}</span>
@@ -492,7 +520,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                       placeholder="Select start date"
                     />
                     {errors.filters?.contract_expiration_from && (
-                      <p className="text-sm text-destructive" role="alert">
+                      <p className="text-sm text-red-600" role="alert">
                         {errors.filters.contract_expiration_from.message}
                       </p>
                     )}
@@ -510,7 +538,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                       placeholder="Select end date"
                     />
                     {errors.filters?.contract_expiration_to && (
-                      <p className="text-sm text-destructive" role="alert">
+                      <p className="text-sm text-red-600" role="alert">
                         {errors.filters.contract_expiration_to.message}
                       </p>
                     )}
@@ -551,7 +579,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                     </label>
                   ))}
                   {errors.columns && (
-                    <p className="text-sm text-destructive mt-2" role="alert">
+                    <p className="text-sm text-red-600 mt-2" role="alert">
                       {errors.columns.message}
                     </p>
                   )}
@@ -578,7 +606,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                     placeholder="Select start date"
                   />
                   {errors.filters?.date_from && (
-                    <p className="text-sm text-destructive" role="alert">
+                    <p className="text-sm text-red-600" role="alert">
                       {errors.filters.date_from.message}
                     </p>
                   )}
@@ -595,7 +623,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                     placeholder="Select end date"
                   />
                   {errors.filters?.date_to && (
-                    <p className="text-sm text-destructive" role="alert">
+                    <p className="text-sm text-red-600" role="alert">
                       {errors.filters.date_to.message}
                     </p>
                   )}
@@ -755,15 +783,15 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                   </p>
                 </div>
 
-                {/* Payment Status Multi-Select - Simplified for now */}
+                {/* Payment Status Multi-Select */}
                 <div className="space-y-2">
                   <Label htmlFor="status">Payment Status</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {statusOptions.map((status) => (
                       <label key={status.value} className="flex items-center gap-2 cursor-pointer">
                         <Checkbox
-                          value={status.value}
-                          {...register('filters.status')}
+                          checked={selectedStatuses.includes(status.value)}
+                          onCheckedChange={() => handleStatusToggle(status.value)}
                           aria-label={`Filter by ${status.label} status`}
                         />
                         <span className="text-sm">{status.label}</span>
@@ -830,7 +858,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                     placeholder="Select start date"
                   />
                   {errors.filters?.contract_expiration_from && (
-                    <p className="text-sm text-destructive" role="alert">
+                    <p className="text-sm text-red-600" role="alert">
                       {errors.filters.contract_expiration_from.message}
                     </p>
                   )}
@@ -848,7 +876,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                     placeholder="Select end date"
                   />
                   {errors.filters?.contract_expiration_to && (
-                    <p className="text-sm text-destructive" role="alert">
+                    <p className="text-sm text-red-600" role="alert">
                       {errors.filters.contract_expiration_to.message}
                     </p>
                   )}
@@ -875,7 +903,7 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
                 ))}
               </div>
               {errors.columns && (
-                <p className="text-sm text-destructive mt-2" role="alert">
+                <p className="text-sm text-red-600 mt-2" role="alert">
                   {errors.columns.message}
                 </p>
               )}
@@ -884,7 +912,12 @@ export function ReportBuilder({ onGenerate }: ReportBuilderProps) {
 
           {/* Actions Section */}
           <section className="flex gap-3 pt-4 border-t">
-            <Button type="submit" size="lg" aria-label="Generate payment plans report">
+            <Button
+              type="submit"
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md"
+              aria-label="Generate payment plans report"
+            >
               Generate Report
             </Button>
             <Button

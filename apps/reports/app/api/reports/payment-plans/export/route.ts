@@ -15,12 +15,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stringify } from 'csv-stringify/sync'
 import { createServerClient } from '@pleeno/database/server'
+import { logReportExport } from '@pleeno/database'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { requireRole } from '@pleeno/auth/server'
-import { handleApiError, ForbiddenError, ValidationError } from '@pleeno/utils'
-import { calculateExpectedCommission } from '@pleeno/utils'
-import { exportAsCSVStream } from '@pleeno/utils/csv-formatter'
-import { logReportExport } from '@pleeno/database/activity-logger'
+import {
+  handleApiError,
+  ForbiddenError,
+  ValidationError,
+  calculateExpectedCommission,
+  exportAsCSVStream,
+} from '@pleeno/utils'
 import type {
   PaymentPlanReportRow,
   ContractStatus,
@@ -121,47 +125,15 @@ async function* queryPaymentPlansBatch(
   let hasMore = true
 
   while (hasMore) {
-    // Build query with same structure as main query
+    // Build simplified query to avoid PostgREST join issues
     let query = supabase
       .from('payment_plans')
-      .select(
-        `
-        id,
-        reference_number,
-        total_amount,
-        currency,
-        commission_rate_percent,
-        expected_commission,
-        status,
-        start_date,
-        created_at,
-        updated_at,
-        enrollments!inner (
-          id,
-          program_name,
-          contract_expiration_date,
-          student_id,
-          students!inner (
-            id,
-            name
-          ),
-          branches!inner (
-            id,
-            name,
-            college_id,
-            colleges!inner (
-              id,
-              name
-            )
-          )
-        )
-      `
-      )
+      .select('*, enrollments(id, program_name, student_id, branch_id)')
       .eq('agency_id', userAgencyId)
       .range(offset, offset + batchSize - 1)
       .order('start_date', { ascending: false })
 
-    // Apply filters - same as main query
+    // Apply filters - date and status filters only (others applied in-memory)
     if (filters.date_from) {
       query = query.gte('start_date', filters.date_from)
     }
@@ -172,18 +144,6 @@ async function* queryPaymentPlansBatch(
 
     if (filters.status && filters.status.length > 0) {
       query = query.in('status', filters.status)
-    }
-
-    if (filters.student_ids && filters.student_ids.length > 0) {
-      query = query.in('enrollments.student_id', filters.student_ids)
-    }
-
-    if (filters.branch_ids && filters.branch_ids.length > 0) {
-      query = query.in('enrollments.branches.id', filters.branch_ids)
-    }
-
-    if (filters.college_ids && filters.college_ids.length > 0) {
-      query = query.in('enrollments.branches.college_id', filters.college_ids)
     }
 
     // Execute batch query
@@ -199,8 +159,28 @@ async function* queryPaymentPlansBatch(
       break
     }
 
-    // Transform data (same as main query)
-    const transformedBatch = transformPaymentPlansData(data, filters)
+    // Fetch related data for this batch
+    const studentIds = [...new Set(data.map((p: any) => p.enrollments?.student_id).filter(Boolean))]
+    const branchIds = [...new Set(data.map((p: any) => p.enrollments?.branch_id).filter(Boolean))]
+
+    // Fetch students
+    const { data: students } = await supabase
+      .from('students')
+      .select('id, full_name')
+      .in('id', studentIds.length > 0 ? studentIds : [''])
+
+    // Fetch branches with colleges
+    const { data: branches } = await supabase
+      .from('branches')
+      .select('id, name, college_id, colleges(id, name, contract_expiration_date)')
+      .in('id', branchIds.length > 0 ? branchIds : [''])
+
+    // Create lookup maps
+    const studentMap = new Map(students?.map((s) => [s.id, s]) || [])
+    const branchMap = new Map(branches?.map((b) => [b.id, b]) || [])
+
+    // Transform data with lookup maps
+    const transformedBatch = transformPaymentPlansData(data, filters, studentMap, branchMap)
 
     yield transformedBatch
 
@@ -219,80 +199,107 @@ async function* queryPaymentPlansBatch(
  *
  * @param paymentPlans Raw payment plan data from database
  * @param filters Export filters (for contract expiration filtering)
+ * @param studentMap Map of student IDs to student data
+ * @param branchMap Map of branch IDs to branch data (with colleges)
  * @returns Transformed report data
  */
 function transformPaymentPlansData(
   paymentPlans: any[],
-  filters: ExportFilters
+  filters: ExportFilters,
+  studentMap: Map<string, any>,
+  branchMap: Map<string, any>
 ): PaymentPlanReportRow[] {
-  const reportData: PaymentPlanReportRow[] = paymentPlans.map((plan: any) => {
-    const enrollment = plan.enrollments
-    const student = enrollment.students
-    const branch = enrollment.branches
-    const college = branch.colleges
+  const reportData: PaymentPlanReportRow[] = paymentPlans
+    .map((plan: any) => {
+      const enrollment = plan.enrollments
+      if (!enrollment) return null
 
-    // Calculate contract expiration details
-    let daysUntilExpiration: number | null = null
-    let contractStatus: ContractStatus | null = null
+      const student = studentMap.get(enrollment.student_id)
+      const branch = branchMap.get(enrollment.branch_id)
+      const college = (branch as any)?.colleges
 
-    if (enrollment.contract_expiration_date) {
-      const expirationDate = new Date(enrollment.contract_expiration_date)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0) // Reset to start of day for accurate comparison
+      if (!student || !branch || !college) return null
 
-      const diffTime = expirationDate.getTime() - today.getTime()
-      daysUntilExpiration = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      // Calculate contract expiration details
+      let daysUntilExpiration: number | null = null
+      let contractStatus: ContractStatus | null = null
 
-      if (daysUntilExpiration < 0) {
-        contractStatus = 'expired'
-      } else if (daysUntilExpiration <= 30) {
-        contractStatus = 'expiring_soon'
-      } else {
-        contractStatus = 'active'
+      if (college.contract_expiration_date) {
+        const expirationDate = new Date(college.contract_expiration_date)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0) // Reset to start of day for accurate comparison
+
+        const diffTime = expirationDate.getTime() - today.getTime()
+        daysUntilExpiration = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+        if (daysUntilExpiration < 0) {
+          contractStatus = 'expired'
+        } else if (daysUntilExpiration <= 30) {
+          contractStatus = 'expiring_soon'
+        } else {
+          contractStatus = 'active'
+        }
       }
-    }
 
-    // Calculate total paid (would need to query installments table)
-    // For now, we'll set it to 0 and calculate earned commission
-    const totalPaid = 0 // TODO: Sum from installments table when available
-    const totalRemaining = plan.total_amount - totalPaid
+      // Calculate total paid (would need to query installments table)
+      // For now, we'll set it to 0 and calculate earned commission
+      const totalPaid = 0 // TODO: Sum from installments table when available
+      const totalRemaining = plan.total_amount - totalPaid
 
-    // Calculate earned commission based on amount paid
-    const earnedCommission = calculateExpectedCommission(totalPaid, plan.commission_rate_percent)
+      // Calculate earned commission based on amount paid
+      const earnedCommission = calculateExpectedCommission(totalPaid, plan.commission_rate_percent)
 
-    return {
-      id: plan.id,
-      reference_number: plan.reference_number,
-      student_id: student.id,
-      student_name: student.name,
-      college_id: college.id,
-      college_name: college.name,
-      branch_id: branch.id,
-      branch_name: branch.name,
-      program_name: enrollment.program_name,
-      plan_amount: plan.total_amount,
-      currency: plan.currency,
-      commission_rate_percent: plan.commission_rate_percent,
-      expected_commission: plan.expected_commission,
-      total_paid: totalPaid,
-      total_remaining: totalRemaining,
-      earned_commission: earnedCommission,
-      status: plan.status,
-      contract_expiration_date: enrollment.contract_expiration_date,
-      days_until_contract_expiration: daysUntilExpiration,
-      contract_status: contractStatus,
-      start_date: plan.start_date,
-      created_at: plan.created_at,
-      updated_at: plan.updated_at,
-    }
-  })
+      return {
+        id: plan.id,
+        reference_number: plan.reference_number,
+        student_id: student.id,
+        student_name: (student as any).full_name,
+        college_id: college.id,
+        college_name: college.name,
+        branch_id: branch.id,
+        branch_name: branch.name,
+        program_name: enrollment.program_name,
+        plan_amount: plan.total_amount,
+        currency: plan.currency,
+        commission_rate_percent: plan.commission_rate_percent,
+        expected_commission: plan.expected_commission,
+        total_paid: totalPaid,
+        total_remaining: totalRemaining,
+        earned_commission: earnedCommission,
+        status: plan.status,
+        contract_expiration_date: college.contract_expiration_date,
+        days_until_contract_expiration: daysUntilExpiration,
+        contract_status: contractStatus,
+        start_date: plan.start_date,
+        created_at: plan.created_at,
+        updated_at: plan.updated_at,
+      }
+    })
+    .filter((row): row is PaymentPlanReportRow => row !== null)
 
-  // Apply contract expiration filters after transformation
-  // (These can't be applied in Supabase query as they're computed)
+  // Apply filters after transformation (for nested relationships and computed fields)
   let filteredData = reportData
 
+  // Filter by student IDs
+  if (filters.student_ids && filters.student_ids.length > 0) {
+    filteredData = filteredData.filter((row) => filters.student_ids.includes(row.student_id))
+  }
+
+  // Filter by branch IDs
+  if (filters.branch_ids && filters.branch_ids.length > 0) {
+    filteredData = filteredData.filter((row) =>
+      row.branch_id ? filters.branch_ids.includes(row.branch_id) : false
+    )
+  }
+
+  // Filter by college IDs
+  if (filters.college_ids && filters.college_ids.length > 0) {
+    filteredData = filteredData.filter((row) => filters.college_ids.includes(row.college_id))
+  }
+
+  // Filter by contract expiration dates
   if (filters.contract_expiration_from || filters.contract_expiration_to) {
-    filteredData = reportData.filter((row) => {
+    filteredData = filteredData.filter((row) => {
       if (!row.contract_expiration_date) return false
 
       if (filters.contract_expiration_from) {

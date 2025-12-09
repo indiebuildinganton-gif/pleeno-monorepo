@@ -97,6 +97,30 @@ const nextConfig: NextConfig = {
         source: '/api/branches/:path*',
         destination: `${ZONE_URLS.entities}/entities/api/branches/:path*`,
       },
+      {
+        source: '/api/enrollments',
+        destination: `${ZONE_URLS.entities}/entities/api/enrollments`,
+      },
+      {
+        source: '/api/enrollments/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/enrollments/:path*`,
+      },
+      {
+        source: '/api/contacts',
+        destination: `${ZONE_URLS.entities}/entities/api/contacts`,
+      },
+      {
+        source: '/api/contacts/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/contacts/:path*`,
+      },
+      {
+        source: '/api/notes',
+        destination: `${ZONE_URLS.entities}/entities/api/notes`,
+      },
+      {
+        source: '/api/notes/:path*',
+        destination: `${ZONE_URLS.entities}/entities/api/notes/:path*`,
+      },
       // Payments API rewrites
       {
         source: '/api/payment-plans',

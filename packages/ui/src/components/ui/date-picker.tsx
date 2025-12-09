@@ -31,6 +31,7 @@ export function DatePicker({
       <PopoverTrigger asChild>
         <Button
           id={id}
+          type="button"
           variant={"outline"}
           className={cn(
             "w-full justify-start text-left font-normal",
@@ -44,13 +45,11 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto min-w-[300px] p-0 bg-white dark:bg-gray-800 border-2 border-gray-900 dark:border-gray-200 shadow-2xl rounded-lg overflow-hidden"
-        align="center"
+        className="w-auto p-0"
+        align="end"
         side="top"
         sideOffset={8}
-        avoidCollisions={true}
-        collisionPadding={20}
-        style={{ backgroundColor: 'white' }}
+        avoidCollisions={false}
       >
         <Calendar
           mode="single"

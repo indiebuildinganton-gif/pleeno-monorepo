@@ -56,7 +56,12 @@ export function useUpdateEnrollmentStatus() {
 
   return useMutation({
     mutationFn: async ({ enrollmentId, newStatus }: UpdateEnrollmentStatusVariables) => {
-      const response = await fetch(`/api/enrollments/${enrollmentId}`, {
+      console.log('🔄 Mutation starting - enrollmentId:', enrollmentId, 'newStatus:', newStatus)
+
+      const url = `/api/enrollments/${enrollmentId}`
+      console.log('📡 Fetching:', url)
+
+      const response = await fetch(url, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -64,12 +69,17 @@ export function useUpdateEnrollmentStatus() {
         body: JSON.stringify({ status: newStatus }),
       })
 
+      console.log('📥 Response status:', response.status, response.statusText)
+
       if (!response.ok) {
         const error = await response.json()
+        console.error('❌ Error response:', error)
         throw new Error(error.error || 'Failed to update enrollment status')
       }
 
-      return response.json() as Promise<UpdateEnrollmentStatusResponse>
+      const data = await response.json()
+      console.log('✅ Success response:', data)
+      return data as Promise<UpdateEnrollmentStatusResponse>
     },
 
     // Optimistic update - update UI immediately

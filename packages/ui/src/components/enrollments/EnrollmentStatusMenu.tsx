@@ -93,14 +93,19 @@ export function EnrollmentStatusMenu({
   }
 
   const handleConfirm = () => {
+    console.log('handleConfirm called - selectedStatus:', selectedStatus, 'enrollmentId:', enrollmentId)
     if (selectedStatus) {
+      console.log('Calling onStatusChange with:', enrollmentId, selectedStatus)
       onStatusChange(enrollmentId, selectedStatus)
+    } else {
+      console.warn('No selectedStatus - not calling onStatusChange')
     }
     setConfirmDialogOpen(false)
     setSelectedStatus(null)
   }
 
   const handleCancel = () => {
+    console.log('handleCancel called')
     setConfirmDialogOpen(false)
     setSelectedStatus(null)
   }
@@ -137,26 +142,77 @@ export function EnrollmentStatusMenu({
       </DropdownMenu>
 
       {/* Confirmation Dialog */}
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Status Change</DialogTitle>
-            <DialogDescription>
+      {confirmDialogOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setConfirmDialogOpen(false)
+            }
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '24px',
+              borderRadius: '8px',
+              maxWidth: '500px',
+              minWidth: '400px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px', color: 'black' }}>
+              Confirm Status Change
+            </h2>
+            <p style={{ marginBottom: '16px', color: '#6b7280' }}>
               {selectedStatus && statusConfig[selectedStatus].description}
               <br />
-              <strong>Are you sure you want to proceed?</strong>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button onClick={handleConfirm}>
-              Confirm
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <strong style={{ color: 'black' }}>Are you sure you want to proceed?</strong>
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleCancel}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  backgroundColor: 'white',
+                  color: 'black',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirm}
+                style={{
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  backgroundColor: '#16a34a',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
