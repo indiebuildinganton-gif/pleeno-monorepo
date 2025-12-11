@@ -22,10 +22,19 @@ import OpenAI from 'openai'
 import * as pdfParse from 'pdf-parse'
 import { compareTwoStrings } from 'string-similarity'
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Initialize OpenAI client lazily to avoid build-time errors
+let openai: OpenAI | null = null
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY environment variable is not set')
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openai
+}
 
 /**
  * Extraction result structure
@@ -231,7 +240,8 @@ export async function POST(request: NextRequest) {
     // Use OpenAI GPT-4 to extract structured data
     let extractionResult: ExtractionResult
     try {
-      const completion = await openai.chat.completions.create({
+      const client = getOpenAIClient()
+      const completion = await client.chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
