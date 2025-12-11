@@ -1,9 +1,7 @@
 {
-  "buildCommand": "turbo build --filter=shell",
-  "outputDirectory": "apps/shell/.next",
-  "installCommand": "pnpm install",
+  "buildCommand": "echo 'Build happens in GitHub Actions'",
+  "installCommand": "echo 'Dependencies installed in GitHub Actions'",
+  "outputDirectory": ".next",
   "framework": "nextjs",
-  "git": {
-    "deploymentEnabled": true
-  }
+  "ignoreCommand": "echo 'Deployment via GitHub Actions only'"
 }

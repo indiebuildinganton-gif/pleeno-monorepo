@@ -25,7 +25,17 @@
       "Bash(pnpm type-check:*)",
       "Bash(find:*)",
       "Bash(pnpm run dev)",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(sudo npm install:*)",
+      "Bash(vercel projects:*)",
+      "Bash(vercel env ls:*)",
+      "Bash(vercel link:*)",
+      "Bash(vercel deploy:*)",
+      "Bash(vercel:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm:*)",
+      "Bash(npx pnpm@9.15.0 install:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

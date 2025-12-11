@@ -1,12 +1,52 @@
-node_modules
-.next
-dist
-build
-.env*.local
-.git
-.turbo
-coverage
+# Vercel Ignore File
+# Files and directories to ignore during Vercel deployment
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Note: .next/ is NOT ignored because we use --prebuilt deployments
+# Build outputs are uploaded by GitHub Actions
+
+# Environment files (managed via Vercel dashboard)
+.env
+.env.local
+.env.*.local
+
+# Turbo cache
+.turbo/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-.vscode
-.idea
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+
+# Scripts
+scripts/
+
+# Husky
+.husky/
