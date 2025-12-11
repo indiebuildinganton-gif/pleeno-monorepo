@@ -11,7 +11,7 @@
  * - Gray (outline): Active contracts (30+ days)
  */
 
-import { Badge } from '@pleeno/ui/src/components/ui/badge'
+import { Badge } from '@pleeno/ui/components/ui/badge'
 
 interface ContractExpirationBadgeProps {
   days: number

@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Edit2, Trash2 } from 'lucide-react'
-import { Button } from '@pleeno/ui/src/components/ui/button'
-import { Textarea } from '@pleeno/ui/src/components/ui/textarea'
-import { Label } from '@pleeno/ui/src/components/ui/label'
+import { Button } from '@pleeno/ui/components/ui/button'
+import { Textarea } from '@pleeno/ui/components/ui/textarea'
+import { Label } from '@pleeno/ui/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@pleeno/ui/src/components/ui/dialog'
-import { getRelativeTime } from '@pleeno/utils/src/date-helpers'
+} from '@pleeno/ui/components/ui/dialog'
+import { getRelativeTime } from '@pleeno/utils'
 
 /**
  * Note interface

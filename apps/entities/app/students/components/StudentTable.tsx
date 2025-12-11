@@ -17,9 +17,9 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from '@pleeno/ui/src/components/ui/table'
-import { Badge } from '@pleeno/ui/src/components/ui/badge'
-import { Button } from '@pleeno/ui/src/components/ui/button'
+} from '@pleeno/ui/components/ui/table'
+import { Badge } from '@pleeno/ui/components/ui/badge'
+import { Button } from '@pleeno/ui/components/ui/button'
 import { useRouter } from 'next/navigation'
 import { getRelativeTime } from '@pleeno/utils'
 import type { Student, PaginationMeta } from '../../../hooks/useStudents'

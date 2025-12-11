@@ -34,17 +34,17 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from '@pleeno/ui/src/components/ui/table'
-import { Button } from '@pleeno/ui/src/components/ui/button'
-import { Badge } from '@pleeno/ui/src/components/ui/badge'
-import { Select } from '@pleeno/ui/src/components/ui/select'
+} from '@pleeno/ui/components/ui/table'
+import { Button } from '@pleeno/ui/components/ui/button'
+import { Badge } from '@pleeno/ui/components/ui/badge'
+import { Select } from '@pleeno/ui/components/ui/select'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@pleeno/ui/src/components/ui/card'
+} from '@pleeno/ui/components/ui/card'
 import { formatCurrency } from '@pleeno/utils'
 
 import type {

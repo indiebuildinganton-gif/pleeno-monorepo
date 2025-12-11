@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useColleges } from '../../hooks/useColleges'
 import { CollegesTable } from './components/CollegesTable'
-import { Button } from '@pleeno/ui/src/components/ui/button'
+import { Button } from '@pleeno/ui/components/ui/button'
 import { Plus } from 'lucide-react'
 import { createClient } from '@pleeno/database/client'
 import { useRouter } from 'next/navigation'

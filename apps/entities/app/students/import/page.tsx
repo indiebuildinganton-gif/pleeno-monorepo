@@ -3,16 +3,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@pleeno/database/client'
-import { Button } from '@pleeno/ui/src/components/ui/button'
-import { Input } from '@pleeno/ui/src/components/ui/input'
-import { Label } from '@pleeno/ui/src/components/ui/label'
+import { Button } from '@pleeno/ui/components/ui/button'
+import { Input } from '@pleeno/ui/components/ui/input'
+import { Label } from '@pleeno/ui/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@pleeno/ui/src/components/ui/select'
+} from '@pleeno/ui/components/ui/select'
 import {
   Table,
   TableBody,
@@ -20,9 +20,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@pleeno/ui/src/components/ui/table'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pleeno/ui/src/components/ui/card'
-import { Badge } from '@pleeno/ui/src/components/ui/badge'
+} from '@pleeno/ui/components/ui/table'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@pleeno/ui/components/ui/card'
+import { Badge } from '@pleeno/ui/components/ui/badge'
 import {
   ArrowLeft,
   Upload,

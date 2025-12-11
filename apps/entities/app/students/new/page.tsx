@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@pleeno/database/client'
 import { StudentForm } from '../components/StudentForm'
-import { Button } from '@pleeno/ui/src/components/ui/button'
+import { Button } from '@pleeno/ui/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import type { User } from '@supabase/supabase-js'
 

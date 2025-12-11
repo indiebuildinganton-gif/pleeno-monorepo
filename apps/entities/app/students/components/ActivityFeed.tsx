@@ -3,17 +3,17 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { RefreshCw, Search } from 'lucide-react'
-import { Button } from '@pleeno/ui/src/components/ui/button'
-import { Input } from '@pleeno/ui/src/components/ui/input'
+import { Button } from '@pleeno/ui/components/ui/button'
+import { Input } from '@pleeno/ui/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@pleeno/ui/src/components/ui/select'
-import { getRelativeTime } from '@pleeno/utils/src/date-helpers'
-import { cn } from '@pleeno/ui/src/lib/utils'
+} from '@pleeno/ui/components/ui/select'
+import { getRelativeTime } from '@pleeno/utils'
+import { cn } from '@pleeno/ui/lib/utils'
 
 /**
  * Activity entry interface matching API response
