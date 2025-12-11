@@ -35,7 +35,14 @@
       "Bash(rm:*)",
       "Bash(pnpm:*)",
       "Bash(npx pnpm@9.15.0 install:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(gh auth status:*)",
+      "Bash(/opt/homebrew/bin/gh auth status)",
+      "Bash(/opt/homebrew/bin/gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git remote:*)",
+      "Bash(/opt/homebrew/bin/gh run view:*)"
     ],
     "deny": [],
     "ask": []

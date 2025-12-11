@@ -11,7 +11,9 @@
     "./client": "./src/client.ts",
     "./middleware": "./src/middleware.ts",
     "./api-route": "./src/api-route.ts",
-    "./types": "./src/types/database.types.ts"
+    "./types": "./src/types/database.types.ts",
+    "./activity-logger": "./src/activity-logger.ts",
+    "./audit-logger": "./src/audit-logger.ts"
   },
   "scripts": {
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint \"src/**/*.{ts,tsx}\" --max-warnings 0 || true",
