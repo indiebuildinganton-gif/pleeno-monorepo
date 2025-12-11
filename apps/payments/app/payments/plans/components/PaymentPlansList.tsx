@@ -38,7 +38,7 @@ import {
 import { formatCurrency, format, parseISO } from '@pleeno/utils'
 import { PaymentPlanStatusBadge } from './PaymentPlanStatusBadge'
 import { ExternalLink } from 'lucide-react'
-import { getApiUrl } from '@/app/hooks/useApiUrl'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 /**
  * Get the entities zone URL based on environment
