@@ -8,129 +8,11 @@ on:
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  NODE_VERSION: '20'
 
 jobs:
-  build:
-    name: Build All Apps
-    runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build all apps
-        run: pnpm build
-        env:
-          NODE_ENV: production
-          # These are placeholder URLs - will be updated for shell after child deployments
-          NEXT_PUBLIC_DASHBOARD_URL: https://placeholder.vercel.app
-          NEXT_PUBLIC_ENTITIES_URL: https://placeholder.vercel.app
-          NEXT_PUBLIC_PAYMENTS_URL: https://placeholder.vercel.app
-          NEXT_PUBLIC_AGENCY_URL: https://placeholder.vercel.app
-          NEXT_PUBLIC_REPORTS_URL: https://placeholder.vercel.app
-
-      - name: Generate cache key
-        id: cache-key
-        run: echo "key=build-${{ github.sha }}-${{ github.run_id }}" >> $GITHUB_OUTPUT
-
-      - name: Upload dashboard build
-        uses: actions/upload-artifact@v4
-        with:
-          name: dashboard-build-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/dashboard/.next
-            apps/dashboard/package.json
-            apps/dashboard/next.config.ts
-            apps/dashboard/public
-          retention-days: 1
-
-      - name: Upload entities build
-        uses: actions/upload-artifact@v4
-        with:
-          name: entities-build-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/entities/.next
-            apps/entities/package.json
-            apps/entities/next.config.ts
-            apps/entities/public
-          retention-days: 1
-
-      - name: Upload payments build
-        uses: actions/upload-artifact@v4
-        with:
-          name: payments-build-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/payments/.next
-            apps/payments/package.json
-            apps/payments/next.config.ts
-            apps/payments/public
-          retention-days: 1
-
-      - name: Upload agency build
-        uses: actions/upload-artifact@v4
-        with:
-          name: agency-build-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/agency/.next
-            apps/agency/package.json
-            apps/agency/next.config.ts
-            apps/agency/public
-          retention-days: 1
-
-      - name: Upload reports build
-        uses: actions/upload-artifact@v4
-        with:
-          name: reports-build-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/reports/.next
-            apps/reports/package.json
-            apps/reports/next.config.ts
-            apps/reports/public
-          retention-days: 1
-
-      - name: Upload shell build (temporary)
-        uses: actions/upload-artifact@v4
-        with:
-          name: shell-build-temp-${{ steps.cache-key.outputs.key }}
-          path: |
-            apps/shell/.next
-            apps/shell/package.json
-            apps/shell/next.config.ts
-            apps/shell/public
-          retention-days: 1
-
   deploy-dashboard:
     name: Deploy Dashboard
     runs-on: ubuntu-latest
-    needs: build
     outputs:
       url: ${{ steps.deploy.outputs.url }}
 
@@ -138,36 +20,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download dashboard build
-        uses: actions/download-artifact@v4
-        with:
-          name: dashboard-build-${{ needs.build.outputs.cache-key }}
-          path: apps/dashboard
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/dashboard
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/dashboard
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/dashboard
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/dashboard)
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed dashboard to: $URL"
-        working-directory: apps/dashboard
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
@@ -175,7 +42,6 @@ jobs:
   deploy-entities:
     name: Deploy Entities
     runs-on: ubuntu-latest
-    needs: build
     outputs:
       url: ${{ steps.deploy.outputs.url }}
 
@@ -183,36 +49,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download entities build
-        uses: actions/download-artifact@v4
-        with:
-          name: entities-build-${{ needs.build.outputs.cache-key }}
-          path: apps/entities
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/entities
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/entities
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities)
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed entities to: $URL"
-        working-directory: apps/entities
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
@@ -220,7 +71,6 @@ jobs:
   deploy-payments:
     name: Deploy Payments
     runs-on: ubuntu-latest
-    needs: build
     outputs:
       url: ${{ steps.deploy.outputs.url }}
 
@@ -228,36 +78,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download payments build
-        uses: actions/download-artifact@v4
-        with:
-          name: payments-build-${{ needs.build.outputs.cache-key }}
-          path: apps/payments
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/payments
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/payments
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/payments
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/payments)
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed payments to: $URL"
-        working-directory: apps/payments
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
@@ -265,7 +100,6 @@ jobs:
   deploy-agency:
     name: Deploy Agency
     runs-on: ubuntu-latest
-    needs: build
     outputs:
       url: ${{ steps.deploy.outputs.url }}
 
@@ -273,36 +107,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download agency build
-        uses: actions/download-artifact@v4
-        with:
-          name: agency-build-${{ needs.build.outputs.cache-key }}
-          path: apps/agency
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/agency
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/agency
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/agency
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/agency)
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed agency to: $URL"
-        working-directory: apps/agency
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
@@ -310,7 +129,6 @@ jobs:
   deploy-reports:
     name: Deploy Reports
     runs-on: ubuntu-latest
-    needs: build
     outputs:
       url: ${{ steps.deploy.outputs.url }}
 
@@ -318,45 +136,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download reports build
-        uses: actions/download-artifact@v4
-        with:
-          name: reports-build-${{ needs.build.outputs.cache-key }}
-          path: apps/reports
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/reports
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/reports
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/reports
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/reports)
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed reports to: $URL"
-        working-directory: apps/reports
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
 
-  rebuild-and-deploy-shell:
-    name: Rebuild and Deploy Shell
+  deploy-shell:
+    name: Deploy Shell
     runs-on: ubuntu-latest
     needs:
-      - build
       - deploy-dashboard
       - deploy-entities
       - deploy-payments
@@ -369,77 +171,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Rebuild shell with child app URLs
-        run: pnpm turbo build --filter=shell
-        env:
-          NODE_ENV: production
-          NEXT_PUBLIC_DASHBOARD_URL: ${{ needs.deploy-dashboard.outputs.url }}
-          NEXT_PUBLIC_ENTITIES_URL: ${{ needs.deploy-entities.outputs.url }}
-          NEXT_PUBLIC_PAYMENTS_URL: ${{ needs.deploy-payments.outputs.url }}
-          NEXT_PUBLIC_AGENCY_URL: ${{ needs.deploy-agency.outputs.url }}
-          NEXT_PUBLIC_REPORTS_URL: ${{ needs.deploy-reports.outputs.url }}
-
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/shell
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/shell
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
 
-      - name: Build Vercel Output
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/shell
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
-
-      - name: Deploy to Vercel
+      - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/shell --build-env NEXT_PUBLIC_DASHBOARD_URL="${{ needs.deploy-dashboard.outputs.url }}" --build-env NEXT_PUBLIC_ENTITIES_URL="${{ needs.deploy-entities.outputs.url }}" --build-env NEXT_PUBLIC_PAYMENTS_URL="${{ needs.deploy-payments.outputs.url }}" --build-env NEXT_PUBLIC_AGENCY_URL="${{ needs.deploy-agency.outputs.url }}" --build-env NEXT_PUBLIC_REPORTS_URL="${{ needs.deploy-reports.outputs.url }}")
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed shell to: $URL"
-        working-directory: apps/shell
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
-
-      - name: Update Vercel environment variables for next deployment
-        run: |
-          vercel env add NEXT_PUBLIC_DASHBOARD_URL production "${{ needs.deploy-dashboard.outputs.url }}" --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-          vercel env add NEXT_PUBLIC_ENTITIES_URL production "${{ needs.deploy-entities.outputs.url }}" --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-          vercel env add NEXT_PUBLIC_PAYMENTS_URL production "${{ needs.deploy-payments.outputs.url }}" --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-          vercel env add NEXT_PUBLIC_AGENCY_URL production "${{ needs.deploy-agency.outputs.url }}" --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-          vercel env add NEXT_PUBLIC_REPORTS_URL production "${{ needs.deploy-reports.outputs.url }}" --token=${{ secrets.VERCEL_TOKEN }} --yes || true
-        working-directory: apps/shell
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
@@ -453,7 +199,7 @@ jobs:
       - deploy-payments
       - deploy-agency
       - deploy-reports
-      - rebuild-and-deploy-shell
+      - deploy-shell
     if: always()
 
     steps:
@@ -469,7 +215,7 @@ jobs:
           echo "- Reports: ${{ needs.deploy-reports.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Shell App" >> $GITHUB_STEP_SUMMARY
-          echo "- Shell: ${{ needs.rebuild-and-deploy-shell.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Shell: ${{ needs.deploy-shell.outputs.url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Production Domain" >> $GITHUB_STEP_SUMMARY
           echo "- https://plenno.com.au" >> $GITHUB_STEP_SUMMARY
