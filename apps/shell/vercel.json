@@ -1,7 +1,0 @@
-{
-  "buildCommand": "echo 'Build happens in GitHub Actions'",
-  "installCommand": "echo 'Dependencies installed in GitHub Actions'",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "ignoreCommand": "echo 'Deployment via GitHub Actions only'"
-}

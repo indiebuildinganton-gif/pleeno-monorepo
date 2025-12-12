@@ -42,7 +42,15 @@
       "Bash(git remote add:*)",
       "Bash(git remote set-url:*)",
       "Bash(git remote:*)",
-      "Bash(/opt/homebrew/bin/gh run view:*)"
+      "Bash(/opt/homebrew/bin/gh run view:*)",
+      "Bash(/opt/homebrew/bin/vercel whoami:*)",
+      "Bash(/opt/homebrew/bin/vercel link:*)",
+      "Bash(/opt/homebrew/bin/gh secret set:*)",
+      "Bash(/opt/homebrew/bin/gh secret list --repo indiebuildinganton-gif/pleeno-monorepo)",
+      "Bash(/opt/homebrew/bin/gh run rerun 20140267520 --repo indiebuildinganton-gif/pleeno-monorepo)",
+      "Bash(/opt/homebrew/bin/gh run watch 20140267520 --repo indiebuildinganton-gif/pleeno-monorepo)",
+      "Bash(/opt/homebrew/bin/gh run list --repo indiebuildinganton-gif/pleeno-monorepo --limit 1)",
+      "Bash(/opt/homebrew/bin/gh api repos/indiebuildinganton-gif/pleeno-monorepo/actions/jobs/57811128719/logs)"
     ],
     "deny": [],
     "ask": []
