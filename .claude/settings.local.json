@@ -50,7 +50,14 @@
       "Bash(/opt/homebrew/bin/gh run rerun 20140267520 --repo indiebuildinganton-gif/pleeno-monorepo)",
       "Bash(/opt/homebrew/bin/gh run watch 20140267520 --repo indiebuildinganton-gif/pleeno-monorepo)",
       "Bash(/opt/homebrew/bin/gh run list --repo indiebuildinganton-gif/pleeno-monorepo --limit 1)",
-      "Bash(/opt/homebrew/bin/gh api repos/indiebuildinganton-gif/pleeno-monorepo/actions/jobs/57811128719/logs)"
+      "Bash(/opt/homebrew/bin/gh api repos/indiebuildinganton-gif/pleeno-monorepo/actions/jobs/57811128719/logs)",
+      "Bash(/opt/homebrew/bin/gh run list --repo indiebuildinganton-gif/pleeno-monorepo --limit 2)",
+      "Bash(for app in dashboard entities payments agency reports shell)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(/opt/homebrew/bin/vercel project rm:*)",
+      "Bash(/opt/homebrew/bin/vercel project ls:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

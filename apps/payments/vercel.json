@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=payments",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "framework": "nextjs"
-}
