@@ -1,0 +1,6 @@
+{
+  "buildCommand": "pnpm turbo build --filter=payments",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "outputDirectory": "apps/payments/.next"
+}
