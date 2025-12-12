@@ -24,7 +24,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/dashboard
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
@@ -32,7 +32,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/dashboard)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed dashboard preview to: $URL"
         env:
@@ -53,7 +53,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
@@ -61,7 +61,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed entities preview to: $URL"
         env:
@@ -82,7 +82,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/payments
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
@@ -90,7 +90,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/payments)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed payments preview to: $URL"
         env:
@@ -111,7 +111,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/agency
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
@@ -119,7 +119,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/agency)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed agency preview to: $URL"
         env:
@@ -140,7 +140,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/reports
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
@@ -148,7 +148,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/reports)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed reports preview to: $URL"
         env:
@@ -175,7 +175,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/shell
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
@@ -183,7 +183,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/shell --build-env NEXT_PUBLIC_DASHBOARD_URL="${{ needs.deploy-dashboard.outputs.url }}" --build-env NEXT_PUBLIC_ENTITIES_URL="${{ needs.deploy-entities.outputs.url }}" --build-env NEXT_PUBLIC_PAYMENTS_URL="${{ needs.deploy-payments.outputs.url }}" --build-env NEXT_PUBLIC_AGENCY_URL="${{ needs.deploy-agency.outputs.url }}" --build-env NEXT_PUBLIC_REPORTS_URL="${{ needs.deploy-reports.outputs.url }}")
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --build-env NEXT_PUBLIC_DASHBOARD_URL="${{ needs.deploy-dashboard.outputs.url }}" --build-env NEXT_PUBLIC_ENTITIES_URL="${{ needs.deploy-entities.outputs.url }}" --build-env NEXT_PUBLIC_PAYMENTS_URL="${{ needs.deploy-payments.outputs.url }}" --build-env NEXT_PUBLIC_AGENCY_URL="${{ needs.deploy-agency.outputs.url }}" --build-env NEXT_PUBLIC_REPORTS_URL="${{ needs.deploy-reports.outputs.url }}")
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed shell preview to: $URL"
         env:
