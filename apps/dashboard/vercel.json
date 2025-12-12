@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pnpm turbo build --filter=dashboard",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "outputDirectory": "apps/dashboard/.next"
-}

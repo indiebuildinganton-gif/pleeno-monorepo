@@ -1,6 +1,0 @@
-{
-  "buildCommand": "pnpm turbo build --filter=entities",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "outputDirectory": "apps/entities/.next"
-}
