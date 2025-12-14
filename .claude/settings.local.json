@@ -57,7 +57,13 @@
       "Bash(echo:*)",
       "Bash(/opt/homebrew/bin/vercel project rm:*)",
       "Bash(/opt/homebrew/bin/vercel project ls:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(/opt/homebrew/bin/gh run list --repo indiebuildinganton-gif/pleeno-monorepo --limit 3)",
+      "Bash(/opt/homebrew/bin/gh api repos/indiebuildinganton-gif/pleeno-monorepo/actions/jobs/57854560405/logs)",
+      "Bash(/opt/homebrew/bin/gh run watch 20166304110 --repo indiebuildinganton-gif/pleeno-monorepo --interval 10)",
+      "Bash(/opt/homebrew/bin/gh run cancel 20166304110 --repo indiebuildinganton-gif/pleeno-monorepo)",
+      "Bash(git rm:*)",
+      "Bash(cp:*)"
     ],
     "deny": [],
     "ask": []
