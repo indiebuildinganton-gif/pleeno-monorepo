@@ -42,26 +42,58 @@ jobs:
           set -e
           echo "=== Starting Dashboard Deployment ==="
           echo "Time: $(date)"
+          echo "Vercel CLI version: $(vercel --version)"
 
-          # Deploy with explicit 10-minute timeout
-          OUTPUT=$(timeout 600 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} 2>&1)
+          # NOTE: Turbopack disabled via apps/dashboard/vercel.json (buildCommand: "next build")
+          # See: docs/deployment/sequential-free-vercel/vercel_deployment_analysis.md
+
+          # Deploy with 15-minute timeout and verbose output
+          echo "Starting deployment... (timeout: 900 seconds)"
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          DEPLOY_PID=$!
+
+          # Monitor the deployment with live output
+          tail -f deployment.log &
+          TAIL_PID=$!
+
+          # Wait for deployment to complete
+          if wait $DEPLOY_PID; then
+            kill $TAIL_PID 2>/dev/null || true
+            echo "✓ Deployment completed successfully"
+          else
+            EXIT_CODE=$?
+            kill $TAIL_PID 2>/dev/null || true
+            echo "ERROR: Deployment failed with exit code: $EXIT_CODE"
+            if [ $EXIT_CODE -eq 124 ]; then
+              echo "⚠️ TIMEOUT: Deployment exceeded 15 minutes"
+              echo "This likely means:"
+              echo "  1. Build still hanging (check Vercel dashboard)"
+              echo "  2. Or queued despite sequential execution"
+              echo ""
+              echo "Last 50 lines of output:"
+              tail -50 deployment.log
+            fi
+            echo ""
+            echo "Full deployment log:"
+            cat deployment.log
+            exit $EXIT_CODE
+          fi
 
           # Extract URL from output
-          URL=$(echo "$OUTPUT" | grep -oP '(?<=https://)[^\s]+' | head -1)
+          URL=$(grep -oP 'https://[^\s]+' deployment.log | head -1)
 
           if [ -z "$URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             echo "Full output:"
-            echo "$OUTPUT"
+            cat deployment.log
             exit 1
           fi
 
-          URL="https://$URL"
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "✓ Deployed dashboard to: $URL"
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
-        timeout-minutes: 12
+        timeout-minutes: 18
 
       - name: Verify Deployment
         run: |
