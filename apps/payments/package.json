@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack --port 3003",
     "dev:standalone": "STANDALONE_MODE=true next dev --turbopack --port 3003",
-    "build": "next build --turbopack",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit"
