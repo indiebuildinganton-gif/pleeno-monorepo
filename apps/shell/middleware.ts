@@ -39,9 +39,6 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-    },
-  })
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -120,6 +117,7 @@ export async function middleware(request: NextRequest) {
   // If user is authenticated, add headers that zones can use
   // This allows zones to trust the authentication from the shell
   if (user) {
+    const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-user-id', user.id)
     requestHeaders.set('x-user-email', user.email || '')
     requestHeaders.set('x-authenticated', 'true')
