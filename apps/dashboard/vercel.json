@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm install --frozen-lockfile --ignore-scripts && pnpm exec turbo build --filter=dashboard",
+  "buildCommand": "pnpm install --frozen-lockfile --ignore-scripts && cd apps/dashboard && pnpm exec next build",
   "installCommand": "echo 'Install handled in buildCommand'",
-  "framework": "nextjs",
+  "framework": null,
   "outputDirectory": "apps/dashboard/.next"
 }
