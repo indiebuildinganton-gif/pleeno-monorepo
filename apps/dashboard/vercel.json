@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm install --frozen-lockfile --ignore-scripts && cd apps/dashboard && pnpm exec next build",
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && cd apps/dashboard && pnpm exec next build",
   "installCommand": "echo 'Install handled in buildCommand'",
   "framework": null,
-  "outputDirectory": "apps/dashboard/.next"
+  "outputDirectory": ".next"
 }
