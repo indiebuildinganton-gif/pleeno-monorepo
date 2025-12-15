@@ -27,22 +27,29 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  try {
+    let response = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
 
-  // Check if Supabase environment variables are configured
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Supabase environment variables not configured")
-    return response
-  }
+    // Check if Supabase environment variables are configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
+    if (!supabaseUrl || !supabaseKey) {
+      console.error("Supabase environment variables not configured", {
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey
+      })
+      return response
+    }
+
+    const supabase = createServerClient(
+      supabaseUrl,
+      supabaseKey,
+      {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value
@@ -168,10 +175,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
-  // For Vercel free domains, don't redirect to avoid loops
-  // The login page will handle redirect via window.location
+    // For Vercel free domains, don't redirect to avoid loops
+    // The login page will handle redirect via window.location
 
-  return response
+    return response
+  } catch (error) {
+    console.error("Middleware error:", error)
+    // Return a pass-through response on any error to prevent 500
+    return NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+  }
 }
 
 export const config = {
