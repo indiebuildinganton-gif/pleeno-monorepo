@@ -70,7 +70,8 @@
       "Bash(for app in dashboard payments agency reports shell)",
       "Bash(if [ -f \"apps/$app/middleware.ts\" ])",
       "Bash(then)",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(/opt/homebrew/bin/vercel:*)"
     ],
     "deny": [],
     "ask": []
