@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && cd apps/entities && pnpm exec next build",
-  "installCommand": "echo 'Skipping install - handled in buildCommand'",
+  "buildCommand": "pnpm install --frozen-lockfile --ignore-scripts && pnpm exec turbo build --filter=entities",
+  "installCommand": "echo 'Install handled in buildCommand'",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": "apps/entities/.next"
 }
