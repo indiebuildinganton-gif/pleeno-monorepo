@@ -31,6 +31,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/dashboard
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
@@ -38,6 +39,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/dashboard
         run: |
           set -e
           echo "=== Starting Dashboard Deployment ==="
@@ -125,6 +127,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/entities
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
@@ -132,6 +135,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/entities
         run: |
           set -e
           echo "=== Starting Entities Deployment ==="
@@ -206,6 +210,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/payments
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
@@ -213,6 +218,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/payments
         run: |
           set -e
           echo "=== Starting Payments Deployment ==="
@@ -274,6 +280,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/agency
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
@@ -281,6 +288,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/agency
         run: |
           set -e
           echo "=== Starting Agency Deployment ==="
@@ -342,6 +350,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/reports
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
@@ -349,6 +358,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/reports
         run: |
           set -e
           echo "=== Starting Reports Deployment ==="
@@ -415,6 +425,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: apps/shell
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_SHELL }}
@@ -422,6 +433,7 @@ jobs:
 
       - name: Build and Deploy to Vercel
         id: deploy
+        working-directory: apps/shell
         run: |
           set -e
           echo "=== Starting Shell Deployment ==="
