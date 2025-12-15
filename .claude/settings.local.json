@@ -65,7 +65,12 @@
       "Bash(git rm:*)",
       "Bash(cp:*)",
       "Bash(npx pnpm@9.15.0 view:*)",
-      "Bash(npx pnpm@9.15.0 update:*)"
+      "Bash(npx pnpm@9.15.0 update:*)",
+      "Bash(/opt/homebrew/bin/vercel env ls:*)",
+      "Bash(for app in dashboard payments agency reports shell)",
+      "Bash(if [ -f \"apps/$app/middleware.ts\" ])",
+      "Bash(then)",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
