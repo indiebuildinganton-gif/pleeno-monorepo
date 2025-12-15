@@ -63,7 +63,9 @@
       "Bash(/opt/homebrew/bin/gh run watch 20166304110 --repo indiebuildinganton-gif/pleeno-monorepo --interval 10)",
       "Bash(/opt/homebrew/bin/gh run cancel 20166304110 --repo indiebuildinganton-gif/pleeno-monorepo)",
       "Bash(git rm:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npx pnpm@9.15.0 view:*)",
+      "Bash(npx pnpm@9.15.0 update:*)"
     ],
     "deny": [],
     "ask": []
