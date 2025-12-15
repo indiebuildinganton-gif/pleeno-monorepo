@@ -1,0 +1,63 @@
+name: Configure Vercel Projects
+
+on:
+  workflow_dispatch:
+
+jobs:
+  configure:
+    name: Set Root Directories for Vercel Projects
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure Entities Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/entities"}'
+          echo "✓ Configured Entities root directory"
+
+      - name: Configure Payments Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/payments"}'
+          echo "✓ Configured Payments root directory"
+
+      - name: Configure Agency Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_AGENCY }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/agency"}'
+          echo "✓ Configured Agency root directory"
+
+      - name: Configure Reports Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_REPORTS }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/reports"}'
+          echo "✓ Configured Reports root directory"
+
+      - name: Configure Shell Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_SHELL }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/shell"}'
+          echo "✓ Configured Shell root directory"
+
+      - name: Summary
+        run: |
+          echo "✅ All Vercel projects configured with correct root directories"
+          echo ""
+          echo "Projects updated:"
+          echo "  - Entities: apps/entities"
+          echo "  - Payments: apps/payments"
+          echo "  - Agency: apps/agency"
+          echo "  - Reports: apps/reports"
+          echo "  - Shell: apps/shell"
+          echo ""
+          echo "You can now run deployments and they should work correctly!"
