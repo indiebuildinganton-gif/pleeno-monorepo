@@ -9,6 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Configure Dashboard Project
+        run: |
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{"rootDirectory": "apps/dashboard"}'
+          echo "✓ Configured Dashboard root directory"
+
       - name: Configure Entities Project
         run: |
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
@@ -54,6 +62,7 @@ jobs:
           echo "✅ All Vercel projects configured with correct root directories"
           echo ""
           echo "Projects updated:"
+          echo "  - Dashboard: apps/dashboard"
           echo "  - Entities: apps/entities"
           echo "  - Payments: apps/payments"
           echo "  - Agency: apps/agency"
