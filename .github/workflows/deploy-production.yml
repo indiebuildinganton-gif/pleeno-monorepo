@@ -44,8 +44,8 @@ jobs:
           echo "Time: $(date)"
           echo "Vercel CLI version: $(vercel --version)"
 
-          # NOTE: Turbopack disabled via apps/dashboard/vercel.json (buildCommand: "next build")
-          # See: docs/deployment/sequential-free-vercel/vercel_deployment_analysis.md
+          # Change to dashboard directory for deployment
+          cd apps/dashboard
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
@@ -134,6 +134,7 @@ jobs:
         id: deploy
         run: |
           set -e
+          cd apps/entities
           echo "=== Starting Entities Deployment ==="
           echo "Time: $(date)"
           echo "Dashboard URL: ${{ needs.deploy-dashboard.outputs.url }}"
@@ -215,6 +216,7 @@ jobs:
         id: deploy
         run: |
           set -e
+          cd apps/payments
           echo "=== Starting Payments Deployment ==="
           echo "Time: $(date)"
 
@@ -283,6 +285,7 @@ jobs:
         id: deploy
         run: |
           set -e
+          cd apps/agency
           echo "=== Starting Agency Deployment ==="
           echo "Time: $(date)"
 
@@ -351,6 +354,7 @@ jobs:
         id: deploy
         run: |
           set -e
+          cd apps/reports
           echo "=== Starting Reports Deployment ==="
           echo "Time: $(date)"
 
@@ -424,6 +428,7 @@ jobs:
         id: deploy
         run: |
           set -e
+          cd apps/shell
           echo "=== Starting Shell Deployment ==="
           echo "Time: $(date)"
           echo "All child app URLs:"
