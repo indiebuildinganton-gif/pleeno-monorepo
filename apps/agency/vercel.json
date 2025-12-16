@@ -1,6 +1,5 @@
 {
   "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && cd apps/agency && pnpm exec next build",
   "installCommand": "echo 'Install handled in buildCommand'",
-  "framework": "nextjs",
   "outputDirectory": ".next"
 }
