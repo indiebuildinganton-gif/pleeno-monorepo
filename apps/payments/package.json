@@ -17,6 +17,7 @@
     "@pleeno/ui": "workspace:*",
     "@pleeno/utils": "workspace:*",
     "@pleeno/validations": "workspace:*",
+    "@supabase/ssr": "^0.5.2",
     "@tanstack/react-query": "5.90.7",
     "next": "16.0.10",
     "react": "19.1.0",
