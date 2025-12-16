@@ -9,7 +9,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "zustand": "5.0.8"
+    "zustand": "5.0.9"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
