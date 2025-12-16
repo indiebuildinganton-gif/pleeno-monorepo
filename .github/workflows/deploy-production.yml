@@ -43,13 +43,11 @@ jobs:
           echo "=== Starting Dashboard Deployment ==="
           echo "Time: $(date)"
           echo "Vercel CLI version: $(vercel --version)"
-
-          # Change to dashboard directory for deployment
-          cd apps/dashboard
+          echo "Current directory: $(pwd)"
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/dashboard > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
@@ -134,14 +132,14 @@ jobs:
         id: deploy
         run: |
           set -e
-          cd apps/entities
           echo "=== Starting Entities Deployment ==="
           echo "Time: $(date)"
           echo "Dashboard URL: ${{ needs.deploy-dashboard.outputs.url }}"
+          echo "Current directory: $(pwd)"
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/entities > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
@@ -216,12 +214,12 @@ jobs:
         id: deploy
         run: |
           set -e
-          cd apps/payments
           echo "=== Starting Payments Deployment ==="
           echo "Time: $(date)"
+          echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/payments > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -285,12 +283,12 @@ jobs:
         id: deploy
         run: |
           set -e
-          cd apps/agency
           echo "=== Starting Agency Deployment ==="
           echo "Time: $(date)"
+          echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/agency > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -354,12 +352,12 @@ jobs:
         id: deploy
         run: |
           set -e
-          cd apps/reports
           echo "=== Starting Reports Deployment ==="
           echo "Time: $(date)"
+          echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/reports > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -428,9 +426,9 @@ jobs:
         id: deploy
         run: |
           set -e
-          cd apps/shell
           echo "=== Starting Shell Deployment ==="
           echo "Time: $(date)"
+          echo "Current directory: $(pwd)"
           echo "All child app URLs:"
           echo "  - Dashboard: ${{ needs.deploy-dashboard.outputs.url }}"
           echo "  - Entities: ${{ needs.deploy-entities.outputs.url }}"
@@ -440,6 +438,7 @@ jobs:
 
           echo "Starting deployment... (timeout: 900 seconds)"
           timeout 900 vercel --prod \
+            --cwd=apps/shell \
             --token=${{ secrets.VERCEL_TOKEN }} \
             --build-env NEXT_PUBLIC_DASHBOARD_URL="${{ needs.deploy-dashboard.outputs.url }}" \
             --build-env NEXT_PUBLIC_ENTITIES_URL="${{ needs.deploy-entities.outputs.url }}" \
