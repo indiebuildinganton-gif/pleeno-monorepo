@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && cd apps/shell && pnpm exec next build",
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && pnpm exec next build --filter=shell",
   "installCommand": "echo 'Install handled in buildCommand'",
   "outputDirectory": ".next"
 }
