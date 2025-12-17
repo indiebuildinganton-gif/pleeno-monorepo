@@ -33,35 +33,59 @@ jobs:
 
       - name: Configure Payments Project
         run: |
+          echo "Configuring Payments for pnpm monorepo..."
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"rootDirectory": "apps/payments"}'
-          echo "✓ Configured Payments root directory"
+            -d '{
+              "rootDirectory": null,
+              "installCommand": "pnpm install",
+              "buildCommand": "cd apps/payments && pnpm run build",
+              "outputDirectory": "apps/payments/.next"
+            }'
+          echo "✓ Configured Payments for monorepo"
 
       - name: Configure Agency Project
         run: |
+          echo "Configuring Agency for pnpm monorepo..."
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_AGENCY }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"rootDirectory": "apps/agency"}'
-          echo "✓ Configured Agency root directory"
+            -d '{
+              "rootDirectory": null,
+              "installCommand": "pnpm install",
+              "buildCommand": "cd apps/agency && pnpm run build",
+              "outputDirectory": "apps/agency/.next"
+            }'
+          echo "✓ Configured Agency for monorepo"
 
       - name: Configure Reports Project
         run: |
+          echo "Configuring Reports for pnpm monorepo..."
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_REPORTS }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"rootDirectory": "apps/reports"}'
-          echo "✓ Configured Reports root directory"
+            -d '{
+              "rootDirectory": null,
+              "installCommand": "pnpm install",
+              "buildCommand": "cd apps/reports && pnpm run build",
+              "outputDirectory": "apps/reports/.next"
+            }'
+          echo "✓ Configured Reports for monorepo"
 
       - name: Configure Shell Project
         run: |
+          echo "Configuring Shell for pnpm monorepo..."
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_SHELL }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{"rootDirectory": "apps/shell"}'
-          echo "✓ Configured Shell root directory"
+            -d '{
+              "rootDirectory": null,
+              "installCommand": "pnpm install",
+              "buildCommand": "cd apps/shell && pnpm run build",
+              "outputDirectory": "apps/shell/.next"
+            }'
+          echo "✓ Configured Shell for monorepo"
 
       - name: Summary
         run: |
