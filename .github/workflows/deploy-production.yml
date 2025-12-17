@@ -125,7 +125,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
         timeout-minutes: 5
@@ -140,7 +140,7 @@ jobs:
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/entities > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
