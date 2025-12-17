@@ -19,11 +19,23 @@ jobs:
 
       - name: Configure Entities Project
         run: |
+          # Get current settings
+          echo "Current Entities project settings:"
+          curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" | jq '.rootDirectory'
+
+          # Update root directory
           curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{"rootDirectory": "apps/entities"}'
+
           echo "✓ Configured Entities root directory"
+
+          # Verify the update
+          echo "Updated Entities project settings:"
+          curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" | jq '.rootDirectory'
 
       - name: Configure Payments Project
         run: |

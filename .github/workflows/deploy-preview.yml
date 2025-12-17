@@ -52,8 +52,28 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Verify and Fix Vercel Project Settings
+        run: |
+          echo "Checking current rootDirectory setting..."
+          CURRENT_ROOT=$(curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" | jq -r '.rootDirectory // "null"')
+
+          echo "Current rootDirectory: $CURRENT_ROOT"
+
+          # Fix if it's incorrectly set
+          if [ "$CURRENT_ROOT" != "apps/entities" ]; then
+            echo "Fixing rootDirectory to apps/entities..."
+            curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"rootDirectory": "apps/entities"}'
+            echo "✓ Updated rootDirectory"
+          else
+            echo "✓ rootDirectory is correct"
+          fi
+
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
@@ -61,7 +81,7 @@ jobs:
       - name: Build and Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities)
+          URL=$(vercel --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$URL" >> $GITHUB_OUTPUT
           echo "Deployed entities preview to: $URL"
         env:

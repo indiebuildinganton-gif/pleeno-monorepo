@@ -7,7 +7,8 @@
       "Bash(npx pnpm@9.15.0 add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nFix: Add @supabase/ssr dependency to all app package.json files\n\nThe MIDDLEWARE_INVOCATION_FAILED error was caused by missing @supabase/ssr dependency in individual app package.json files.\n\nRoot cause:\n- Middleware imports @supabase/ssr\n- Each Next.js app bundles its own middleware  \n- Apps couldn''t find @supabase/ssr because it was only in root package.json\n- Module resolution failed at runtime causing middleware crash\n\nFix:\n- Added @supabase/ssr@^0.5.2 to dashboard, entities, payments, agency, and shell\n- Reports already had it\n- Now all apps can successfully import and use the Supabase SSR package\n\nThis should resolve the 500 errors on all deployed apps.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(curl:*)",
-      "Bash(then curl -I -s https://$app.plenno.com.au/dashboard)"
+      "Bash(then curl -I -s https://$app.plenno.com.au/dashboard)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

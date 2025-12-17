@@ -124,8 +124,29 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
+      - name: Verify and Fix Vercel Project Settings
+        run: |
+          echo "Checking current rootDirectory setting..."
+          CURRENT_ROOT=$(curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" | jq -r '.rootDirectory // "null"')
+
+          echo "Current rootDirectory: $CURRENT_ROOT"
+
+          # Fix if it's incorrectly set
+          if [ "$CURRENT_ROOT" != "apps/entities" ]; then
+            echo "Fixing rootDirectory to apps/entities..."
+            curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"rootDirectory": "apps/entities"}'
+            echo "✓ Updated rootDirectory"
+          else
+            echo "✓ rootDirectory is correct"
+          fi
+        timeout-minutes: 2
+
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} --cwd=apps/entities
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
         timeout-minutes: 5
@@ -140,7 +161,7 @@ jobs:
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/entities > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
