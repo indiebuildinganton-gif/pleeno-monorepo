@@ -124,11 +124,11 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Verify and Fix Vercel Project Settings
+      - name: Configure Vercel Project for Monorepo
         run: |
-          echo "=== Checking Vercel Project Configuration ==="
+          echo "=== Configuring Vercel Project for Monorepo ==="
 
-          # Get full project details
+          # Get current project details
           PROJECT_INFO=$(curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
             -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}")
 
@@ -137,22 +137,23 @@ jobs:
           echo "Framework: $(echo "$PROJECT_INFO" | jq -r '.framework // "null"')"
           echo "Build Command: $(echo "$PROJECT_INFO" | jq -r '.buildCommand // "null"')"
           echo "Install Command: $(echo "$PROJECT_INFO" | jq -r '.installCommand // "null"')"
-          echo "Node Version: $(echo "$PROJECT_INFO" | jq -r '.nodeVersion // "null"')"
 
-          CURRENT_ROOT=$(echo "$PROJECT_INFO" | jq -r '.rootDirectory // "null"')
-
-          # Fix if it's incorrectly set
-          if [ "$CURRENT_ROOT" != "apps/entities" ]; then
-            echo ""
-            echo "⚠️ rootDirectory is not set to 'apps/entities', fixing..."
-            curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
-              -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{"rootDirectory": "apps/entities"}'
-            echo "✓ Updated rootDirectory to apps/entities"
-          else
-            echo "✓ rootDirectory is correctly set to apps/entities"
-          fi
+          # For monorepos, we need to:
+          # 1. Remove rootDirectory (or set to null) so Vercel sees the full repo
+          # 2. Set custom install command to install from root
+          # 3. Set custom build command to build the specific app with turbo
+          echo ""
+          echo "Configuring for pnpm monorepo..."
+          curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "rootDirectory": null,
+              "installCommand": "pnpm install",
+              "buildCommand": "cd apps/entities && pnpm run build",
+              "outputDirectory": "apps/entities/.next"
+            }'
+          echo "✓ Configured project for monorepo deployment"
         timeout-minutes: 2
 
       - name: Pull Vercel Environment Information
