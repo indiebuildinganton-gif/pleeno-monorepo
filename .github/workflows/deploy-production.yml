@@ -126,22 +126,32 @@ jobs:
 
       - name: Verify and Fix Vercel Project Settings
         run: |
-          echo "Checking current rootDirectory setting..."
-          CURRENT_ROOT=$(curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
-            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" | jq -r '.rootDirectory // "null"')
+          echo "=== Checking Vercel Project Configuration ==="
 
-          echo "Current rootDirectory: $CURRENT_ROOT"
+          # Get full project details
+          PROJECT_INFO=$(curl -s "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}")
+
+          echo "Project Name: $(echo "$PROJECT_INFO" | jq -r '.name')"
+          echo "Current rootDirectory: $(echo "$PROJECT_INFO" | jq -r '.rootDirectory // "null"')"
+          echo "Framework: $(echo "$PROJECT_INFO" | jq -r '.framework // "null"')"
+          echo "Build Command: $(echo "$PROJECT_INFO" | jq -r '.buildCommand // "null"')"
+          echo "Install Command: $(echo "$PROJECT_INFO" | jq -r '.installCommand // "null"')"
+          echo "Node Version: $(echo "$PROJECT_INFO" | jq -r '.nodeVersion // "null"')"
+
+          CURRENT_ROOT=$(echo "$PROJECT_INFO" | jq -r '.rootDirectory // "null"')
 
           # Fix if it's incorrectly set
           if [ "$CURRENT_ROOT" != "apps/entities" ]; then
-            echo "Fixing rootDirectory to apps/entities..."
+            echo ""
+            echo "⚠️ rootDirectory is not set to 'apps/entities', fixing..."
             curl -X PATCH "https://api.vercel.com/v9/projects/${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}" \
               -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{"rootDirectory": "apps/entities"}'
-            echo "✓ Updated rootDirectory"
+            echo "✓ Updated rootDirectory to apps/entities"
           else
-            echo "✓ rootDirectory is correct"
+            echo "✓ rootDirectory is correctly set to apps/entities"
           fi
         timeout-minutes: 2
 
