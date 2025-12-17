@@ -47,7 +47,7 @@ jobs:
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/dashboard > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
@@ -139,7 +139,7 @@ jobs:
 
           # Deploy with 15-minute timeout and verbose output
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/entities > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           # Monitor the deployment with live output
@@ -219,7 +219,7 @@ jobs:
           echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/payments > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -288,7 +288,7 @@ jobs:
           echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/agency > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -357,7 +357,7 @@ jobs:
           echo "Current directory: $(pwd)"
 
           echo "Starting deployment... (timeout: 900 seconds)"
-          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes --cwd=apps/reports > deployment.log 2>&1 &
+          timeout 900 vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes > deployment.log 2>&1 &
           DEPLOY_PID=$!
 
           tail -f deployment.log &
@@ -438,7 +438,6 @@ jobs:
 
           echo "Starting deployment... (timeout: 900 seconds)"
           timeout 900 vercel --prod \
-            --cwd=apps/shell \
             --token=${{ secrets.VERCEL_TOKEN }} \
             --build-env NEXT_PUBLIC_DASHBOARD_URL="${{ needs.deploy-dashboard.outputs.url }}" \
             --build-env NEXT_PUBLIC_ENTITIES_URL="${{ needs.deploy-entities.outputs.url }}" \
