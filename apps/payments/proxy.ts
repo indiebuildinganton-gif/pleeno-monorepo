@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  // Minimal pass-through middleware for testing
-  console.log('Middleware executed for:', request.nextUrl.pathname)
+export function proxy(request: NextRequest) {
   return NextResponse.next()
 }
 

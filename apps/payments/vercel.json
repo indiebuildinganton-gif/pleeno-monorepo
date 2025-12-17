@@ -1,6 +1,4 @@
 {
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile --ignore-scripts && cd apps/payments && pnpm exec next build",
-  "installCommand": "echo 'Install handled in buildCommand'",
-  "framework": null,
+  "framework": "nextjs",
   "outputDirectory": ".next"
 }
