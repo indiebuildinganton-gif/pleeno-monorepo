@@ -79,31 +79,31 @@ jobs:
             exit $EXIT_CODE
           fi
 
-          # Extract URL from output - look for the actual deployment URL (*.vercel.app)
-          # Vercel CLI outputs multiple URLs, we want the production deployment URL
-          URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
+          # Extract deployment URL from output for aliasing
+          DEPLOYMENT_URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
 
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             echo "Searching for any https URL as fallback..."
-            URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
+            DEPLOYMENT_URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
           fi
 
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Still could not extract deployment URL"
             echo "Full output:"
             cat deployment.log
             exit 1
           fi
 
-          echo "✓ Deployed dashboard to: $URL"
+          echo "✓ Deployed dashboard to: $DEPLOYMENT_URL"
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain dashboard.plenno.com.au..."
-          vercel alias set "$URL" dashboard.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias set "$DEPLOYMENT_URL" dashboard.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://dashboard.plenno.com.au"
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Output custom domain URL (not deployment URL) for shell to use
+          echo "url=https://dashboard.plenno.com.au" >> $GITHUB_OUTPUT
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DASHBOARD }}
         timeout-minutes: 18
@@ -172,30 +172,31 @@ jobs:
             exit $EXIT_CODE
           fi
 
-          # Extract URL from output - look for the actual deployment URL (*.vercel.app)
-          URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
+          # Extract deployment URL from output for aliasing
+          DEPLOYMENT_URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
 
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             echo "Searching for any https URL as fallback..."
-            URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
+            DEPLOYMENT_URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
           fi
 
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Still could not extract deployment URL"
             echo "Full output:"
             cat deployment.log
             exit 1
           fi
 
-          echo "✓ Deployed entities to: $URL"
+          echo "✓ Deployed entities to: $DEPLOYMENT_URL"
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain entities.plenno.com.au..."
-          vercel alias set "$URL" entities.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias set "$DEPLOYMENT_URL" entities.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://entities.plenno.com.au"
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Output custom domain URL (not deployment URL) for shell to use
+          echo "url=https://entities.plenno.com.au" >> $GITHUB_OUTPUT
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ENTITIES }}
         timeout-minutes: 18
@@ -252,24 +253,25 @@ jobs:
             exit $EXIT_CODE
           fi
 
-          URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
-          if [ -z "$URL" ]; then
-            URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
+          DEPLOYMENT_URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
           fi
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             cat deployment.log
             exit 1
           fi
 
-          echo "✓ Deployed payments to: $URL"
+          echo "✓ Deployed payments to: $DEPLOYMENT_URL"
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain payments.plenno.com.au..."
-          vercel alias set "$URL" payments.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias set "$DEPLOYMENT_URL" payments.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://payments.plenno.com.au"
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Output custom domain URL (not deployment URL) for shell to use
+          echo "url=https://payments.plenno.com.au" >> $GITHUB_OUTPUT
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_PAYMENTS }}
         timeout-minutes: 18
@@ -326,24 +328,25 @@ jobs:
             exit $EXIT_CODE
           fi
 
-          URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
-          if [ -z "$URL" ]; then
-            URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
+          DEPLOYMENT_URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
           fi
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             cat deployment.log
             exit 1
           fi
 
-          echo "✓ Deployed agency to: $URL"
+          echo "✓ Deployed agency to: $DEPLOYMENT_URL"
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain agency.plenno.com.au..."
-          vercel alias set "$URL" agency.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias set "$DEPLOYMENT_URL" agency.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://agency.plenno.com.au"
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Output custom domain URL (not deployment URL) for shell to use
+          echo "url=https://agency.plenno.com.au" >> $GITHUB_OUTPUT
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_AGENCY }}
         timeout-minutes: 18
@@ -400,24 +403,25 @@ jobs:
             exit $EXIT_CODE
           fi
 
-          URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
-          if [ -z "$URL" ]; then
-            URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
+          DEPLOYMENT_URL=$(grep -oP 'https://[a-zA-Z0-9-]+\.vercel\.app' deployment.log | head -1)
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            DEPLOYMENT_URL=$(grep -oP 'https://[^\s]+' deployment.log | grep -v "vercel.com" | head -1)
           fi
-          if [ -z "$URL" ]; then
+          if [ -z "$DEPLOYMENT_URL" ]; then
             echo "ERROR: Could not extract deployment URL"
             cat deployment.log
             exit 1
           fi
 
-          echo "✓ Deployed reports to: $URL"
+          echo "✓ Deployed reports to: $DEPLOYMENT_URL"
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain reports.plenno.com.au..."
-          vercel alias set "$URL" reports.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
+          vercel alias set "$DEPLOYMENT_URL" reports.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://reports.plenno.com.au"
 
-          echo "url=$URL" >> $GITHUB_OUTPUT
+          # Output custom domain URL (not deployment URL) for shell to use
+          echo "url=https://reports.plenno.com.au" >> $GITHUB_OUTPUT
         env:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_REPORTS }}
         timeout-minutes: 18
