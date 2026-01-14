@@ -100,7 +100,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain dashboard.plenno.com.au..."
-          vercel alias set "$URL" dashboard.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" dashboard.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://dashboard.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -192,7 +192,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain entities.plenno.com.au..."
-          vercel alias set "$URL" entities.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" entities.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://entities.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -266,7 +266,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain payments.plenno.com.au..."
-          vercel alias set "$URL" payments.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" payments.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://payments.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -340,7 +340,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain agency.plenno.com.au..."
-          vercel alias set "$URL" agency.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" agency.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://agency.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -414,7 +414,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain reports.plenno.com.au..."
-          vercel alias set "$URL" reports.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" reports.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://reports.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
@@ -506,7 +506,7 @@ jobs:
 
           # Assign custom domain to this deployment
           echo "Assigning custom domain shell.plenno.com.au..."
-          vercel alias set "$URL" shell.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel alias set "$URL" shell.plenno.com.au --token=${{ secrets.VERCEL_TOKEN }}
           echo "✓ Custom domain assigned: https://shell.plenno.com.au"
 
           echo "url=$URL" >> $GITHUB_OUTPUT
