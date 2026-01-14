@@ -34,7 +34,17 @@
       "Bash(done)",
       "Bash(env)",
       "Bash(export VERCEL_TOKEN=\"$VERCEL_TOKEN_GITHUB_ACTION\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(for app in dashboard entities payments agency reports shell)",
+      "Bash(do echo \"=== Testing https://$app.plenno.com.au ===\")",
+      "Bash(do echo \"=== Testing https://$app.plenno.com.au ===\" curl -I -s \"https://$app.plenno.com.au\")",
+      "Bash(gh run view:*)",
+      "Bash(if [ -z \"$VERCEL_TOKEN_GITHUB_ACTION\" ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(vercel:*)",
+      "Bash(gh secret:*)",
+      "Bash(gh run watch:*)"
     ],
     "deny": [],
     "ask": []

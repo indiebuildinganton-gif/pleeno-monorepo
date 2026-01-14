@@ -10,18 +10,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-
-  // Redirect root to basePath for direct domain access
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/dashboard',
-        basePath: false,
-        permanent: false,
-      },
-    ];
-  },
 };
 
 export default nextConfig;
