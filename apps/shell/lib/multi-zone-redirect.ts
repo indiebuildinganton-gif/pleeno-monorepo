@@ -70,9 +70,11 @@ export function getMultiZoneRedirectUrl(path: string): string {
   // Check if this path belongs to another zone
   if (firstSegment && firstSegment in zoneConfig) {
     const zoneUrl = zoneConfig[firstSegment as keyof typeof zoneConfig]
-    // Remove the zone prefix from the path
-    const zonePath = '/' + segments.slice(1).join('/')
-    return `${zoneUrl}${zonePath || ''}`
+    // Remove the zone prefix from the path, but preserve the zone name for basePath
+    const remainingPath = segments.slice(1).join('/')
+    // If there's no remaining path, use the zone name as the path (for basePath routing)
+    const zonePath = remainingPath ? `/${remainingPath}` : `/${firstSegment}`
+    return `${zoneUrl}${zonePath}`
   }
 
   // Default: path belongs to the shell zone
