@@ -55,7 +55,11 @@ export function createAPIRouteClient(request: NextRequest) {
         set(name: string, value: string, options: CookieOptions) {
           // Store cookies to be set on response
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
+          const isProd = process.env.NODE_ENV === 'production'
+
+          const cookieOptions = isProd
+            ? { ...options, domain: process.env.COOKIE_DOMAIN || '.plenno.com.au' }
+            : isDev
             ? { ...options, domain: 'localhost' }
             : options
 
@@ -64,7 +68,11 @@ export function createAPIRouteClient(request: NextRequest) {
         remove(name: string, options: CookieOptions) {
           // Store cookie removal to be applied to response
           const isDev = process.env.NODE_ENV === 'development'
-          const cookieOptions = isDev
+          const isProd = process.env.NODE_ENV === 'production'
+
+          const cookieOptions = isProd
+            ? { ...options, domain: process.env.COOKIE_DOMAIN || '.plenno.com.au' }
+            : isDev
             ? { ...options, domain: 'localhost' }
             : options
 
@@ -151,7 +159,16 @@ export async function createServerClientForAPI() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             const isDev = process.env.NODE_ENV === 'development'
-            const cookieOptions = isDev
+            const isProd = process.env.NODE_ENV === 'production'
+
+            const cookieOptions = isProd
+              ? {
+                  name,
+                  value,
+                  ...options,
+                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                }
+              : isDev
               ? {
                   name,
                   value,
@@ -168,7 +185,26 @@ export async function createServerClientForAPI() {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            const isDev = process.env.NODE_ENV === 'development'
+            const isProd = process.env.NODE_ENV === 'production'
+
+            const cookieOptions = isProd
+              ? {
+                  name,
+                  value: '',
+                  ...options,
+                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                }
+              : isDev
+              ? {
+                  name,
+                  value: '',
+                  ...options,
+                  domain: 'localhost',
+                }
+              : { name, value: '', ...options }
+
+            cookieStore.set(cookieOptions)
           } catch {
             // Expected - see above
           }
