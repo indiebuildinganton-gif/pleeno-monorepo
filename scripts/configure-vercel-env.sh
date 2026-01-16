@@ -25,20 +25,20 @@ declare -A PROJECT_IDS=(
     ["shell"]="${VERCEL_PROJECT_ID_SHELL}"
 )
 
-# Supabase configuration
-SUPABASE_URL="https://iadhxztsuzbkbnhkimqv.supabase.co"
-SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhZGh4enRzdXpia2JuaGtpbXF2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyOTY5NjQsImV4cCI6MjA3ODg3Mjk2NH0.7XA-XC_Dozv_GwtOpivaUBmUMUJmEpawkKx7JnCPLxU"
+# Supabase configuration - UAT Instance (used for production plenno.com.au)
+SUPABASE_URL="https://ccmciliwfdtdspdlkuos.supabase.co"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjbWNpbGl3ZmR0ZHNwZGxrdW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4MTY0MzQsImV4cCI6MjA4MDM5MjQzNH0.OtcTS9J6A-wwsPxxrwlImEXQ34WSxCHWD0kBQpmL_pQ"
 
-# App URLs
-SHELL_URL="https://shell-3ik3zrnby-antons-projects-1b1c34d6.vercel.app"
-DASHBOARD_URL="https://dashboard-h8pzfv2ks-antons-projects-1b1c34d6.vercel.app"
-AGENCY_URL="https://agency-g47ipgn06-antons-projects-1b1c34d6.vercel.app"
-ENTITIES_URL="https://entities-n2illv8kx-antons-projects-1b1c34d6.vercel.app"
-PAYMENTS_URL="https://payments-fhgvgtdcp-antons-projects-1b1c34d6.vercel.app"
-REPORTS_URL="https://reports-kzfwvwz6f-antons-projects-1b1c34d6.vercel.app"
+# App URLs - Custom Domains (plenno.com.au)
+SHELL_URL="https://shell.plenno.com.au"
+DASHBOARD_URL="https://dashboard.plenno.com.au"
+AGENCY_URL="https://agency.plenno.com.au"
+ENTITIES_URL="https://entities.plenno.com.au"
+PAYMENTS_URL="https://payments.plenno.com.au"
+REPORTS_URL="https://reports.plenno.com.au"
 
 # Other configuration
-COOKIE_DOMAIN=".vercel.app"
+COOKIE_DOMAIN=".plenno.com.au"
 NODE_ENV="production"
 
 # Function to add environment variable to a project
