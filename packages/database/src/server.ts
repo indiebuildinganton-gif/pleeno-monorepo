@@ -65,7 +65,7 @@ export async function createServerClient() {
                   name,
                   value,
                   ...options,
-                  domain: process.env.COOKIE_DOMAIN || '.pleeno.com',
+                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
                 }
               : isDev
               ? {
@@ -91,7 +91,26 @@ export async function createServerClient() {
          */
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options })
+            const isProd = process.env.NODE_ENV === 'production'
+            const isDev = process.env.NODE_ENV === 'development'
+
+            const cookieOptions = isProd
+              ? {
+                  name,
+                  value: '',
+                  ...options,
+                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                }
+              : isDev
+              ? {
+                  name,
+                  value: '',
+                  ...options,
+                  domain: 'localhost',
+                }
+              : { name, value: '', ...options }
+
+            cookieStore.set(cookieOptions)
           } catch (error) {
             // Handle cookie removal errors in middleware
             console.error('Error removing cookie:', error)
