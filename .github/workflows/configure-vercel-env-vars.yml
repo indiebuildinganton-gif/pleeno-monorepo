@@ -1,0 +1,301 @@
+name: Configure Vercel Environment Variables
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to configure (production, preview, development)'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - preview
+          - development
+
+jobs:
+  configure-env-vars:
+    name: Set Environment Variables for All Vercel Projects
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Configure Dashboard Environment Variables
+        run: |
+          echo "🔧 Configuring Dashboard project..."
+
+          # Supabase
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --scope="${{ secrets.VERCEL_ORG_ID }}" \
+            --yes || echo "Variable may already exist"
+
+          echo "✅ Dashboard configured"
+
+      - name: Configure Entities Environment Variables
+        run: |
+          echo "🔧 Configuring Entities project..."
+
+          cd apps/entities
+
+          # Supabase
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --yes || true
+
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" \
+            --yes || true
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          echo "✅ Entities configured"
+
+      - name: Configure Payments Environment Variables
+        run: |
+          echo "🔧 Configuring Payments project..."
+
+          cd apps/payments
+
+          # Supabase
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          echo "✅ Payments configured"
+
+      - name: Configure Agency Environment Variables
+        run: |
+          echo "🔧 Configuring Agency project..."
+
+          cd apps/agency
+
+          # Supabase
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          echo "✅ Agency configured"
+
+      - name: Configure Reports Environment Variables
+        run: |
+          echo "🔧 Configuring Reports project..."
+
+          cd apps/reports
+
+          # Supabase
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          echo "✅ Reports configured"
+
+      - name: Configure Shell Environment Variables
+        run: |
+          echo "🔧 Configuring Shell project..."
+
+          cd apps/shell
+
+          # Supabase
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # App URLs
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          # Other config
+          echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+          echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
+          echo "✅ Shell configured"
+
+      - name: Summary
+        run: |
+          echo "✅ All Vercel projects configured with environment variables for ${{ inputs.environment }}"
+          echo ""
+          echo "Environment variables set:"
+          echo "  ✅ NEXT_PUBLIC_SUPABASE_URL"
+          echo "  ✅ NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          echo "  ✅ NEXT_PUBLIC_SHELL_URL"
+          echo "  ✅ NEXT_PUBLIC_DASHBOARD_URL"
+          echo "  ✅ NEXT_PUBLIC_AGENCY_URL"
+          echo "  ✅ NEXT_PUBLIC_ENTITIES_URL"
+          echo "  ✅ NEXT_PUBLIC_PAYMENTS_URL"
+          echo "  ✅ NEXT_PUBLIC_REPORTS_URL"
+          echo "  ✅ NEXT_PUBLIC_APP_URL"
+          echo "  ✅ NEXT_PUBLIC_COOKIE_DOMAIN"
+          echo "  ✅ NODE_ENV"
+          echo ""
+          echo "Projects configured:"
+          echo "  - Dashboard"
+          echo "  - Entities"
+          echo "  - Payments"
+          echo "  - Agency"
+          echo "  - Reports"
+          echo "  - Shell"
+          echo ""
+          echo "⚠️  Note: You may need to redeploy each project for changes to take effect."
+          echo "     Trigger a redeploy by pushing to main or manually in Vercel dashboard."

@@ -44,7 +44,15 @@
       "Bash(else)",
       "Bash(vercel:*)",
       "Bash(gh secret:*)",
-      "Bash(gh run watch:*)"
+      "Bash(gh run watch:*)",
+      "Bash(find:*)",
+      "Bash(export VERCEL_TOKEN=\"LcmNFjkib4apuWfDl2KgYIa7\")",
+      "Bash(tree:*)",
+      "Bash(node -e:*)",
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)",
+      "Bash(git status:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
