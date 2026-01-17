@@ -58,7 +58,7 @@ export function createAPIRouteClient(request: NextRequest) {
           const isProd = process.env.NODE_ENV === 'production'
 
           const cookieOptions = isProd
-            ? { ...options, domain: process.env.COOKIE_DOMAIN || '.plenno.com.au' }
+            ? { ...options, domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au' }
             : isDev
             ? { ...options, domain: 'localhost' }
             : options
@@ -71,7 +71,7 @@ export function createAPIRouteClient(request: NextRequest) {
           const isProd = process.env.NODE_ENV === 'production'
 
           const cookieOptions = isProd
-            ? { ...options, domain: process.env.COOKIE_DOMAIN || '.plenno.com.au' }
+            ? { ...options, domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au' }
             : isDev
             ? { ...options, domain: 'localhost' }
             : options
@@ -85,53 +85,32 @@ export function createAPIRouteClient(request: NextRequest) {
   /**
    * Helper function to apply cookies to a response
    * Call this with your NextResponse to add auth cookies
+   *
+   * Uses Next.js Response.cookies API instead of manual Set-Cookie header
+   * to properly handle Supabase SSR's internal cookie format (including chunking)
    */
   const applyCookies = (response: NextResponse) => {
     console.log('🍪 [API Route Client] Setting cookies:')
     cookieStore.forEach(({ value, options }, name) => {
-      // Explicitly set cookies using Set-Cookie header for better control
-      // This ensures domain and other attributes are properly set
-      const cookieString = serializeCookie(name, value, options)
       console.log(`  ${name}:`, {
         domain: options.domain || '(not set)',
         path: options.path || '/',
         httpOnly: options.httpOnly ?? false,
         sameSite: options.sameSite || 'lax'
       })
-      response.headers.append('Set-Cookie', cookieString)
+      // Use Next.js Response cookies API which properly handles
+      // Supabase SSR's internal cookie format and chunking
+      response.cookies.set(name, value, {
+        domain: options.domain,
+        path: options.path || '/',
+        httpOnly: options.httpOnly,
+        secure: options.secure,
+        sameSite: options.sameSite as 'lax' | 'strict' | 'none' | undefined,
+        maxAge: options.maxAge,
+        expires: options.expires instanceof Date ? options.expires : undefined,
+      })
     })
     return response
-  }
-
-  /**
-   * Serialize cookie to Set-Cookie header format
-   */
-  function serializeCookie(name: string, value: string, options: CookieOptions): string {
-    let cookie = `${name}=${value}`
-
-    if (options.maxAge) {
-      cookie += `; Max-Age=${options.maxAge}`
-    }
-    if (options.expires) {
-      cookie += `; Expires=${options.expires instanceof Date ? options.expires.toUTCString() : options.expires}`
-    }
-    if (options.domain) {
-      cookie += `; Domain=${options.domain}`
-    }
-    if (options.path) {
-      cookie += `; Path=${options.path}`
-    }
-    if (options.httpOnly) {
-      cookie += '; HttpOnly'
-    }
-    if (options.secure) {
-      cookie += '; Secure'
-    }
-    if (options.sameSite) {
-      cookie += `; SameSite=${options.sameSite}`
-    }
-
-    return cookie
   }
 
   return {
@@ -166,7 +145,7 @@ export async function createServerClientForAPI() {
                   name,
                   value,
                   ...options,
-                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au',
                 }
               : isDev
               ? {
@@ -193,7 +172,7 @@ export async function createServerClientForAPI() {
                   name,
                   value: '',
                   ...options,
-                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au',
                 }
               : isDev
               ? {

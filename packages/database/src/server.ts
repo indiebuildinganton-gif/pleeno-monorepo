@@ -65,7 +65,7 @@ export async function createServerClient() {
                   name,
                   value,
                   ...options,
-                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au',
                 }
               : isDev
               ? {
@@ -99,7 +99,7 @@ export async function createServerClient() {
                   name,
                   value: '',
                   ...options,
-                  domain: process.env.COOKIE_DOMAIN || '.plenno.com.au',
+                  domain: process.env.NEXT_PUBLIC_COOKIE_DOMAIN || process.env.COOKIE_DOMAIN || '.plenno.com.au',
                 }
               : isDev
               ? {
