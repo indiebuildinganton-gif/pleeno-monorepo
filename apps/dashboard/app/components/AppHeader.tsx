@@ -13,6 +13,7 @@
 
 import { LayoutDashboard, CreditCard, FileText, Upload, Users, ChevronDown } from 'lucide-react'
 import { NetworkActivityPanel } from './NetworkActivityPanel'
+import { getZoneUrl } from '@/lib/navigation-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +52,7 @@ export function AppHeader() {
               <DropdownMenuContent align="start" className="w-60 bg-white dark:bg-slate-950 border shadow-lg p-1">
                 <DropdownMenuItem asChild className="focus:bg-blue-50 dark:focus:bg-blue-950 rounded-sm">
                   <a
-                    href="/entities/students/import"
+                    href={getZoneUrl('entities', '/entities/students/import')}
                     className="flex items-center gap-3 cursor-pointer px-3 py-2.5 text-gray-900 dark:text-gray-100 hover:no-underline"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900">
@@ -71,14 +72,14 @@ export function AppHeader() {
             </DropdownMenu>
 
             <a
-              href="/payments"
+              href={getZoneUrl('payments', '/payments')}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <CreditCard className="h-4 w-4" />
               Payment Plans
             </a>
             <a
-              href="/reports"
+              href={getZoneUrl('reports', '/reports')}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
             >
               <FileText className="h-4 w-4" />
