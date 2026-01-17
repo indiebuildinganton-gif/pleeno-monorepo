@@ -169,12 +169,25 @@ export async function createServerClient() {
  */
 export function createServerClientFromRequest(request: RequestWithCookies) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  // Decode the JWT to check which Supabase project it's for
+  let keyRef = 'unknown'
+  try {
+    const payload = JSON.parse(Buffer.from(supabaseAnonKey.split('.')[1], 'base64').toString())
+    keyRef = payload.ref || 'unknown'
+  } catch {
+    keyRef = 'decode-failed'
+  }
+
   console.log('🔧 [createServerClientFromRequest] Using Supabase URL:', supabaseUrl)
+  console.log('🔧 [createServerClientFromRequest] Anon key ref (from JWT):', keyRef)
+  console.log('🔧 [createServerClientFromRequest] Anon key prefix:', supabaseAnonKey.substring(0, 50) + '...')
   console.log('🔧 [createServerClientFromRequest] Expected cookie prefix: sb-' + supabaseUrl.replace('https://', '').split('.')[0])
 
   return createSupabaseServerClient(
     supabaseUrl,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseAnonKey,
     {
       cookies: {
         /**
