@@ -168,8 +168,12 @@ export async function createServerClient() {
  * ```
  */
 export function createServerClientFromRequest(request: RequestWithCookies) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  console.log('🔧 [createServerClientFromRequest] Using Supabase URL:', supabaseUrl)
+  console.log('🔧 [createServerClientFromRequest] Expected cookie prefix: sb-' + supabaseUrl.replace('https://', '').split('.')[0])
+
   return createSupabaseServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    supabaseUrl,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {

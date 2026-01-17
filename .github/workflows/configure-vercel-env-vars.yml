@@ -29,63 +29,38 @@ jobs:
         run: |
           echo "🔧 Configuring Dashboard project..."
 
+          cd apps/dashboard
+
           # Supabase
-          echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
+          echo "https://ccmciliwfdtdspdlkuos.supabase.co" | vercel env add NEXT_PUBLIC_SUPABASE_URL ${{ inputs.environment }} \
             --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
+            --yes || true
 
           echo "${{ secrets.SUPABASE_ANON_KEY_UAT }}" | vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY ${{ inputs.environment }} \
             --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
+            --yes || true
 
           # App URLs
           echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_SHELL_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://dashboard.plenno.com.au" | vercel env add NEXT_PUBLIC_DASHBOARD_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://agency.plenno.com.au" | vercel env add NEXT_PUBLIC_AGENCY_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://entities.plenno.com.au" | vercel env add NEXT_PUBLIC_ENTITIES_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://payments.plenno.com.au" | vercel env add NEXT_PUBLIC_PAYMENTS_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://reports.plenno.com.au" | vercel env add NEXT_PUBLIC_REPORTS_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "https://shell.plenno.com.au" | vercel env add NEXT_PUBLIC_APP_URL ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
 
           # Other config
           echo ".plenno.com.au" | vercel env add NEXT_PUBLIC_COOKIE_DOMAIN ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
-
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
           echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
-            --token="${{ secrets.VERCEL_TOKEN }}" \
-            --scope="${{ secrets.VERCEL_ORG_ID }}" \
-            --yes || echo "Variable may already exist"
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
 
           echo "✅ Dashboard configured"
 
