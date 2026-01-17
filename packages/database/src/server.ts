@@ -48,7 +48,17 @@ export async function createServerClient() {
          * Used by Supabase to read authentication state
          */
         get(name: string) {
-          return cookieStore.get(name)?.value
+          const value = cookieStore.get(name)?.value
+          // Debug logging for auth cookie reads
+          if (name.includes('auth-token')) {
+            console.log(`🍪 [Server Client] Reading cookie ${name}:`, {
+              found: !!value,
+              valueLength: value?.length || 0,
+              valuePrefix: value?.substring(0, 40),
+              hasBase64Prefix: value?.startsWith('base64-')
+            })
+          }
+          return value
         },
         /**
          * Sets a cookie with the specified name, value, and options

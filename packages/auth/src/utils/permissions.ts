@@ -182,14 +182,32 @@ export async function requireRole(
 
   const supabase = await createServerClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // First, try getSession to see if cookie parsing works
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  console.log('🔐 [Auth Debug] getSession result:', {
+    hasSession: !!sessionData.session,
+    accessTokenPrefix: sessionData.session?.access_token?.substring(0, 30),
+    expiresAt: sessionData.session?.expires_at,
+    error: sessionError ? { message: sessionError.message, status: (sessionError as any).status } : null
+  })
+
+  // Then call getUser (validates with Supabase API)
+  const { data, error: authError } = await supabase.auth.getUser()
+  const user = data.user
+
+  console.log('🔐 [Auth Debug] getUser result:', {
+    hasUser: !!user,
+    userEmail: user?.email,
+    userId: user?.id,
+    error: authError ? { message: authError.message, status: (authError as any).status } : null
+  })
 
   console.log('User from Supabase:', user ? `${user.email} (${user.id})` : 'null')
 
   if (!user) {
     console.log('❌ NO USER - Returning 401')
+    console.log('   Session exists:', !!sessionData.session)
+    console.log('   Auth error:', authError?.message || 'none')
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
