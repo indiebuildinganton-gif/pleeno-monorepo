@@ -17,7 +17,7 @@ import { User } from '@supabase/supabase-js'
 import { createServerClient as createSupabaseServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClient, createServerClientFromRequest } from '@pleeno/database/server'
 
 /**
  * User role types in the system
@@ -180,7 +180,9 @@ export async function requireRole(
     return { user, role: headerUserRole }
   }
 
-  const supabase = await createServerClient()
+  // Use request-based client to properly read cross-subdomain cookies
+  // cookies() from next/headers doesn't work for cross-subdomain cookies in Vercel
+  const supabase = createServerClientFromRequest(request)
 
   // First, try getSession to see if cookie parsing works
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession()

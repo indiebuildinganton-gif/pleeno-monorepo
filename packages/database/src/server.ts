@@ -13,6 +13,16 @@ import { cookies } from 'next/headers'
 import type { CookieOptions } from '@supabase/ssr'
 
 /**
+ * Interface for request objects with cookies
+ * Uses structural typing to avoid Next.js version conflicts between packages
+ */
+interface RequestWithCookies {
+  cookies: {
+    get(name: string): { value: string } | undefined
+  }
+}
+
+/**
  * Creates a Supabase client for server-side usage in Next.js
  *
  * This function creates a Supabase client that:
@@ -125,6 +135,76 @@ export async function createServerClient() {
             // Handle cookie removal errors in middleware
             console.error('Error removing cookie:', error)
           }
+        },
+      },
+    }
+  )
+}
+
+/**
+ * Creates a Supabase client for API routes using request.cookies
+ *
+ * IMPORTANT: Use this in API routes instead of createServerClient() when handling
+ * cross-subdomain authentication, because cookies() from next/headers doesn't work
+ * for cross-subdomain cookies in Vercel deployments.
+ *
+ * The issue:
+ * - cookies() from next/headers doesn't find cross-subdomain cookies in Vercel
+ * - request.cookies (from NextRequest) DOES find the cookies
+ * - This function bridges that gap for API route handlers
+ *
+ * @param request - A request object with cookies (NextRequest or similar)
+ * @returns A configured Supabase client that reads cookies from the request
+ *
+ * @example
+ * ```typescript
+ * import { createServerClientFromRequest } from '@pleeno/database/server'
+ *
+ * export async function GET(request: NextRequest) {
+ *   const supabase = createServerClientFromRequest(request)
+ *   const { data: { user } } = await supabase.auth.getUser()
+ *   // ...
+ * }
+ * ```
+ */
+export function createServerClientFromRequest(request: RequestWithCookies) {
+  return createSupabaseServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        /**
+         * Gets a cookie value by name from the request
+         * Used by Supabase to read authentication state
+         */
+        get(name: string) {
+          const value = request.cookies.get(name)?.value
+          // Debug logging for auth cookie reads
+          if (name.includes('auth-token')) {
+            console.log(`🍪 [Server Client From Request] Reading cookie ${name}:`, {
+              found: !!value,
+              valueLength: value?.length || 0,
+              valuePrefix: value?.substring(0, 40),
+              hasBase64Prefix: value?.startsWith('base64-')
+            })
+          }
+          return value
+        },
+        /**
+         * Sets a cookie - no-op for request-based client
+         * Cookie setting must be handled by the response
+         */
+        set(_name: string, _value: string, _options: CookieOptions) {
+          // Cannot set cookies on request, this is handled by response
+          // This is expected behavior for read-only request cookie access
+        },
+        /**
+         * Removes a cookie - no-op for request-based client
+         * Cookie removal must be handled by the response
+         */
+        remove(_name: string, _options: CookieOptions) {
+          // Cannot remove cookies on request, this is handled by response
+          // This is expected behavior for read-only request cookie access
         },
       },
     }

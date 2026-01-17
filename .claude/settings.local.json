@@ -57,7 +57,9 @@
       "Bash(pnpm --filter @pleeno/database exec tsc:*)",
       "Bash(pnpm exec tsc:*)",
       "Bash(pnpm --filter shell run build:*)",
-      "Bash(pnpm --filter dashboard run build)"
+      "Bash(pnpm --filter dashboard run build)",
+      "Bash(pnpm --filter @pleeno/database type-check:*)",
+      "Bash(pnpm --filter @pleeno/auth type-check:*)"
     ],
     "deny": [],
     "ask": []
