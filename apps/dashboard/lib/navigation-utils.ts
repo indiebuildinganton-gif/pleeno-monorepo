@@ -6,16 +6,52 @@
  * with production fallbacks for the .plenno.com.au domains.
  */
 
+// Production zone URLs
+const PRODUCTION_URLS = {
+  dashboard: 'https://dashboard.plenno.com.au',
+  entities: 'https://entities.plenno.com.au',
+  payments: 'https://payments.plenno.com.au',
+  reports: 'https://reports.plenno.com.au',
+} as const
+
+/**
+ * Check if we're running on a production domain
+ * Uses client-side hostname detection as the primary check since
+ * NEXT_PUBLIC_ env vars are embedded at build time and may not be reliable
+ */
+const isProductionDomain = (): boolean => {
+  // Client-side check: if on a .plenno.com.au domain, we're in production
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    if (hostname.endsWith('.plenno.com.au') || hostname === 'plenno.com.au') {
+      return true
+    }
+    // If on localhost, we're in development
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return false
+    }
+  }
+
+  // Server-side/build-time fallback checks
+  if (process.env.NODE_ENV === 'production') {
+    return true
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    return false
+  }
+
+  // Default to production if we can't determine
+  return true
+}
+
 /**
  * Get default zone URLs based on environment
  * In development, returns undefined to use relative paths (Next.js rewrites)
  * In production, use the production URLs
  */
 const getDefaultZoneUrls = () => {
-  const isDevelopment = process.env.NODE_ENV === 'development' ||
-                        process.env.NEXT_PUBLIC_APP_URL?.includes('localhost')
-
-  if (isDevelopment) {
+  if (!isProductionDomain()) {
     return {
       dashboard: undefined,
       entities: undefined,
@@ -24,13 +60,7 @@ const getDefaultZoneUrls = () => {
     }
   }
 
-  // Production fallbacks
-  return {
-    dashboard: 'https://dashboard.plenno.com.au',
-    entities: 'https://entities.plenno.com.au',
-    payments: 'https://payments.plenno.com.au',
-    reports: 'https://reports.plenno.com.au',
-  }
+  return PRODUCTION_URLS
 }
 
 /**
