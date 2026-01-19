@@ -39,6 +39,13 @@ export class ForbiddenError extends AppError {
   }
 }
 
+export class BadRequestError extends AppError {
+  constructor(message: string = 'Bad request', details?: any) {
+    super('VALIDATION_ERROR', message, details)
+    this.name = 'BadRequestError'
+  }
+}
+
 // Success response
 export type SuccessResponse<T> = {
   success: true

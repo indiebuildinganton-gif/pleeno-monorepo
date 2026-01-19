@@ -13,7 +13,6 @@ export * from './csv-formatter'
 export * from './pdf-generator'
 export * from './pdf-styles'
 export * from './email-helpers'
-export * from './sms-helpers'
 export * from './api-error-handler'
 // Export formatters last to ensure formatCurrency(amount, currency, locale) takes precedence
 export * from './formatters'
