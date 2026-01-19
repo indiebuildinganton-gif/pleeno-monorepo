@@ -15,7 +15,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { stringify } from 'csv-stringify/sync'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 import { handleApiError, ForbiddenError } from '@pleeno/utils'
 import { startOfDay, addDays, format } from 'date-fns'
@@ -101,8 +101,8 @@ export async function GET(request: NextRequest) {
       groupBy: searchParams.get('groupBy'),
     })
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // Get agency timezone for date calculations
     const { data: agency, error: agencyError } = await supabase

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
+import { getUserAgencyId } from '@pleeno/auth/server'
+
+// Disable caching for authenticated routes (user-specific data)
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
     const { data: { user }, error } = await supabase.auth.getUser()
 
     return NextResponse.json({

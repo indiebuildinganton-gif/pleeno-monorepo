@@ -15,7 +15,7 @@ import {
   createSuccessResponse,
   ForbiddenError,
 } from '@pleeno/utils/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 
 // Cache configuration: Dynamic (no caching)
@@ -119,8 +119,8 @@ export async function GET(request: NextRequest) {
       100 // Max 100 activities
     )
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // Query activity_log with LEFT JOIN to users table
     // RLS automatically filters by agency_id

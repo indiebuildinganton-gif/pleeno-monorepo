@@ -11,11 +11,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError, createSuccessResponse, ForbiddenError } from '@pleeno/utils/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 
-// Cache configuration: 10 minutes (colleges rarely change)
-export const revalidate = 600
+// Disable caching for authenticated routes (user-specific data)
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 /**
  * College data structure
@@ -77,8 +78,8 @@ export async function GET(request: NextRequest) {
       throw new ForbiddenError('User not associated with an agency')
     }
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // Query colleges that have branches with payment plans for this agency
     // We need to query through payment_plans to ensure only relevant colleges are returned

@@ -12,11 +12,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { handleApiError, createSuccessResponse, ForbiddenError } from '@pleeno/utils/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 
-// Cache configuration: 10 minutes (branches rarely change)
-export const revalidate = 600
+// Disable caching for authenticated routes (user-specific data)
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 /**
  * Branch data structure
@@ -87,8 +88,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const collegeId = searchParams.get('college_id')
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // Query branches that have payment plans for this agency
     const query = supabase

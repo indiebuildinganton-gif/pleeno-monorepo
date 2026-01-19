@@ -15,13 +15,14 @@ import {
   createSuccessResponse,
   ForbiddenError,
 } from '@pleeno/utils/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 import { addDays, startOfDay } from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 
-// Cache configuration: 5 minutes
-export const revalidate = 300
+// Disable caching for authenticated routes (user-specific data)
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 /**
  * Due Soon Count Response
@@ -81,8 +82,8 @@ export async function GET(request: NextRequest) {
       throw new ForbiddenError('User not associated with an agency')
     }
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // Get agency settings (timezone and due_soon_threshold_days)
     const { data: agency, error: agencyError } = await supabase

@@ -16,11 +16,12 @@ import {
   createSuccessResponse,
   ForbiddenError,
 } from '@pleeno/utils/server'
-import { createServerClient } from '@pleeno/database/server'
+import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
 
-// Cache configuration: 5 minutes (shorter than other widgets due to urgency)
-export const revalidate = 300
+// Disable caching for authenticated routes (user-specific data)
+export const revalidate = 0
+export const dynamic = 'force-dynamic'
 
 /**
  * Overdue Payment Item
@@ -109,8 +110,8 @@ export async function GET(request: NextRequest) {
       throw new ForbiddenError('User not associated with an agency')
     }
 
-    // Create Supabase client
-    const supabase = await createServerClient()
+    // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
+    const supabase = createServerClientFromRequest(request)
 
     // =================================================================
     // QUERY: OVERDUE INSTALLMENTS WITH FULL CONTEXT
