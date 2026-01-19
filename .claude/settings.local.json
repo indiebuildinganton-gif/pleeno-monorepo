@@ -72,7 +72,9 @@
       "Bash(pnpm install)",
       "Bash(pnpm --filter @pleeno/utils type-check:*)",
       "Bash(pnpm --filter @pleeno/validations type-check:*)",
-      "Bash(pnpm --filter payments type-check:*)"
+      "Bash(pnpm --filter payments type-check:*)",
+      "Bash(lsof:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []
