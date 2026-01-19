@@ -14,6 +14,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import Link from 'next/link'
 
 interface CollegeHeaderProps {
@@ -43,7 +44,7 @@ export function CollegeHeader({
 
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/colleges/${collegeId}`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}`), {
         method: 'DELETE',
       })
 

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 /**
  * College data structure returned from API
@@ -78,7 +79,7 @@ export function useColleges(params: CollegesParams = {}) {
         per_page: per_page.toString(),
       })
 
-      const response = await fetch(`/api/colleges?${searchParams.toString()}`)
+      const response = await fetch(getApiUrl(`/api/colleges?${searchParams.toString()}`))
 
       if (!response.ok) {
         throw new Error('Failed to fetch colleges')

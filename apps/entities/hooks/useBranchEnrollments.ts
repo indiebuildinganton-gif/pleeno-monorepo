@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 /**
  * Student data structure
@@ -64,7 +65,7 @@ export function useBranchEnrollments(branchId: string | undefined) {
         throw new Error('Branch ID is required')
       }
 
-      const response = await fetch(`/api/branches/${branchId}/enrollments`)
+      const response = await fetch(getApiUrl(`/api/branches/${branchId}/enrollments`))
 
       if (!response.ok) {
         throw new Error('Failed to fetch branch enrollments')

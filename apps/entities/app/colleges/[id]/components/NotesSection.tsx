@@ -21,6 +21,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button, useToast } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { Pencil, Trash2 } from 'lucide-react'
 import { getRelativeTime } from '@pleeno/utils'
 import { createClient } from '@pleeno/database/client'
@@ -78,7 +79,7 @@ export function NotesSection({ collegeId }: NotesSectionProps) {
 
   async function fetchNotes() {
     try {
-      const response = await fetch(`/api/colleges/${collegeId}/notes`)
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/notes`))
       if (response.ok) {
         const result = await response.json()
         setNotes(result.data || [])
@@ -95,7 +96,7 @@ export function NotesSection({ collegeId }: NotesSectionProps) {
 
     setIsPosting(true)
     try {
-      const response = await fetch(`/api/colleges/${collegeId}/notes`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/notes`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +138,7 @@ export function NotesSection({ collegeId }: NotesSectionProps) {
     if (!editContent.trim()) return
 
     try {
-      const response = await fetch(`/api/colleges/${collegeId}/notes/${noteId}`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/notes/${noteId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +179,7 @@ export function NotesSection({ collegeId }: NotesSectionProps) {
     if (!confirm('Are you sure you want to delete this note?')) return
 
     try {
-      const response = await fetch(`/api/colleges/${collegeId}/notes/${noteId}`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/notes/${noteId}`), {
         method: 'DELETE',
       })
 

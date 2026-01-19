@@ -22,6 +22,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, useToast } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { BranchCreateSchema, type BranchCreate } from '@pleeno/validations'
 
 interface BranchFormProps {
@@ -92,7 +93,7 @@ export function BranchForm({
 
     try {
       // Make API request to create branch
-      const response = await fetch(`/api/colleges/${collegeId}/branches`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/branches`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

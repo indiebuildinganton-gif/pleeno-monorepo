@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { FileText, Upload, Download, Trash2, Eye, Loader2, X, AlertCircle } from 'lucide-react'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import {
   Button,
   Card,
@@ -108,7 +109,7 @@ export function DocumentViewer({ studentId, initialDocuments = [] }: DocumentVie
   const fetchDocuments = useCallback(async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/students/${studentId}/documents`)
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/documents`))
       const result = await response.json()
 
       if (!response.ok) {
@@ -216,7 +217,7 @@ export function DocumentViewer({ studentId, initialDocuments = [] }: DocumentVie
         setUploadProgress((prev) => Math.min(prev + 10, 90))
       }, 200)
 
-      const response = await fetch(`/api/students/${studentId}/documents`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/documents`), {
         method: 'POST',
         body: formData,
       })
@@ -292,7 +293,7 @@ export function DocumentViewer({ studentId, initialDocuments = [] }: DocumentVie
    */
   const handleDelete = async (documentId: string) => {
     try {
-      const response = await fetch(`/api/students/${studentId}/documents/${documentId}`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/documents/${documentId}`), {
         method: 'DELETE',
       })
 

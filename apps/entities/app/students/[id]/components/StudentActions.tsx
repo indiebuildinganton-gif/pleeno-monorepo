@@ -15,6 +15,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import {
   Button,
   Dialog,
@@ -64,7 +65,7 @@ export function StudentActions({ studentId, studentName }: StudentActionsProps) 
     setDeleteError(null)
 
     try {
-      const response = await fetch(`/api/students/${studentId}`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}`), {
         method: 'DELETE',
       })
 

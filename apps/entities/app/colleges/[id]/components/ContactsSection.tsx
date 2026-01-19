@@ -13,6 +13,7 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 
 interface Contact {
   id: string
@@ -35,7 +36,7 @@ export function ContactsSection({ collegeId, isAdmin }: ContactsSectionProps) {
   useEffect(() => {
     async function fetchContacts() {
       try {
-        const response = await fetch(`/api/colleges/${collegeId}/contacts`)
+        const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/contacts`))
         if (response.ok) {
           const result = await response.json()
           setContacts(result.data || [])

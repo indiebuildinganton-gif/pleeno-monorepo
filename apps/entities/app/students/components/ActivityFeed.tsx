@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { RefreshCw, Search } from 'lucide-react'
 import { Button } from '@pleeno/ui/components/ui/button'
 import { Input } from '@pleeno/ui/components/ui/input'
@@ -94,7 +95,7 @@ export function ActivityFeed({ studentId }: { studentId: string }) {
         params.append('search', searchTerm)
       }
 
-      const response = await fetch(`/api/students/${studentId}/activity?${params.toString()}`)
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/activity?${params.toString()}`))
       if (!response.ok) {
         throw new Error('Failed to fetch activity feed')
       }

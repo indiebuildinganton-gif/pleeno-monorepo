@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { Edit2, Trash2 } from 'lucide-react'
 import { Button } from '@pleeno/ui/components/ui/button'
 import { Textarea } from '@pleeno/ui/components/ui/textarea'
@@ -83,7 +84,7 @@ export function NotesSection({ studentId }: { studentId: string }) {
   } = useQuery<Note[]>({
     queryKey: ['student-notes', studentId],
     queryFn: async () => {
-      const response = await fetch(`/api/students/${studentId}/notes`)
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/notes`))
       if (!response.ok) {
         throw new Error('Failed to fetch notes')
       }
@@ -95,7 +96,7 @@ export function NotesSection({ studentId }: { studentId: string }) {
   // Create note mutation
   const createNoteMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await fetch(`/api/students/${studentId}/notes`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/notes`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +118,7 @@ export function NotesSection({ studentId }: { studentId: string }) {
   // Update note mutation
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, content }: { noteId: string; content: string }) => {
-      const response = await fetch(`/api/students/${studentId}/notes/${noteId}`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/notes/${noteId}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export function NotesSection({ studentId }: { studentId: string }) {
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: string) => {
-      const response = await fetch(`/api/students/${studentId}/notes/${noteId}`, {
+      const response = await fetch(getApiUrl(`/api/students/${studentId}/notes/${noteId}`), {
         method: 'DELETE',
       })
       if (!response.ok) {

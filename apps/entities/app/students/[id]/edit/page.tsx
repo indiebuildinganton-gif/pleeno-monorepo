@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@pleeno/database/client'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { StudentForm, Student } from '../../components/StudentForm'
 import { Button } from '@pleeno/ui/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
@@ -77,7 +78,7 @@ export default function EditStudentPage({
       if (!studentId) return
 
       try {
-        const response = await fetch(`/api/students/${studentId}`)
+        const response = await fetch(getApiUrl(`/api/students/${studentId}`))
 
         if (!response.ok) {
           throw new Error('Failed to fetch student')

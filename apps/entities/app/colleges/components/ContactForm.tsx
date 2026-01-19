@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, useToast } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { ContactCreateSchema, type ContactCreate } from '@pleeno/validations'
 
 interface ContactFormProps {
@@ -117,7 +118,7 @@ export function ContactForm({
 
     try {
       // Make API request to create contact
-      const response = await fetch(`/api/colleges/${collegeId}/contacts`, {
+      const response = await fetch(getApiUrl(`/api/colleges/${collegeId}/contacts`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
