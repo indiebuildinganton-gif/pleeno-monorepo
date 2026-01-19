@@ -12,6 +12,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useDashboardStore } from '@pleeno/stores'
 
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
@@ -189,10 +190,15 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
  * Main CommissionBySchoolWidget Component
  */
 export function CommissionBySchoolWidget() {
+  const { commissionFilters, setCommissionFilters } = useDashboardStore()
+
   const { data, isLoading, isError, refetch } = useQuery<CommissionBySchoolResponse>({
-    queryKey: ['dashboard', 'commission-by-school'],
+    queryKey: ['dashboard', 'commission-by-school', commissionFilters.school_period],
     queryFn: async () => {
-      const res = await fetch(getApiUrl('/api/commission-by-school'))
+      const params = new URLSearchParams({
+        period: commissionFilters.school_period
+      })
+      const res = await fetch(getApiUrl(`/api/commission-by-school?${params}`))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by school data')
       }
@@ -218,10 +224,26 @@ export function CommissionBySchoolWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Schools</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Commission breakdown by top performing schools
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Top Schools</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Commission breakdown by top performing schools
+            </p>
+          </div>
+          <select
+            value={commissionFilters.school_period}
+            onChange={(e) => setCommissionFilters({
+              school_period: e.target.value as 'all' | 'year' | 'quarter' | 'month'
+            })}
+            className="px-3 py-1.5 text-sm border rounded-md bg-white"
+          >
+            <option value="all">All Time</option>
+            <option value="year">This Year</option>
+            <option value="quarter">This Quarter</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

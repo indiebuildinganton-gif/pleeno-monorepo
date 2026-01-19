@@ -19,7 +19,12 @@ import {
 } from '@pleeno/utils/server'
 import { createServerClientFromRequest } from '@pleeno/database/server'
 import { requireRole, getUserAgencyId } from '@pleeno/auth/server'
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
+import {
+  startOfMonth, endOfMonth, subMonths,
+  startOfYear, endOfYear, subYears,
+  startOfQuarter, endOfQuarter, subQuarters,
+  format
+} from 'date-fns'
 import { toZonedTime } from 'date-fns-tz'
 
 // Disable caching for authenticated routes (user-specific data)
@@ -64,8 +69,11 @@ function calculateTrend(current: number, previous: number): TrendDirection {
 /**
  * GET /api/commission-by-school
  *
+ * Query Parameters:
+ * - period (optional): 'all' | 'year' | 'quarter' | 'month' (default: 'all')
+ *
  * Returns top 5 schools by commission with percentage share and trends.
- * Compares current month performance against previous month.
+ * Compares current period performance against previous period.
  *
  * Response (200):
  * {
@@ -113,6 +121,10 @@ export async function GET(request: NextRequest) {
       throw new ForbiddenError('User not associated with an agency')
     }
 
+    // Parse query parameters
+    const { searchParams } = new URL(request.url)
+    const period = (searchParams.get('period') || 'all') as 'all' | 'year' | 'quarter' | 'month'
+
     // Create Supabase client from request (required for cross-subdomain cookies in Vercel)
     const supabase = createServerClientFromRequest(request)
 
@@ -130,20 +142,49 @@ export async function GET(request: NextRequest) {
 
     const timezone = agency.timezone || 'UTC'
 
-    // Calculate date ranges in agency timezone
+    // Calculate date ranges based on period
     const now = new Date()
-    const currentMonthStart = toZonedTime(startOfMonth(now), timezone)
-    const currentMonthEnd = toZonedTime(endOfMonth(now), timezone)
-    const previousMonthStart = toZonedTime(startOfMonth(subMonths(now, 1)), timezone)
-    const previousMonthEnd = toZonedTime(endOfMonth(subMonths(now, 1)), timezone)
+    let currentStart: Date, currentEnd: Date
+    let previousStart: Date, previousEnd: Date
+
+    switch (period) {
+      case 'all':
+        // For 'all', use last 30 days vs previous 30 days for trends
+        currentEnd = toZonedTime(now, timezone)
+        currentStart = toZonedTime(subMonths(now, 1), timezone)
+        previousEnd = currentStart
+        previousStart = toZonedTime(subMonths(now, 2), timezone)
+        break
+
+      case 'year':
+        currentStart = toZonedTime(startOfYear(now), timezone)
+        currentEnd = toZonedTime(endOfYear(now), timezone)
+        previousStart = toZonedTime(startOfYear(subYears(now, 1)), timezone)
+        previousEnd = toZonedTime(endOfYear(subYears(now, 1)), timezone)
+        break
+
+      case 'quarter':
+        currentStart = toZonedTime(startOfQuarter(now), timezone)
+        currentEnd = toZonedTime(endOfQuarter(now), timezone)
+        previousStart = toZonedTime(startOfQuarter(subQuarters(now, 1)), timezone)
+        previousEnd = toZonedTime(endOfQuarter(subQuarters(now, 1)), timezone)
+        break
+
+      case 'month':
+        currentStart = toZonedTime(startOfMonth(now), timezone)
+        currentEnd = toZonedTime(endOfMonth(now), timezone)
+        previousStart = toZonedTime(startOfMonth(subMonths(now, 1)), timezone)
+        previousEnd = toZonedTime(endOfMonth(subMonths(now, 1)), timezone)
+        break
+    }
 
     // =================================================================
     // QUERY PAID INSTALLMENTS WITH JOINS TO COLLEGE DATA
     // =================================================================
 
-    // Query all paid installments for current + previous month
+    // Query all paid installments for current + previous period
     // Join with payment_plans -> enrollments -> branches -> colleges
-    const { data: installmentsData, error: installmentsError } = await supabase
+    let installmentsQuery = supabase
       .from('installments')
       .select(`
         id,
@@ -174,8 +215,15 @@ export async function GET(request: NextRequest) {
       .eq('agency_id', userAgencyId)
       .eq('status', 'paid')
       .not('paid_date', 'is', null)
-      .gte('paid_date', format(previousMonthStart, 'yyyy-MM-dd'))
-      .lte('paid_date', format(currentMonthEnd, 'yyyy-MM-dd'))
+
+    // Apply date filter based on period
+    if (period !== 'all') {
+      installmentsQuery = installmentsQuery
+        .gte('paid_date', format(previousStart, 'yyyy-MM-dd'))
+        .lte('paid_date', format(currentEnd, 'yyyy-MM-dd'))
+    }
+
+    const { data: installmentsData, error: installmentsError } = await installmentsQuery
 
     if (installmentsError) {
       console.error('Failed to fetch installments:', installmentsError)
@@ -242,18 +290,18 @@ export async function GET(request: NextRequest) {
 
       const earnedCommission = (paidAmount / totalAmount) * expectedCommission
 
-      // Convert paid_date to agency timezone and determine which month
+      // Convert paid_date to agency timezone and determine which period
       const paidDate = new Date(installment.paid_date!)
       const zonedDate = toZonedTime(paidDate, timezone)
 
-      // Determine if this is current or previous month
-      const isCurrentMonth =
-        zonedDate >= currentMonthStart && zonedDate <= currentMonthEnd
-      const isPreviousMonth =
-        zonedDate >= previousMonthStart && zonedDate <= previousMonthEnd
+      // Determine if this is current or previous period
+      const isCurrentPeriod =
+        zonedDate >= currentStart && zonedDate <= currentEnd
+      const isPreviousPeriod =
+        zonedDate >= previousStart && zonedDate <= previousEnd
 
-      // Add to appropriate month's map
-      if (isCurrentMonth) {
+      // Add to appropriate period's map
+      if (isCurrentPeriod) {
         const existing = currentMonthMap.get(college.id) || {
           name: college.name,
           commission: 0,
@@ -262,7 +310,7 @@ export async function GET(request: NextRequest) {
         currentMonthMap.set(college.id, existing)
       }
 
-      if (isPreviousMonth) {
+      if (isPreviousPeriod) {
         const existing = previousMonthMap.get(college.id) || {
           name: college.name,
           commission: 0,

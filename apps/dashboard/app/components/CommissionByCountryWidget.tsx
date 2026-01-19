@@ -12,6 +12,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useDashboardStore } from '@pleeno/stores'
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { ArrowUp, ArrowDown, ArrowRight, AlertTriangle, RefreshCw, Globe } from 'lucide-react'
@@ -249,10 +250,15 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
  * Main CommissionByCountryWidget Component
  */
 export function CommissionByCountryWidget() {
+  const { commissionFilters, setCommissionFilters } = useDashboardStore()
+
   const { data, isLoading, isError, refetch } = useQuery<CommissionByCountryResponse>({
-    queryKey: ['dashboard', 'commission-by-country'],
+    queryKey: ['dashboard', 'commission-by-country', commissionFilters.country_period],
     queryFn: async () => {
-      const res = await fetch(getApiUrl('/api/commission-by-country'))
+      const params = new URLSearchParams({
+        period: commissionFilters.country_period
+      })
+      const res = await fetch(getApiUrl(`/api/commission-by-country?${params}`))
       if (!res.ok) {
         throw new Error('Failed to fetch commission by country data')
       }
@@ -278,10 +284,26 @@ export function CommissionByCountryWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Countries</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Commission breakdown by country of origin
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Top Countries</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Commission breakdown by country of origin
+            </p>
+          </div>
+          <select
+            value={commissionFilters.country_period}
+            onChange={(e) => setCommissionFilters({
+              country_period: e.target.value as 'all' | 'year' | 'quarter' | 'month'
+            })}
+            className="px-3 py-1.5 text-sm border rounded-md bg-white"
+          >
+            <option value="all">All Time</option>
+            <option value="year">This Year</option>
+            <option value="quarter">This Quarter</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

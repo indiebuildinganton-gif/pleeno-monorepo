@@ -24,6 +24,10 @@ export interface CommissionFilters {
   college_id: string | null
   /** Optional branch ID filter */
   branch_id: string | null
+  /** Time period for school commission breakdown widget */
+  school_period: 'all' | 'year' | 'quarter' | 'month'
+  /** Time period for country commission breakdown widget */
+  country_period: 'all' | 'year' | 'quarter' | 'month'
 }
 
 /**
@@ -54,6 +58,8 @@ const defaultFilters: CommissionFilters = {
   period: 'all',
   college_id: null,
   branch_id: null,
+  school_period: 'all',
+  country_period: 'all',
 }
 
 /**
