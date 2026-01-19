@@ -68,7 +68,11 @@
       "Bash(npm run build:*)",
       "Bash(xargs -I {} bash -c \"echo ''''=== {} ==='''' && head -30 {}\")",
       "Bash(pnpm run build:entities:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(pnpm install)",
+      "Bash(pnpm --filter @pleeno/utils type-check:*)",
+      "Bash(pnpm --filter @pleeno/validations type-check:*)",
+      "Bash(pnpm --filter payments type-check:*)"
     ],
     "deny": [],
     "ask": []

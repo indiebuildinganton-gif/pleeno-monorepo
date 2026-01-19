@@ -36,3 +36,6 @@ export * from './payment-plan-wizard.schema'
 
 // Export installment schemas and types
 export * from './installment.schema'
+
+// Export OCR extraction schemas and types
+export * from './ocr-extraction.schema'

@@ -2,11 +2,27 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Button } from '@pleeno/ui'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@pleeno/ui'
+import { FileText, Keyboard, Upload, ArrowLeft } from 'lucide-react'
 import { WizardStepper } from './components/WizardStepper'
 import { PaymentPlanWizardStep1, type Step1FormData } from './components/PaymentPlanWizardStep1'
 import { PaymentPlanWizardStep2, type Step2FormData } from './components/PaymentPlanWizardStep2'
 import { PaymentPlanWizardStep3 } from './components/PaymentPlanWizardStep3'
+import { DocumentUpload } from './components/DocumentUpload'
+import { OCRExtractionReview } from './components/OCRExtractionReview'
 import { type Installment } from './components/InstallmentTable'
 import {
   calculateCommissionableValue,
@@ -15,16 +31,26 @@ import {
   calculateStudentDueDate,
 } from '@pleeno/utils'
 import { getApiUrl } from '@/hooks/useApiUrl'
+import { useExtractFromDocument, type ExtractFromDocumentResult } from '@/hooks/useExtractFromDocument'
+
+/**
+ * Mode for payment plan creation
+ */
+type CreationMode = 'select-mode' | 'ocr-upload' | 'ocr-review' | 'wizard'
 
 /**
  * New Payment Plan Wizard Page
  *
  * Multi-step wizard for creating payment plans with flexible installment structures:
+ * - Mode Selection: Choose between manual entry or OCR upload
+ * - OCR Upload: Upload document for AI-powered extraction
+ * - OCR Review: Review and edit extracted data
  * - Step 1: General information (student, course, commission, dates)
  * - Step 2: Configure installments (Task 7)
  * - Step 3: Review and create (Task 8)
  *
  * Features:
+ * - OCR-powered document extraction (Premium feature)
  * - Step-by-step navigation
  * - Form data persistence across steps
  * - Cancel confirmation dialog
@@ -34,10 +60,20 @@ import { getApiUrl } from '@/hooks/useApiUrl'
  *
  * Epic 4: Payments Domain
  * Story 4.2: Flexible Installment Structure
- * Task 6: Multi-Step Payment Plan Wizard - Step 1
+ * Story: Payment Plan OCR Upload
  */
 export default function NewPaymentPlanPage() {
   const router = useRouter()
+
+  // Mode and OCR state
+  const [mode, setMode] = useState<CreationMode>('select-mode')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [extractionResult, setExtractionResult] = useState<ExtractFromDocumentResult | null>(null)
+  const [prePopulatedStep1, setPrePopulatedStep1] = useState<Partial<Step1FormData> | null>(null)
+  const [prePopulatedStep2, setPrePopulatedStep2] = useState<Partial<Step2FormData> | null>(null)
+
+  // OCR extraction mutation
+  const extractMutation = useExtractFromDocument()
 
   // Wizard state management
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
@@ -217,6 +253,52 @@ export default function NewPaymentPlanPage() {
   }
 
   /**
+   * Handle file selection for OCR
+   */
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file)
+    if (file) {
+      extractMutation.mutate(file, {
+        onSuccess: (result) => {
+          setExtractionResult(result)
+          setMode('ocr-review')
+        },
+      })
+    }
+  }
+
+  /**
+   * Handle proceeding from OCR review to wizard
+   */
+  const handleOCRProceed = (
+    step1Partial: Partial<Step1FormData>,
+    step2Partial: Partial<Step2FormData>
+  ) => {
+    setPrePopulatedStep1(step1Partial)
+    setPrePopulatedStep2(step2Partial)
+    setMode('wizard')
+  }
+
+  /**
+   * Handle going back from OCR review to upload
+   */
+  const handleOCRBack = () => {
+    setMode('ocr-upload')
+    setExtractionResult(null)
+  }
+
+  /**
+   * Reset to mode selection
+   */
+  const handleBackToModeSelection = () => {
+    setMode('select-mode')
+    setSelectedFile(null)
+    setExtractionResult(null)
+    setPrePopulatedStep1(null)
+    setPrePopulatedStep2(null)
+  }
+
+  /**
    * Handle payment plan creation from Step 3
    * Creates enrollment (if needed), payment plan, and installments
    */
@@ -374,45 +456,170 @@ export default function NewPaymentPlanPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Create Payment Plan</h1>
         <p className="text-muted-foreground mt-2">
-          Set up a new payment plan with flexible installment structure
+          {mode === 'select-mode'
+            ? 'Choose how you want to create your payment plan'
+            : mode === 'ocr-upload'
+            ? 'Upload a payment plan document for automatic data extraction'
+            : mode === 'ocr-review'
+            ? 'Review and edit the extracted data before proceeding'
+            : 'Set up a new payment plan with flexible installment structure'}
         </p>
       </div>
 
-      {/* Wizard Progress Indicator */}
-      <WizardStepper currentStep={currentStep} steps={steps} />
+      {/* Mode Selection */}
+      {mode === 'select-mode' && (
+        <div className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Manual Entry Option */}
+            <Card
+              className="cursor-pointer transition-all hover:border-primary hover:shadow-md"
+              onClick={() => setMode('wizard')}
+            >
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <Keyboard className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <CardTitle>Enter Manually</CardTitle>
+                <CardDescription>
+                  Fill in the payment plan details step by step using the wizard
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Button variant="outline" className="w-full">
+                  Start Manual Entry
+                </Button>
+              </CardContent>
+            </Card>
 
-      {/* Step Content */}
-      <div className="mt-8">
-        {currentStep === 1 && (
-          <PaymentPlanWizardStep1
-            initialData={step1Data || undefined}
-            onNext={handleStep1Next}
-            onCancel={handleCancel}
-          />
-        )}
+            {/* OCR Upload Option */}
+            <Card
+              className="cursor-pointer transition-all hover:border-primary hover:shadow-md"
+              onClick={() => setMode('ocr-upload')}
+            >
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <FileText className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle className="flex items-center justify-center gap-2">
+                  Upload Document
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                    Premium
+                  </span>
+                </CardTitle>
+                <CardDescription>
+                  Upload a scanned payment plan document for AI-powered extraction
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <Button className="w-full">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Document
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
 
-        {currentStep === 2 && step1Data && (
-          <PaymentPlanWizardStep2
-            initialData={step2Data || undefined}
-            step1Data={step1Data}
-            onNext={handleStep2Next}
-            onBack={handleStep2Back}
-          />
-        )}
+          <div className="flex justify-center">
+            <Button variant="ghost" onClick={() => router.back()}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
-        {currentStep === 3 && step1Data && step2Data && (
-          <PaymentPlanWizardStep3
-            step1Data={step1Data}
-            step2Data={step2Data}
-            generatedInstallments={generatedInstallments}
-            onBack={handleStep3Back}
-            onEditStep1={() => setCurrentStep(1)}
-            onEditStep2={() => setCurrentStep(2)}
-            onCreate={handleCreate}
-            isCreating={isCreating}
+      {/* OCR Upload Mode */}
+      {mode === 'ocr-upload' && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToModeSelection}
+            >
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Back
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload Payment Plan Document</CardTitle>
+              <CardDescription>
+                Upload a scanned payment plan, offer letter, or invoice. Our AI will
+                extract the payment details automatically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DocumentUpload
+                onFileSelect={handleFileSelect}
+                value={selectedFile}
+                isExtracting={extractMutation.isPending}
+                error={extractMutation.error?.message}
+                description="Upload a PDF, JPEG, or PNG document (max 10MB). The extracted data will be reviewed before creating the payment plan."
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* OCR Review Mode */}
+      {mode === 'ocr-review' && extractionResult && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleOCRBack}>
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              Upload Different Document
+            </Button>
+          </div>
+
+          <OCRExtractionReview
+            extraction={extractionResult.extraction}
+            onProceed={handleOCRProceed}
+            onBack={handleOCRBack}
           />
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Wizard Mode */}
+      {mode === 'wizard' && (
+        <>
+          {/* Wizard Progress Indicator */}
+          <WizardStepper currentStep={currentStep} steps={steps} />
+
+          {/* Step Content */}
+          <div className="mt-8">
+            {currentStep === 1 && (
+              <PaymentPlanWizardStep1
+                initialData={step1Data || prePopulatedStep1 || undefined}
+                onNext={handleStep1Next}
+                onCancel={handleCancel}
+              />
+            )}
+
+            {currentStep === 2 && step1Data && (
+              <PaymentPlanWizardStep2
+                initialData={step2Data || prePopulatedStep2 || undefined}
+                step1Data={step1Data}
+                onNext={handleStep2Next}
+                onBack={handleStep2Back}
+              />
+            )}
+
+            {currentStep === 3 && step1Data && step2Data && (
+              <PaymentPlanWizardStep3
+                step1Data={step1Data}
+                step2Data={step2Data}
+                generatedInstallments={generatedInstallments}
+                onBack={handleStep3Back}
+                onEditStep1={() => setCurrentStep(1)}
+                onEditStep2={() => setCurrentStep(2)}
+                onCreate={handleCreate}
+                isCreating={isCreating}
+              />
+            )}
+          </div>
+        </>
+      )}
 
       {/* Cancel Confirmation Dialog */}
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
