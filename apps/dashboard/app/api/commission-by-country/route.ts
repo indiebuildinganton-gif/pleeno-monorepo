@@ -282,11 +282,10 @@ export async function GET(request: NextRequest) {
       const paidDate = new Date(installment.paid_date!)
       const zonedDate = toZonedTime(paidDate, timezone)
 
-      // Determine if this is current or previous period
-      const isCurrentPeriod =
-        zonedDate >= currentStart && zonedDate <= currentEnd
-      const isPreviousPeriod =
-        zonedDate >= previousStart && zonedDate <= previousEnd
+      // For 'all' period, include all records in current
+      // For other periods, filter by date range
+      const isCurrentPeriod = period === 'all' || (zonedDate >= currentStart && zonedDate <= currentEnd)
+      const isPreviousPeriod = zonedDate >= previousStart && zonedDate <= previousEnd
 
       // Add to appropriate period's map
       if (isCurrentPeriod) {
