@@ -39,13 +39,7 @@ import { formatCurrency, format, parseISO } from '@pleeno/utils'
 import { PaymentPlanStatusBadge } from './PaymentPlanStatusBadge'
 import { ExternalLink } from 'lucide-react'
 import { getApiUrl } from '@/hooks/useApiUrl'
-
-/**
- * Get the entities zone URL based on environment
- */
-const getEntitiesUrl = () => {
-  return process.env.NEXT_PUBLIC_ENTITIES_URL || 'http://localhost:3001'
-}
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 /**
  * Payment Plan from API
@@ -269,7 +263,7 @@ export function PaymentPlansList() {
                     <TableCell className="font-medium">
                       {plan.student_id ? (
                         <a
-                          href={`${getEntitiesUrl()}/students/${plan.student_id}`}
+                          href={getZoneUrl('entities', `/entities/students/${plan.student_id}`)}
                           className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
                         >
                           {studentName}
@@ -337,7 +331,7 @@ export function PaymentPlansList() {
                     <CardTitle className="text-lg">
                       {plan.student_id ? (
                         <a
-                          href={`${getEntitiesUrl()}/students/${plan.student_id}`}
+                          href={getZoneUrl('entities', `/entities/students/${plan.student_id}`)}
                           className="text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center gap-1"
                         >
                           {studentName}

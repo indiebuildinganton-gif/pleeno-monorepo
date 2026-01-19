@@ -36,6 +36,7 @@ import {
 
 import { useMemo } from 'react'
 import { cn } from '@pleeno/ui'
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 /**
  * Commission breakdown data type
@@ -610,7 +611,7 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                       <td className="py-3 px-4">
                         <div className="font-medium">
                           <a
-                            href={`/entities/colleges/${row.college_id}`}
+                            href={getZoneUrl('entities', `/colleges/${row.college_id}`)}
                             className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                           >
                             {row.college_name}
@@ -624,7 +625,7 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                       </td>
                       <td className="py-3 px-4">
                         <a
-                          href={`/entities/colleges/${row.college_id}?branch=${row.branch_id}`}
+                          href={getZoneUrl('entities', `/colleges/${row.college_id}?branch=${row.branch_id}`)}
                           className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
                         >
                           {row.branch_name}
@@ -658,7 +659,7 @@ export function CommissionBreakdownWidget({ className }: { className?: string })
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center">
                           <a
-                            href={`/payments/plans?college=${row.college_id}&branch=${row.branch_id}`}
+                            href={getZoneUrl('payments', `/plans?college=${row.college_id}&branch=${row.branch_id}`)}
                             title={`View ${row.payment_plan_count} payment plan${
                               row.payment_plan_count !== 1 ? 's' : ''
                             } for ${row.college_name} - ${row.branch_name}`}

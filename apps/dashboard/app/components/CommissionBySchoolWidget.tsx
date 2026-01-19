@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle, Button } from '@pleeno/ui'
 import { formatCurrency } from '@pleeno/utils'
 import { ArrowUp, ArrowDown, ArrowRight, AlertTriangle, RefreshCw } from 'lucide-react'
 import { getApiUrl } from '../hooks/useApiUrl'
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 /**
  * School Commission Data Type
@@ -95,7 +96,7 @@ function SchoolRow({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <a
-          href={`/entities/colleges/${collegeId}`}
+          href={getZoneUrl('entities', `/colleges/${collegeId}`)}
           className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
         >
           {name}
@@ -238,7 +239,7 @@ export function CommissionBySchoolWidget() {
         </div>
         <div className="mt-6 pt-4 border-t border-gray-200">
           <a
-            href="/entities/colleges"
+            href={getZoneUrl('entities', '/colleges')}
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
           >
             View All Colleges →

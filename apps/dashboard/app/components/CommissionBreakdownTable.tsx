@@ -45,6 +45,7 @@ import {
 
 import { useMemo, useState } from 'react'
 import { getApiUrl } from '../hooks/useApiUrl'
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 /**
  * Commission breakdown data type
@@ -363,7 +364,7 @@ export function CommissionBreakdownTable() {
         cell: ({ row }) => (
           <div className="font-medium">
             <a
-              href={`/entities/colleges/${row.original.college_id}`}
+              href={getZoneUrl('entities', `/colleges/${row.original.college_id}`)}
               className="text-blue-600 hover:underline"
             >
               {row.original.college_name}
@@ -382,7 +383,7 @@ export function CommissionBreakdownTable() {
         cell: ({ row }) => (
           <div>
             <a
-              href={`/entities/colleges/${row.original.college_id}?branch=${row.original.branch_id}`}
+              href={getZoneUrl('entities', `/colleges/${row.original.college_id}?branch=${row.original.branch_id}`)}
               className="text-blue-600 hover:underline"
             >
               {row.original.branch_name}
@@ -455,7 +456,7 @@ export function CommissionBreakdownTable() {
         cell: ({ row }) => (
           <div className="flex items-center justify-center">
             <a
-              href={`/payments/plans?college=${row.original.college_id}&branch=${row.original.branch_id}`}
+              href={getZoneUrl('payments', `/plans?college=${row.original.college_id}&branch=${row.original.branch_id}`)}
               title={`View ${row.original.payment_plan_count} payment plan${
                 row.original.payment_plan_count !== 1 ? 's' : ''
               } for ${row.original.college_name} - ${row.original.branch_name}`}

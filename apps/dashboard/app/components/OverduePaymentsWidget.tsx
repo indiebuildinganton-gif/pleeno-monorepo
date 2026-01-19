@@ -19,6 +19,7 @@ import { useEffect, useState, useRef } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { formatCurrency } from '@pleeno/utils'
 import { useOverduePayments, OverduePayment } from '../hooks/useOverduePayments'
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 // =================================================================
 // HELPER FUNCTIONS - Urgency Color Coding
@@ -191,7 +192,7 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
     <div className={`rounded-lg border ${urgencyBgColor} hover:shadow-md transition-all p-3 flex flex-col gap-2`}>
       {/* Student Info - Name & Institution on one line */}
       <a
-        href={`/payments/plans/${payment.payment_plan_id}`}
+        href={getZoneUrl('payments', `/plans/${payment.payment_plan_id}`)}
         className="block hover:underline"
       >
         <div className="flex items-start justify-between gap-2">

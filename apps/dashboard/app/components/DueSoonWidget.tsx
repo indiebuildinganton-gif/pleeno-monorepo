@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 
 import { getApiUrl } from '../hooks/useApiUrl'
+import { getZoneUrl } from '@/lib/navigation-utils'
 
 /**
  * Due Soon Count Response Type
@@ -184,7 +185,7 @@ export function DueSoonWidget() {
 
           {/* Link to filtered view */}
           <a
-            href="/payments/plans?filter=due-soon"
+            href={getZoneUrl('payments', '/plans?filter=due-soon')}
             className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 hover:underline mt-3 transition-colors"
           >
             View all due soon payments
