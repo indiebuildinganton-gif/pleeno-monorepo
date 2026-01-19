@@ -16,13 +16,14 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, Mail, MessageSquare, Loader2 } from 'lucide-react'
 import { formatCurrency } from '@pleeno/utils'
 import { useOverduePayments, OverduePayment } from '../hooks/useOverduePayments'
 import { getZoneUrl } from '@/lib/navigation-utils'
+import { useApiUrl } from '../hooks/useApiUrl'
 
 // =================================================================
-// HELPER FUNCTIONS - Urgency Color Coding
+// HELPER FUNCTIONS - Urgency Color Coding and Time Formatting
 // =================================================================
 
 /**
@@ -35,6 +36,25 @@ function getUrgencyColor(days: number): string {
   if (days >= 30) return 'text-red-600'
   if (days >= 8) return 'text-orange-600'
   return 'text-yellow-600'
+}
+
+/**
+ * Format time ago from ISO timestamp
+ * Returns human-readable string like "3 hours ago", "1 day ago", etc.
+ */
+function formatTimeAgo(timestamp: string): string {
+  const now = Date.now()
+  const then = new Date(timestamp).getTime()
+  const diffMs = now - then
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return '1d ago'
+  return `${diffDays}d ago`
 }
 
 /**
@@ -173,12 +193,21 @@ function OverduePaymentsEmpty() {
  * - Student name and college
  * - Amount and days overdue inline
  * - AI call reminder action button
+ * - Email and SMS reminder buttons
+ * - Send history display
  * - Color-coded urgency styling
  * - Clickable link to payment plan details
  */
 function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
+  const getApiUrl = useApiUrl()
   const urgencyColor = getUrgencyColor(payment.days_overdue)
   const urgencyBgColor = getUrgencyBgColor(payment.days_overdue)
+
+  // State management
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [sendingSms, setSendingSms] = useState(false)
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'warning'; message: string } | null>(null)
+  const [lastSent, setLastSent] = useState<{ email?: string; sms?: string } | null>(null)
 
   const handleAICall = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -186,6 +215,74 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
     // TODO: Implement AI call reminder functionality
     console.log('AI Call reminder for:', payment.student_name)
     alert(`AI Call reminder initiated for ${payment.student_name}`)
+  }
+
+  const handleSendEmail = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setSendingEmail(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch(getApiUrl('/api/overdue-payments/send-email'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          installmentId: payment.id,
+          studentId: payment.student_id,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setFeedback({ type: 'success', message: `Email sent to ${payment.student_name}` })
+        setLastSent(prev => ({ ...prev, email: new Date().toISOString() }))
+      } else {
+        setFeedback({ type: 'warning', message: result.message || 'Email already sent recently' })
+      }
+    } catch (error) {
+      setFeedback({ type: 'error', message: 'Failed to send email. Please try again.' })
+    } finally {
+      setSendingEmail(false)
+      // Auto-dismiss feedback after 5 seconds
+      setTimeout(() => setFeedback(null), 5000)
+    }
+  }
+
+  const handleSendSms = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setSendingSms(true)
+    setFeedback(null)
+
+    try {
+      const response = await fetch(getApiUrl('/api/overdue-payments/send-sms'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          installmentId: payment.id,
+          studentId: payment.student_id,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setFeedback({ type: 'success', message: `SMS sent to ${payment.student_name}` })
+        setLastSent(prev => ({ ...prev, sms: new Date().toISOString() }))
+      } else {
+        setFeedback({ type: 'warning', message: result.message || 'SMS already sent recently' })
+      }
+    } catch (error) {
+      setFeedback({ type: 'error', message: 'Failed to send SMS. Please try again.' })
+    } finally {
+      setSendingSms(false)
+      // Auto-dismiss feedback after 5 seconds
+      setTimeout(() => setFeedback(null), 5000)
+    }
   }
 
   return (
@@ -211,7 +308,7 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
         </span>
       </div>
 
-      {/* AI Call Action Button */}
+      {/* AI Call Action Button - Full Width */}
       <button
         onClick={handleAICall}
         className="w-full px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5"
@@ -221,6 +318,72 @@ function OverduePaymentItem({ payment }: { payment: OverduePayment }) {
         </svg>
         AI Call Reminder
       </button>
+
+      {/* Email and SMS Buttons - Side by Side */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Email Button */}
+        <button
+          onClick={handleSendEmail}
+          disabled={!payment.student_email || sendingEmail}
+          className="px-2 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5"
+          title={!payment.student_email ? 'No email on file' : 'Send email reminder'}
+        >
+          {sendingEmail ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <Mail className="w-3 h-3" />
+          )}
+          Email
+        </button>
+
+        {/* SMS Button */}
+        <button
+          onClick={handleSendSms}
+          disabled={!payment.student_phone || sendingSms}
+          className="px-2 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xs font-medium rounded transition-colors flex items-center justify-center gap-1.5"
+          title={!payment.student_phone ? 'No phone on file' : 'Send SMS reminder'}
+        >
+          {sendingSms ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <MessageSquare className="w-3 h-3" />
+          )}
+          SMS
+        </button>
+      </div>
+
+      {/* Feedback Message */}
+      {feedback && (
+        <div
+          className={`px-2 py-1 text-xs rounded ${
+            feedback.type === 'success'
+              ? 'bg-green-100 text-green-800'
+              : feedback.type === 'warning'
+              ? 'bg-orange-100 text-orange-800'
+              : 'bg-red-100 text-red-800'
+          }`}
+        >
+          {feedback.message}
+        </div>
+      )}
+
+      {/* Send History */}
+      {lastSent && (lastSent.email || lastSent.sms) && (
+        <div className="text-xs text-gray-600 space-y-0.5">
+          {lastSent.email && (
+            <div className="flex items-center gap-1">
+              <Mail className="w-3 h-3" />
+              <span>Email sent {formatTimeAgo(lastSent.email)}</span>
+            </div>
+          )}
+          {lastSent.sms && (
+            <div className="flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" />
+              <span>SMS sent {formatTimeAgo(lastSent.sms)}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

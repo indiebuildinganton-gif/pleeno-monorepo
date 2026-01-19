@@ -59,7 +59,16 @@
       "Bash(pnpm --filter shell run build:*)",
       "Bash(pnpm --filter dashboard run build)",
       "Bash(pnpm --filter @pleeno/database type-check:*)",
-      "Bash(pnpm --filter @pleeno/auth type-check:*)"
+      "Bash(pnpm --filter @pleeno/auth type-check:*)",
+      "Bash(git -C /Users/brenttudas/Pleeno log --oneline -20)",
+      "Bash(git -C /Users/brenttudas/Pleeno diff HEAD~5 apps/dashboard/app/components/AppHeader.tsx)",
+      "Bash(pnpm --filter dashboard build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(printf:*)",
+      "Bash(npm run build:*)",
+      "Bash(xargs -I {} bash -c \"echo ''''=== {} ==='''' && head -30 {}\")",
+      "Bash(pnpm run build:entities:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

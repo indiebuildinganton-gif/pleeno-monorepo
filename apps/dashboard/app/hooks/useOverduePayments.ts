@@ -19,6 +19,8 @@ export interface OverduePayment {
   id: string
   student_id: string
   student_name: string
+  student_email: string | null
+  student_phone: string | null
   college_id: string
   college_name: string
   amount: number

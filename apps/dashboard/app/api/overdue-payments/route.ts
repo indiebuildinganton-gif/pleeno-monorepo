@@ -30,6 +30,8 @@ interface OverduePayment {
   id: string
   student_id: string
   student_name: string
+  student_email: string | null
+  student_phone: string | null
   college_id: string
   college_name: string
   amount: number
@@ -138,7 +140,9 @@ export async function GET(request: NextRequest) {
             branch_id,
             students!inner (
               id,
-              full_name
+              full_name,
+              email,
+              phone
             ),
             branches!branch_id (
               id,
@@ -185,6 +189,8 @@ export async function GET(request: NextRequest) {
         id: installment.id,
         student_id: enrollment.student_id,
         student_name: student.full_name,
+        student_email: student.email || null,
+        student_phone: student.phone || null,
         college_id: college?.id || '',
         college_name: college?.name || 'Unknown',
         amount: Number(installment.amount),
