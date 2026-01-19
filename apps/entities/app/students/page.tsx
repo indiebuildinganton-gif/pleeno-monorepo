@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useStudents } from '../../hooks/useStudents'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { StudentTable } from './components/StudentTable'
 import { Button } from '@pleeno/ui/components/ui/button'
 import { Input } from '@pleeno/ui/components/ui/input'
@@ -100,7 +101,7 @@ export default function StudentsPage() {
 
   const handleExportCSV = async () => {
     try {
-      const response = await fetch('/api/students/export')
+      const response = await fetch(getApiUrl('/api/students/export'))
       if (!response.ok) {
         throw new Error('Failed to export students')
       }

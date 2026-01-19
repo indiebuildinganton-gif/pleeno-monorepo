@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@pleeno/database/client'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import {
   Button,
   Card,
@@ -208,7 +209,7 @@ export default function AIExtractionWizardPage() {
       const formData = new FormData()
       formData.append('file', selectedFile)
 
-      const response = await fetch('/api/students/extract-from-offer-letter', {
+      const response = await fetch(getApiUrl('/api/students/extract-from-offer-letter'), {
         method: 'POST',
         body: formData,
       })
@@ -263,7 +264,7 @@ export default function AIExtractionWizardPage() {
 
     try {
       // Create student
-      const studentResponse = await fetch('/api/students', {
+      const studentResponse = await fetch(getApiUrl('/api/students'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -300,7 +301,7 @@ export default function AIExtractionWizardPage() {
         extractionResult?.college.matched_branch_id
       ) {
         try {
-          await fetch('/api/enrollments', {
+          await fetch(getApiUrl('/api/enrollments'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -324,7 +325,7 @@ export default function AIExtractionWizardPage() {
         extractionResult.payment.schedule.length > 0
       ) {
         try {
-          await fetch('/api/payment-plans', {
+          await fetch(getApiUrl('/api/payment-plans'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@pleeno/database/client'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { Button } from '@pleeno/ui/components/ui/button'
 import { Input } from '@pleeno/ui/components/ui/input'
 import { Label } from '@pleeno/ui/components/ui/label'
@@ -347,7 +348,7 @@ export default function StudentImportPage() {
         setImportProgress((prev) => Math.min(prev + 10, 90))
       }, 200)
 
-      const response = await fetch('/api/students/import', {
+      const response = await fetch(getApiUrl('/api/students/import'), {
         method: 'POST',
         body: formData,
       })

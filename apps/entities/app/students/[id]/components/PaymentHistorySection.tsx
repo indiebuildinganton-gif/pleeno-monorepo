@@ -23,6 +23,7 @@
 import { useState, useEffect } from 'react'
 import { FileDown, RefreshCw, Calendar } from 'lucide-react'
 import { Button } from '@pleeno/ui'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import { format, startOfYear, endOfYear } from 'date-fns'
 
 interface PaymentHistorySectionProps {
@@ -154,7 +155,7 @@ export function PaymentHistorySection({
       if (dateRange.date_to) params.set('date_to', dateRange.date_to)
 
       const response = await fetch(
-        `/api/students/${studentId}/payment-history?${params}`
+        getApiUrl(`/api/students/${studentId}/payment-history?${params}`)
       )
 
       if (!response.ok) {
@@ -219,7 +220,7 @@ export function PaymentHistorySection({
       if (dateRange.date_to) params.set('date_to', dateRange.date_to)
 
       // Trigger download
-      const url = `/api/students/${studentId}/payment-history/export?${params}`
+      const url = getApiUrl(`/api/students/${studentId}/payment-history/export?${params}`)
       window.open(url, '_blank')
     } catch (error) {
       console.error('Export failed:', error)

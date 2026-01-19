@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
+import { getApiUrl } from '@/hooks/useApiUrl'
 import {
   Button,
   Card,
@@ -184,7 +185,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
       }
 
       // Create or update student
-      const url = mode === 'create' ? '/api/students' : `/api/students/${student?.id}`
+      const url = mode === 'create' ? getApiUrl('/api/students') : getApiUrl(`/api/students/${student?.id}`)
       const method = mode === 'create' ? 'POST' : 'PATCH'
 
       const response = await fetch(url, {
@@ -227,7 +228,7 @@ export function StudentForm({ student, mode }: StudentFormProps) {
       // If we have a branch_id, create an enrollment
       if (data.branch_id && result.data?.id) {
         try {
-          const enrollmentResponse = await fetch('/api/enrollments', {
+          const enrollmentResponse = await fetch(getApiUrl('/api/enrollments'), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
