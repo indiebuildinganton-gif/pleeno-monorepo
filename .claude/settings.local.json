@@ -74,7 +74,12 @@
       "Bash(pnpm --filter @pleeno/validations type-check:*)",
       "Bash(pnpm --filter payments type-check:*)",
       "Bash(lsof:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(pnpm --filter payments build:*)",
+      "Bash(pnpm --filter agency build:*)",
+      "Bash(pnpm --filter reports build:*)",
+      "Bash(pnpm --filter entities build:*)",
+      "Bash(pnpm --filter shell build:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,7 +2,6 @@
 
 import { cn } from '@pleeno/ui/lib/utils'
 import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@pleeno/ui'
 
 /**
  * Confidence level thresholds
@@ -79,12 +78,6 @@ export function OCRConfidenceIndicator({
   const label = getConfidenceLabel(score)
   const percentage = Math.round(score * 100)
 
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-5 w-5',
-    lg: 'h-6 w-6',
-  }
-
   const iconSize = {
     sm: 12,
     md: 14,
@@ -100,27 +93,19 @@ export function OCRConfidenceIndicator({
   const Icon = level === 'high' ? CheckCircle : level === 'medium' ? AlertTriangle : AlertCircle
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div
-            className={cn(
-              'inline-flex items-center gap-1 rounded-full border px-2 py-0.5',
-              colorClasses[level],
-              className
-            )}
-          >
-            <Icon size={iconSize[size]} />
-            {showPercentage && (
-              <span className="text-xs font-medium">{percentage}%</span>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{label} ({percentage}%)</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <div
+      title={`${label} (${percentage}%)`}
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 cursor-help',
+        colorClasses[level],
+        className
+      )}
+    >
+      <Icon size={iconSize[size]} />
+      {showPercentage && (
+        <span className="text-xs font-medium">{percentage}%</span>
+      )}
+    </div>
   )
 }
 
@@ -135,6 +120,7 @@ export function OCRConfidenceDot({
   className?: string
 }) {
   const level = getConfidenceLevel(score)
+  const label = getConfidenceLabel(score)
 
   const colorClasses = {
     high: 'bg-green-500',
@@ -143,21 +129,13 @@ export function OCRConfidenceDot({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            className={cn(
-              'inline-block h-2 w-2 rounded-full',
-              colorClasses[level],
-              className
-            )}
-          />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{getConfidenceLabel(score)}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <span
+      title={label}
+      className={cn(
+        'inline-block h-2 w-2 rounded-full cursor-help',
+        colorClasses[level],
+        className
+      )}
+    />
   )
 }
