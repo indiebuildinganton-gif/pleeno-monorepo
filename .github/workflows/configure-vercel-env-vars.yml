@@ -137,6 +137,10 @@ jobs:
           echo "production" | vercel env add NODE_ENV ${{ inputs.environment }} \
             --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
 
+          # AI Extraction override for testing
+          echo "true" | vercel env add ALLOW_AI_EXTRACTION_OVERRIDE ${{ inputs.environment }} \
+            --token="${{ secrets.VERCEL_TOKEN }}" --yes || true
+
           echo "✅ Payments configured"
 
       - name: Configure Agency Environment Variables
@@ -263,6 +267,7 @@ jobs:
           echo "  ✅ NEXT_PUBLIC_APP_URL"
           echo "  ✅ NEXT_PUBLIC_COOKIE_DOMAIN"
           echo "  ✅ NODE_ENV"
+          echo "  ✅ ALLOW_AI_EXTRACTION_OVERRIDE (Payments only)"
           echo ""
           echo "Projects configured:"
           echo "  - Dashboard"

@@ -113,7 +113,10 @@ export async function POST(request: NextRequest) {
       throw new ForbiddenError('Agency not found')
     }
 
-    if (agency.subscription_tier === 'basic') {
+    // Allow override for testing via environment variable
+    const allowOverride = process.env.ALLOW_AI_EXTRACTION_OVERRIDE === 'true'
+
+    if (agency.subscription_tier === 'basic' && !allowOverride) {
       throw new ForbiddenError(
         'AI document extraction is a premium feature. Please upgrade your subscription to access this feature.'
       )
