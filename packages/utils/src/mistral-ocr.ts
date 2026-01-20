@@ -332,8 +332,14 @@ export class MistralOCRClient {
       const base64Data = buffer.toString('base64')
       const dataUri = `data:${mimeType};base64,${base64Data}`
 
+      console.log(`[MistralOCRClient] Stage 1: Base64 encoded, data URI length: ${dataUri.length} chars`)
+      console.log(`[MistralOCRClient] Stage 1: Calling Mistral OCR API...`)
+
       const ocrResponse = await this.retryWithBackoff(async () => {
-        const response = await this.client.ocr.process({
+        const startApiCall = Date.now()
+        console.log(`[MistralOCRClient] Stage 1: API call started at ${new Date().toISOString()}`)
+
+        const response = await this.client.ocr.complete({
           model: 'mistral-ocr-latest',
           document: {
             type: 'image_url',
@@ -341,6 +347,8 @@ export class MistralOCRClient {
           },
           includeImageBase64: false,
         })
+
+        console.log(`[MistralOCRClient] Stage 1: API call completed in ${Date.now() - startApiCall}ms`)
         return response
       })
 
@@ -750,8 +758,10 @@ Return JSON:`
    */
   private async retryWithBackoff<T>(operation: () => Promise<T>, attempt: number = 0): Promise<T> {
     try {
+      console.log(`[MistralOCRClient] Attempt ${attempt + 1}: Starting with ${this.options.timeoutMs}ms timeout`)
       return await this.withTimeout(operation(), this.options.timeoutMs)
     } catch (error) {
+      console.error(`[MistralOCRClient] Attempt ${attempt + 1} failed:`, error)
       const isLastAttempt = attempt >= this.options.maxRetries - 1
       const isRetryable = this.isRetryableError(error)
 

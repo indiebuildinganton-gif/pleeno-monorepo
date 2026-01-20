@@ -22,6 +22,12 @@ import { requireRole } from '@pleeno/auth/server'
 import { uploadDocument, generateUniqueFilename } from '@pleeno/utils'
 
 /**
+ * Vercel Serverless Function Configuration
+ * Extended timeout for OCR processing which can take 30-60 seconds for PDFs
+ */
+export const maxDuration = 60 // seconds (Pro plan limit)
+
+/**
  * POST /api/payment-plans/extract-from-document
  *
  * Extracts payment plan data from an uploaded PDF or image document
