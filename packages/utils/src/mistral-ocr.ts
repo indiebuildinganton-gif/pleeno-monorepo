@@ -333,18 +333,24 @@ export class MistralOCRClient {
       const dataUri = `data:${mimeType};base64,${base64Data}`
 
       console.log(`[MistralOCRClient] Stage 1: Base64 encoded, data URI length: ${dataUri.length} chars`)
-      console.log(`[MistralOCRClient] Stage 1: Calling Mistral OCR API...`)
+      console.log(`[MistralOCRClient] Stage 1: Calling Mistral OCR API with mimeType: ${mimeType}`)
+
+      // Determine document type based on mimeType
+      // PDFs use document_url type, images use image_url type
+      const isPdf = mimeType === 'application/pdf'
+      const documentPayload = isPdf
+        ? { type: 'document_url' as const, documentUrl: dataUri }
+        : { type: 'image_url' as const, imageUrl: dataUri }
+
+      console.log(`[MistralOCRClient] Stage 1: Using document type: ${documentPayload.type}`)
 
       const ocrResponse = await this.retryWithBackoff(async () => {
         const startApiCall = Date.now()
         console.log(`[MistralOCRClient] Stage 1: API call started at ${new Date().toISOString()}`)
 
-        const response = await this.client.ocr.complete({
+        const response = await this.client.ocr.process({
           model: 'mistral-ocr-latest',
-          document: {
-            type: 'image_url',
-            imageUrl: dataUri,
-          },
+          document: documentPayload,
           includeImageBase64: false,
         })
 
