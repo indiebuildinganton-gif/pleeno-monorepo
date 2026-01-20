@@ -405,10 +405,26 @@ export class MistralOCRClient {
     console.log('[MistralOCRClient] Stage 2: Starting structured parsing')
 
     try {
-      const base64Data = buffer.toString('base64')
-      const dataUri = `data:${mimeType};base64,${base64Data}`
-
       const prompt = this.createPaymentPlanExtractionPrompt(rawText)
+
+      // Pixtral vision model only accepts images, not PDFs
+      // For PDFs: Use text-only mode (Stage 1 already extracted all text via OCR)
+      // For images: Include the image for additional visual context
+      const isPdf = mimeType === 'application/pdf'
+
+      let messageContent: Array<{ type: 'text'; text: string } | { type: 'image_url'; imageUrl: string }>
+      if (isPdf) {
+        console.log('[MistralOCRClient] Stage 2: Using text-only mode for PDF (Pixtral cannot process PDFs)')
+        messageContent = [{ type: 'text', text: prompt }]
+      } else {
+        const base64Data = buffer.toString('base64')
+        const dataUri = `data:${mimeType};base64,${base64Data}`
+        console.log('[MistralOCRClient] Stage 2: Using vision mode for image')
+        messageContent = [
+          { type: 'text', text: prompt },
+          { type: 'image_url', imageUrl: dataUri },
+        ]
+      }
 
       const chatResponse = await this.retryWithBackoff(async () => {
         const response = await this.client.chat.complete({
@@ -416,10 +432,7 @@ export class MistralOCRClient {
           messages: [
             {
               role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                { type: 'image_url', imageUrl: dataUri },
-              ],
+              content: messageContent,
             },
           ],
         })
